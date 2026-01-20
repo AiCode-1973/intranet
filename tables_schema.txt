@@ -1,0 +1,21 @@
+Table: rh_ponto_itens
+Field: id | Type: int(11)
+Field: ocorrencia_id | Type: int(11)
+Field: data_ponto | Type: date
+Field: entrada | Type: varchar(10)
+Field: saida_almoco | Type: varchar(10)
+Field: volta_almoco | Type: varchar(10)
+Field: saida | Type: varchar(10)
+Field: descricao | Type: text
+
+Table: rh_ponto_ocorrencias
+Field: id | Type: int(11)
+Field: usuario_id | Type: int(11)
+Field: supervisor_id | Type: int(11)
+Field: tipo | Type: enum('BANCO','EXTRA')
+Field: mes | Type: int(11)
+Field: ano | Type: int(11)
+Field: status | Type: enum('PENDENTE','VALIDADO','APROVADO','REJEITADO','RASCUNHO')
+Field: observacao_supervisor | Type: text
+Field: observacao_rh | Type: text
+Field: created_at | Type: timestamp

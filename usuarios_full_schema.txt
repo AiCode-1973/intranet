@@ -1,0 +1,16 @@
+Full Schema of 'usuarios' table:
+Field: id | Type: int(11)
+Field: nome | Type: varchar(100)
+Field: email | Type: varchar(100)
+Field: data_nascimento | Type: date
+Field: cpf | Type: varchar(14)
+Field: senha | Type: varchar(255)
+Field: setor_id | Type: int(11)
+Field: superior_id | Type: int(11)
+Field: is_admin | Type: tinyint(1)
+Field: is_tecnico | Type: tinyint(1)
+Field: is_manutencao | Type: tinyint(1)
+Field: ativo | Type: tinyint(1)
+Field: ultimo_acesso | Type: datetime
+Field: created_at | Type: timestamp
+Field: updated_at | Type: timestamp

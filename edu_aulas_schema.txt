@@ -1,0 +1,8 @@
+Field: id | Type: int(11)
+Field: curso_id | Type: int(11)
+Field: titulo | Type: varchar(255)
+Field: descricao | Type: text
+Field: tipo | Type: enum('video','pdf','texto','slide')
+Field: conteudo | Type: text
+Field: arquivo | Type: varchar(255)
+Field: ordem | Type: int(11)

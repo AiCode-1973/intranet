@@ -1,0 +1,8 @@
+Field: id | Type: int(11)
+Field: titulo | Type: varchar(255)
+Field: descricao | Type: text
+Field: capa | Type: varchar(255)
+Field: carga_horaria | Type: varchar(50)
+Field: imagem | Type: varchar(255)
+Field: status | Type: tinyint(4)
+Field: created_at | Type: timestamp
