@@ -21,11 +21,45 @@ $root_path = $in_admin ? '../' : '';
 
         <!-- Right Actions -->
         <div class="flex items-center gap-4">
-            <!-- Notifications -->
-            <button class="relative p-2 text-text-secondary hover:text-primary transition-colors">
-                <i data-lucide="mail" class="w-5 h-5 text-primary"></i>
-                <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
+            <!-- Notifications (In-App Emails) -->
+            <?php
+            $user_id_header = $_SESSION['usuario_id'];
+            $unread_count = $conn->query("SELECT COUNT(*) as total FROM email_logs WHERE usuario_id = $user_id_header AND lido = 0")->fetch_assoc()['total'];
+            $recent_msgs = $conn->query("SELECT * FROM email_logs WHERE usuario_id = $user_id_header ORDER BY data_envio DESC LIMIT 5");
+            ?>
+            <div class="relative group">
+                <button class="relative p-2 text-text-secondary hover:text-primary transition-colors">
+                    <i data-lucide="mail" class="w-5 h-5 text-primary"></i>
+                    <?php if ($unread_count > 0): ?>
+                        <span class="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-black rounded-full border-2 border-white flex items-center justify-center animate-bounce">
+                            <?php echo $unread_count; ?>
+                        </span>
+                    <?php endif; ?>
+                </button>
+
+                <!-- Dropdown -->
+                <div class="absolute right-0 mt-2 w-72 bg-white rounded-2xl shadow-2xl border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right group-hover:scale-100 scale-95 z-50 overflow-hidden">
+                    <div class="p-4 border-b border-border bg-gray-50 flex justify-between items-center">
+                        <span class="text-xs font-black uppercase tracking-widest text-text-secondary">Mensagens do Admin</span>
+                        <a href="<?php echo $root_path; ?>mensagens.php" class="text-[10px] font-bold text-primary hover:underline">Ver todas</a>
+                    </div>
+                    <div class="max-h-80 overflow-y-auto">
+                        <?php if ($recent_msgs->num_rows > 0): ?>
+                            <?php while($m = $recent_msgs->fetch_assoc()): ?>
+                                <a href="<?php echo $root_path; ?>mensagens.php?id=<?php echo $m['id']; ?>" class="block p-4 border-b border-border/50 hover:bg-primary/[0.02] transition-colors <?php echo $m['lido'] == 0 ? 'bg-primary/[0.03]' : ''; ?>">
+                                    <div class="flex justify-between items-start mb-1">
+                                        <p class="text-[11px] font-bold text-text truncate pr-2"><?php echo $m['assunto']; ?></p>
+                                        <span class="text-[8px] text-text-secondary opacity-50 shrink-0"><?php echo date('d/m H:i', strtotime($m['data_envio'])); ?></span>
+                                    </div>
+                                    <p class="text-[10px] text-text-secondary line-clamp-1 italic"><?php echo strip_tags($m['mensagem']); ?></p>
+                                </a>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <div class="p-8 text-center text-[10px] text-text-secondary italic">Nenhuma mensagem recebida.</div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+            </div>
             
             <button class="relative p-2 text-text-secondary hover:text-primary transition-colors">
                 <i data-lucide="bell" class="w-5 h-5 text-primary"></i>
