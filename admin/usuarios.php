@@ -24,12 +24,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $is_manutencao = isset($_POST['is_manutencao']) ? 1 : 0;
             $is_educacao = isset($_POST['is_educacao']) ? 1 : 0;
             
-            // Upload da foto
+            // Upload e Processamento da foto
             $foto_nome = null;
             if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
                 $ext = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
-                $foto_nome = time() . '_' . $cpf . '.' . $ext;
-                move_uploaded_file($_FILES['foto']['tmp_name'], '../uploads/fotos/' . $foto_nome);
+                $foto_nome = time() . '_' . $cpf . '.jpg'; // Convertemos sempre para JPG de alta qualidade
+                
+                if (processarFoto3x4($_FILES['foto']['tmp_name'], '../uploads/fotos/' . $foto_nome)) {
+                    // Sucesso
+                } else {
+                    $foto_nome = null; // Falha no processamento
+                }
             }
             
             $stmt = $conn->prepare("INSERT INTO usuarios (nome, cpf, email, foto, funcao, senha, setor_id, superior_id, is_admin, is_tecnico, is_manutencao, is_educacao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -61,12 +66,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             $foto_sql = "";
             if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
-                $ext = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
-                $foto_nome = time() . '_' . $cpf . '.' . $ext;
-                if (move_uploaded_file($_FILES['foto']['tmp_name'], '../uploads/fotos/' . $foto_nome)) {
+                $foto_nome = time() . '_' . $cpf . '.jpg';
+                if (processarFoto3x4($_FILES['foto']['tmp_name'], '../uploads/fotos/' . $foto_nome)) {
                     $foto_sql = ", foto = '$foto_nome'";
                 } else {
-                    error_log("Erro ao mover arquivo para ../uploads/fotos/" . $foto_nome);
+                    error_log("Erro ao processar imagem para ../uploads/fotos/" . $foto_nome);
                 }
             } elseif (isset($_FILES['foto']) && $_FILES['foto']['error'] != 0 && $_FILES['foto']['error'] != 4) {
                 error_log("Erro no upload do arquivo: " . $_FILES['foto']['error']);
@@ -155,6 +159,62 @@ $usuarios = $conn->query("
 ");
 
 $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
+
+/**
+ * Função para processar a imagem: corta para 3x4 e redimensiona com alta qualidade
+ */
+function processarFoto3x4($caminho_origem, $caminho_destino) {
+    if (!extension_loaded('gd')) return move_uploaded_file($caminho_origem, $caminho_destino);
+
+    list($width, $height, $type) = getimagesize($caminho_origem);
+    
+    // Cria a imagem baseada no tipo
+    switch ($type) {
+        case IMAGETYPE_JPEG: $origem = imagecreatefromjpeg($caminho_origem); break;
+        case IMAGETYPE_PNG:  $origem = imagecreatefrompng($caminho_origem); break;
+        case IMAGETYPE_WEBP: $origem = imagecreatefromwebp($caminho_origem); break;
+        default: return move_uploaded_file($caminho_origem, $caminho_destino);
+    }
+
+    if (!$origem) return false;
+
+    // Alvo: 600x800 (Proporção 3x4 de alta resolução)
+    $target_w = 600;
+    $target_h = 800;
+    $target_ratio = $target_w / $target_h;
+    $current_ratio = $width / $height;
+
+    $src_x = 0; $src_y = 0;
+    $src_w = $width; $src_h = $height;
+
+    if ($current_ratio > $target_ratio) {
+        // Imagem muito larga -> corta as laterais
+        $src_w = $height * $target_ratio;
+        $src_x = ($width - $src_w) / 2;
+    } else {
+        // Imagem muito alta -> corta o topo/fundo
+        $src_h = $width / $target_ratio;
+        $src_y = ($height - $src_h) / 2;
+    }
+
+    // Cria nova imagem transparente
+    $destino = imagecreatetruecolor($target_w, $target_h);
+    
+    // Preserva transparência (se for salvar como PNG, mas como salvaremos como JPG, preenchemos de branco)
+    $branco = imagecolorallocate($destino, 255, 255, 255);
+    imagefill($destino, 0, 0, $branco);
+
+    // Redimensionamento com alta qualidade (bicubic)
+    imagecopyresampled($destino, $origem, 0, 0, $src_x, $src_y, $target_w, $target_h, $src_w, $src_h);
+
+    // Salva como JPEG com qualidade 95 (excelente equilíbrio)
+    $resultado = imagejpeg($destino, $caminho_destino, 95);
+
+    imagedestroy($origem);
+    imagedestroy($destino);
+
+    return $resultado;
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
