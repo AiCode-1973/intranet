@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="space-y-1.5">
                         <div class="flex justify-between items-center ml-1">
                             <label for="senha" class="text-[10px] font-black text-text-secondary uppercase tracking-widest">Sua Senha</label>
-                            <a href="#" class="text-[10px] font-bold text-primary hover:underline">Recuperar?</a>
+                            <a href="recuperar_senha.php" class="text-[10px] font-bold text-primary hover:underline">Recuperar?</a>
                         </div>
                         <div class="relative group">
                             <input type="password" id="senha" name="senha" required placeholder="••••••••"
