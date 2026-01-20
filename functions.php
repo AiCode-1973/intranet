@@ -129,8 +129,6 @@ function sanitize($data) {
     return htmlspecialchars(strip_tags(trim($data)));
 }
 
-require_once __DIR__ . '/smtp_lib.php';
-
 /**
  * Função para enviar e-mail utilizando as configurações do banco de dados
  */
@@ -145,32 +143,22 @@ function enviarEmail($to, $subject, $message, $config = null) {
     
     if (!$config) return false;
 
-    // Tentar enviar via SMTP robusto
-    $smtp = new SimpleSMTP(
-        $config['smtp_host'], 
-        $config['smtp_port'], 
-        $config['smtp_user'], 
-        $config['smtp_pass'], 
-        $config['smtp_secure']
-    );
+    $from = $config['from_email'];
+    $from_name = $config['from_name'];
 
-    $sucesso = $smtp->send(
-        $config['from_email'], 
-        $config['from_name'], 
-        $to, 
-        $subject, 
-        $message
-    );
+    // Cabeçalhos para e-mail HTML
+    $headers = "MIME-Version: 1.0" . "\r\n";
+    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+    $headers .= "From: {$from_name} <{$from}>" . "\r\n";
+    $headers .= "Reply-To: {$from}" . "\r\n";
+    $headers .= "X-Mailer: PHP/" . phpversion();
 
-    if (!$sucesso) {
-        // Logar erro de envio para depuração
-        $erro = $smtp->getError();
-        $stmt = $conn->prepare("INSERT INTO email_logs (usuario_id, destinatario_email, assunto, mensagem, status, erro_mensagem) VALUES (NULL, ?, ?, ?, 'Falha', ?)");
-        $stmt->bind_param("ssss", $to, $subject, $message, $erro);
-        $stmt->execute();
-        $stmt->close();
+    // Nota: Em ambientes XAMPP, mail() depende do sendmail.php ou servidor SMTP local.
+    // Em produção, esta função deve ser substituída por PHPMailer via SMTP real.
+    try {
+        return mail($to, $subject, $message, $headers);
+    } catch (Exception $e) {
+        return false;
     }
-
-    return $sucesso;
 }
 ?>
