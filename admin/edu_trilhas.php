@@ -42,6 +42,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
     } elseif ($_POST['acao'] == 'remover_curso') {
         $id_vinculo = intval($_POST['id_vinculo']);
         $conn->query("DELETE FROM edu_trilha_curso WHERE id = $id_vinculo");
+    } elseif ($_POST['acao'] == 'excluir_trilha') {
+        $id = intval($_POST['id']);
+        
+        // Remover vínculos primeiro
+        $conn->query("DELETE FROM edu_trilha_curso WHERE trilha_id = $id");
+        
+        $stmt = $conn->prepare("DELETE FROM edu_trilhas WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        
+        if ($stmt->execute()) {
+            $mensagem = "Trilha excluída com sucesso!";
+            $tipo_mensagem = "success";
+            registrarLog($conn, "Excluiu trilha ID: " . $id);
+        } else {
+            $mensagem = "Erro ao excluir: " . $conn->error;
+            $tipo_mensagem = "danger";
+        }
+        $stmt->close();
     }
 }
 
@@ -107,7 +125,8 @@ while($c = $cursos_disp->fetch_assoc()) $cursos_arr[] = $c;
                     </div>
                     <div class="flex items-center gap-2">
                         <button onclick='abrirModalVinculo(<?php echo $t['id']; ?>)' class="p-1.5 hover:bg-white text-primary rounded-lg border border-border" title="Vincular Curso"><i data-lucide="plus" class="w-4 h-4"></i></button>
-                        <button onclick='abrirModalTrilha(<?php echo json_encode($t); ?>)' class="p-1.5 hover:bg-white text-text-secondary rounded-lg border border-border"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                        <button onclick='abrirModalTrilha(<?php echo json_encode($t); ?>)' class="p-1.5 hover:bg-white text-text-secondary rounded-lg border border-border" title="Editar"><i data-lucide="edit" class="w-4 h-4"></i></button>
+                        <button onclick="excluirTrilha(<?php echo $t['id']; ?>, '<?php echo $t['titulo']; ?>')" class="p-1.5 hover:bg-red-50 text-red-500 rounded-lg border border-red-100" title="Excluir"><i data-lucide="trash-2" class="w-4 h-4"></i></button>
                     </div>
                 </div>
                 
@@ -230,6 +249,16 @@ while($c = $cursos_disp->fetch_assoc()) $cursos_arr[] = $c;
                 const f = document.createElement('form');
                 f.method = 'POST';
                 f.innerHTML = `<input type="hidden" name="acao" value="remover_curso"><input type="hidden" name="id_vinculo" value="${id}">`;
+                document.body.appendChild(f);
+                f.submit();
+            }
+        }
+
+        function excluirTrilha(id, titulo) {
+            if (confirm(`Deseja excluir permanentemente a trilha "${titulo}"? Todos os vínculos com cursos serão removidos.`)) {
+                const f = document.createElement('form');
+                f.method = 'POST';
+                f.innerHTML = `<input type="hidden" name="acao" value="excluir_trilha"><input type="hidden" name="id" value="${id}">`;
                 document.body.appendChild(f);
                 f.submit();
             }
