@@ -31,7 +31,9 @@ function isAdminDashboardUser() {
 
 function requireLogin() {
     if (!isLoggedIn()) {
-        header('Location: login.php');
+        $in_admin = strpos($_SERVER['PHP_SELF'], '/admin/') !== false;
+        $path = $in_admin ? '../login.php' : 'login.php';
+        header("Location: $path");
         exit;
     }
 }
@@ -39,7 +41,9 @@ function requireLogin() {
 function requireAdmin() {
     requireLogin();
     if (!isAdmin()) {
-        header('Location: index.php');
+        $in_admin = strpos($_SERVER['PHP_SELF'], '/admin/') !== false;
+        $path = $in_admin ? 'index.php' : 'admin/index.php';
+        header("Location: $path");
         exit;
     }
 }

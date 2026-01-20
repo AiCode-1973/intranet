@@ -18,6 +18,23 @@ $current_page = basename($_SERVER['PHP_SELF']);
         </a>
     </div>
 
+    <!-- User Profile Summary (Mobile or Desktop mini) -->
+    <div class="px-6 mb-6">
+        <div class="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/10">
+            <?php if (!empty($_SESSION['usuario_foto'])): ?>
+                <img src="<?php echo $root_path; ?>uploads/fotos/<?php echo $_SESSION['usuario_foto']; ?>" alt="Foto" class="w-9 h-12 object-cover rounded-lg border border-white/20 shadow-lg">
+            <?php else: ?>
+                <div class="w-9 h-12 bg-white/10 rounded-lg flex items-center justify-center border border-white/20 text-white font-bold text-sm">
+                    <?php echo substr($_SESSION['usuario_nome'], 0, 1); ?>
+                </div>
+            <?php endif; ?>
+            <div class="flex flex-col min-w-0">
+                <span class="text-[11px] font-black text-white truncate"><?php echo $_SESSION['usuario_nome']; ?></span>
+                <span class="text-[9px] text-white/50 uppercase font-bold tracking-tighter truncate"><?php echo $_SESSION['usuario_cpf']; ?></span>
+            </div>
+        </div>
+    </div>
+
     <!-- Navigation -->
     <nav class="flex-grow px-2 space-y-1 overflow-y-auto no-scrollbar min-h-0">
         <?php

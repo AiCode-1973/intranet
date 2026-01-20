@@ -55,11 +55,21 @@ $root_path = $in_admin ? '../' : '';
                                 </a>
                             <?php endwhile; ?>
                         <?php else: ?>
-                            <div class="p-8 text-center text-[10px] text-text-secondary italic">Nenhuma mensagem recebida.</div>
+                    <div class="p-8 text-center text-[10px] text-text-secondary italic">Nenhuma mensagem recebida.</div>
                         <?php endif; ?>
                     </div>
                 </div>
             </div>
+            
+            <style>
+                .avatar-3x4 {
+                    width: 33px;
+                    height: 44px;
+                    object-fit: cover;
+                    border-radius: 4px;
+                    border: 1px solid rgba(var(--color-primary), 0.2);
+                }
+            </style>
             
             <button class="relative p-2 text-text-secondary hover:text-primary transition-colors">
                 <i data-lucide="bell" class="w-5 h-5 text-primary"></i>
@@ -67,9 +77,13 @@ $root_path = $in_admin ? '../' : '';
 
             <!-- User Profile Avatar -->
             <div class="flex items-center gap-2 ml-2 pl-4 border-l border-border">
-                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/30 overflow-hidden shadow-inner font-bold text-primary">
-                    <?php echo substr($_SESSION['usuario_nome'], 0, 1); ?>
-                </div>
+                <?php if (!empty($_SESSION['usuario_foto'])): ?>
+                    <img src="<?php echo $root_path; ?>uploads/fotos/<?php echo $_SESSION['usuario_foto']; ?>" alt="Foto" class="avatar-3x4 shadow-sm">
+                <?php else: ?>
+                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/30 overflow-hidden shadow-inner font-bold text-primary">
+                        <?php echo substr($_SESSION['usuario_nome'], 0, 1); ?>
+                    </div>
+                <?php endif; ?>
                 <a href="<?php echo $root_path; ?>logout.php" class="text-text-secondary hover:text-red-500 transition-colors" title="Sair">
                     <i data-lucide="log-out" class="w-5 h-5"></i>
                 </a>

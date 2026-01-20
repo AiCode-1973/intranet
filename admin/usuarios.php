@@ -24,8 +24,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $is_manutencao = isset($_POST['is_manutencao']) ? 1 : 0;
             $is_educacao = isset($_POST['is_educacao']) ? 1 : 0;
             
-            $stmt = $conn->prepare("INSERT INTO usuarios (nome, cpf, email, funcao, senha, setor_id, superior_id, is_admin, is_tecnico, is_manutencao, is_educacao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssssiiiii", $nome, $cpf, $email, $funcao, $senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao);
+            // Upload da foto
+            $foto_nome = null;
+            if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+                $ext = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
+                $foto_nome = time() . '_' . $cpf . '.' . $ext;
+                move_uploaded_file($_FILES['foto']['tmp_name'], '../uploads/fotos/' . $foto_nome);
+            }
+            
+            $stmt = $conn->prepare("INSERT INTO usuarios (nome, cpf, email, foto, funcao, senha, setor_id, superior_id, is_admin, is_tecnico, is_manutencao, is_educacao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ssssssiiiiii", $nome, $cpf, $email, $foto_nome, $funcao, $senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao);
             
             if ($stmt->execute()) {
                 $mensagem = 'Usuário criado com sucesso!';
@@ -51,12 +59,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $is_educacao = isset($_POST['is_educacao']) ? 1 : 0;
             $ativo = isset($_POST['ativo']) ? 1 : 0;
             
+            $foto_sql = "";
+            if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+                $ext = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
+                $foto_nome = time() . '_' . $cpf . '.' . $ext;
+                if (move_uploaded_file($_FILES['foto']['tmp_name'], '../uploads/fotos/' . $foto_nome)) {
+                    $foto_sql = ", foto = '$foto_nome'";
+                }
+            }
+            
             if (!empty($_POST['senha'])) {
                 $p_senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
-                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, senha = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, ativo = ? WHERE id = ?");
+                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, senha = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, ativo = ? $foto_sql WHERE id = ?");
                 $stmt->bind_param("ssssssiiiiiii", $nome, $cpf, $email, $funcao, $p_senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $ativo, $id);
             } else {
-                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, ativo = ? WHERE id = ?");
+                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, ativo = ? $foto_sql WHERE id = ?");
                 $stmt->bind_param("ssssiiiiiiii", $nome, $cpf, $email, $funcao, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $ativo, $id);
             }
             
@@ -125,7 +142,7 @@ $total_rows = $total_query->fetch_assoc()['total'];
 $total_pages = ceil($total_rows / $limit);
 
 $usuarios = $conn->query("
-    SELECT u.id, u.nome, u.cpf, u.email, u.funcao, u.setor_id, u.superior_id, u.is_admin, u.is_tecnico, u.is_manutencao, u.is_educacao, u.ativo, u.ultimo_acesso, s.nome as setor_nome 
+    SELECT u.id, u.nome, u.cpf, u.email, u.foto, u.funcao, u.setor_id, u.superior_id, u.is_admin, u.is_tecnico, u.is_manutencao, u.is_educacao, u.ativo, u.ultimo_acesso, s.nome as setor_nome 
     FROM usuarios u
     LEFT JOIN setores s ON u.setor_id = s.id
     $where
@@ -158,6 +175,20 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        .foto-3x4 {
+            width: 60px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 4px;
+            border: 1px solid #e2e8f0;
+        }
+        .foto-3x4-large {
+            width: 90px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #e2e8f0;
         }
     </style>
 </head>
@@ -253,10 +284,14 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
                             <?php while ($usuario = $usuarios->fetch_assoc()): ?>
                             <tr class="hover:bg-background/30 transition-colors group">
                                 <td class="p-3">
-                                    <div class="flex items-center gap-2">
-                                        <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary text-xs font-bold">
-                                            <?php echo substr($usuario['nome'], 0, 1); ?>
-                                        </div>
+                                    <div class="flex items-center gap-3">
+                                        <?php if ($usuario['foto']): ?>
+                                            <img src="../uploads/fotos/<?php echo $usuario['foto']; ?>" alt="Foto" class="foto-3x4 shadow-sm">
+                                        <?php else: ?>
+                                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary text-xs font-bold">
+                                                <?php echo substr($usuario['nome'], 0, 1); ?>
+                                            </div>
+                                        <?php endif; ?>
                                         <div>
                                             <p class="text-xs font-bold text-text leading-tight"><?php echo $usuario['nome']; ?></p>
                                             <p class="text-[9px] text-primary font-bold uppercase tracking-tighter"><?php echo $usuario['funcao'] ?: 'Sem Função'; ?></p>
@@ -391,6 +426,19 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
                 <input type="hidden" name="id" id="usuario_id">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div class="md:col-span-2 flex flex-col items-center mb-2">
+                        <div id="fotoPreviewContainer" class="hidden mb-2">
+                            <img id="fotoPreview" src="" alt="Preview" class="foto-3x4-large shadow-lg">
+                        </div>
+                        <div id="fotoDefault" class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300 text-gray-400">
+                            <i data-lucide="camera" class="w-8 h-8"></i>
+                        </div>
+                        <label class="mt-2 cursor-pointer bg-gray-100 hover:bg-gray-200 text-text-secondary px-3 py-1 rounded-full text-[10px] font-bold transition-all border border-border">
+                            Escolher Foto (3x4)
+                            <input type="file" name="foto" id="fotoInput" class="hidden" accept="image/*" onchange="previewImagem(this)">
+                        </label>
+                    </div>
+
                     <div class="md:col-span-2">
                         <label for="nome" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Nome Completo</label>
                         <input type="text" id="nome" name="nome" required class="w-full p-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary transition-all">
