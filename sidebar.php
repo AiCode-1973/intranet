@@ -39,6 +39,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             ['icon' => 'headset', 'label' => 'Ouvidoria', 'link' => '#'],
             ['icon' => 'monitor-dot', 'label' => 'Suporte de TI', 'link' => $root_path . 'suporte.php'],
             ['icon' => 'phone', 'label' => 'Ramais & Telefones', 'link' => $root_path . 'telefones.php'],
+            ['icon' => 'refresh-cw', 'label' => 'Troca de Plantão', 'link' => $root_path . 'plantao_trocas.php'],
         ];
 
         foreach ($menu_items as $item) {

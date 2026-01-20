@@ -252,6 +252,21 @@ $total_politicas = $conn->query("SELECT COUNT(*) as total FROM rh_politicas")->f
                 </div>
             </a>
             <?php endif; ?>
+            <!-- Troca de Plantão (Novo) -->
+            <a href="plantao_gerenciar.php" class="bg-white p-6 rounded-3xl border border-border shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors"></div>
+                <div class="relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary mb-5 group-hover:scale-110 transition-transform">
+                        <i data-lucide="refresh-cw" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-sm font-black text-text uppercase tracking-widest mb-2">Troca de Plantão</h3>
+                    <p class="text-[10px] text-text-secondary font-bold leading-relaxed mb-4">Aprovar solicitações de troca entre funcionários.</p>
+                    <div class="flex items-center gap-2 text-[10px] font-black text-primary uppercase tracking-tighter">
+                        Gerenciar trocas
+                        <i data-lucide="arrow-right" class="w-3 h-3 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+            </a>
         </div>
     </div>
     
