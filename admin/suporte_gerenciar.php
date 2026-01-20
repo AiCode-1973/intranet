@@ -46,7 +46,7 @@ $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as set
             c.data_abertura ASC";
 $chamados = $conn->query($sql);
 
-// Buscar lista de técnicos (Marcados explicitamente como técnicos)
+// Buscar lista de técnicos (Filtra especificamente pelo atributo is_tecnico = TI)
 $tecnicos = $conn->query("SELECT id, nome FROM usuarios WHERE is_tecnico = 1 AND ativo = 1 ORDER BY nome ASC");
 
 $status_styles = [
