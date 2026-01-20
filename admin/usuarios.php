@@ -177,11 +177,12 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
             justify-content: center;
         }
         .foto-3x4 {
-            width: 60px;
-            height: 80px;
+            width: 45px;
+            height: 60px;
             object-fit: cover;
-            border-radius: 4px;
-            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            border: 1px solid rgba(var(--color-primary), 0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .foto-3x4-large {
             width: 90px;
@@ -285,10 +286,12 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
                             <tr class="hover:bg-background/30 transition-colors group">
                                 <td class="p-3">
                                     <div class="flex items-center gap-3">
-                                        <?php if ($usuario['foto']): ?>
-                                            <img src="../uploads/fotos/<?php echo $usuario['foto']; ?>" alt="Foto" class="foto-3x4 shadow-sm">
+                                        <?php if (!empty($usuario['foto']) && file_exists('../uploads/fotos/' . $usuario['foto'])): ?>
+                                            <div class="relative group/avatar">
+                                                <img src="../uploads/fotos/<?php echo $usuario['foto']; ?>" alt="Foto" class="foto-3x4 transition-transform group-hover/avatar:scale-110">
+                                            </div>
                                         <?php else: ?>
-                                            <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary text-xs font-bold">
+                                            <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary text-xs font-bold shadow-sm">
                                                 <?php echo substr($usuario['nome'], 0, 1); ?>
                                             </div>
                                         <?php endif; ?>
