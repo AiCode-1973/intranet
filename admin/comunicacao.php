@@ -68,6 +68,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
         registrarLog($conn, "Enviou e-mail ($tipo_destinatario): $assunto");
     }
 }
+
+// Excluir log individual
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'excluir_log') {
+    $log_id = intval($_POST['log_id']);
+    $stmt = $conn->prepare("DELETE FROM email_logs WHERE id = ?");
+    $stmt->bind_param("i", $log_id);
+    if ($stmt->execute()) {
+        $mensagem = "Registro de envio excluído.";
+        $tipo_mensagem = "success";
+        registrarLog($conn, "Excluiu log de e-mail ID: $log_id");
+    } else {
+        $mensagem = "Erro ao excluir: " . $conn->error;
+        $tipo_mensagem = "danger";
+    }
+    $stmt->close();
+    
+    // Recarregar logs após exclusão
+    $logs = $conn->query("SELECT l.*, u.nome as usuario_nome 
+                          FROM email_logs l 
+                          LEFT JOIN usuarios u ON l.usuario_id = u.id 
+                          ORDER BY l.data_envio DESC LIMIT 10");
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -167,12 +189,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
                     <div class="space-y-4">
                         <?php if ($logs->num_rows > 0): ?>
                             <?php while($l = $logs->fetch_assoc()): ?>
-                                <div class="p-3 bg-background rounded-2xl border border-border/50 group hover:border-primary transition-colors cursor-default">
+                                <div class="p-3 bg-background rounded-2xl border border-border/50 group hover:border-primary transition-colors cursor-default relative">
                                     <div class="flex justify-between items-start mb-1">
-                                        <p class="text-[11px] font-bold text-text truncate pr-2"><?php echo $l['assunto']; ?></p>
-                                        <span class="text-[8px] font-black px-1.5 py-0.5 rounded uppercase <?php echo $l['status'] == 'Sucesso' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'; ?>">
-                                            <?php echo $l['status']; ?>
-                                        </span>
+                                        <p class="text-[11px] font-bold text-text truncate pr-8"><?php echo $l['assunto']; ?></p>
+                                        <div class="flex items-center gap-1.5 shrink-0">
+                                            <span class="text-[8px] font-black px-1.5 py-0.5 rounded uppercase <?php echo $l['status'] == 'Sucesso' ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'; ?>">
+                                                <?php echo $l['status']; ?>
+                                            </span>
+                                            <button onclick="excluirLog(<?php echo $l['id']; ?>)" class="text-text-secondary hover:text-rose-500 transition-colors opacity-0 group-hover:opacity-100 p-1">
+                                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                     <div class="flex items-center justify-between">
                                         <p class="text-[9px] text-text-secondary font-bold">Para: <?php echo $l['usuario_nome'] ?: 'Todos'; ?></p>
@@ -215,6 +242,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
                 div.classList.remove('hidden');
             } else {
                 div.classList.add('hidden');
+            }
+        }
+
+        function excluirLog(id) {
+            if (confirm('Deseja excluir este registro do histórico?')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="acao" value="excluir_log">
+                    <input type="hidden" name="log_id" value="${id}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
             }
         }
     </script>
