@@ -421,7 +421,7 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
                 </button>
             </div>
             
-            <form method="POST" action="" class="p-5">
+            <form method="POST" action="" class="p-5" enctype="multipart/form-data">
                 <input type="hidden" name="acao" id="acao" value="criar">
                 <input type="hidden" name="id" id="usuario_id">
                 
@@ -584,6 +584,13 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
             document.getElementById('is_educacao').checked = false;
             document.getElementById('ativo').checked = true;
             document.getElementById('ativoGroup').style.display = 'none';
+            document.getElementById('superior_id').value = '';
+            
+            // Reset foto
+            document.getElementById('fotoInput').value = '';
+            document.getElementById('fotoPreviewContainer').classList.add('hidden');
+            document.getElementById('fotoDefault').classList.remove('hidden');
+            
             document.getElementById('modalUsuario').classList.add('active');
         }
         
@@ -606,6 +613,18 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
             document.getElementById('is_educacao').checked = usuario.is_educacao == 1;
             document.getElementById('ativo').checked = usuario.ativo == 1;
             document.getElementById('ativoGroup').style.display = 'block';
+            
+            // Mostrar foto atual se existir
+            document.getElementById('fotoInput').value = '';
+            if (usuario.foto) {
+                document.getElementById('fotoPreview').src = '../uploads/fotos/' + usuario.foto;
+                document.getElementById('fotoPreviewContainer').classList.remove('hidden');
+                document.getElementById('fotoDefault').classList.add('hidden');
+            } else {
+                document.getElementById('fotoPreviewContainer').classList.add('hidden');
+                document.getElementById('fotoDefault').classList.remove('hidden');
+            }
+            
             document.getElementById('modalUsuario').classList.add('active');
         }
         
@@ -620,6 +639,22 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
             }
         }
         
+        function previewImagem(input) {
+            const preview = document.getElementById('fotoPreview');
+            const container = document.getElementById('fotoPreviewContainer');
+            const def = document.getElementById('fotoDefault');
+            
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.src = e.target.result;
+                    container.classList.remove('hidden');
+                    def.classList.add('hidden');
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
         window.onclick = function(event) {
             const modal = document.getElementById('modalUsuario');
             if (event.target == modal) {
