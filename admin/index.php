@@ -240,6 +240,17 @@ $total_politicas = $conn->query("SELECT COUNT(*) as total FROM rh_politicas")->f
                     <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-primary transition-all"></i>
                 </div>
             </a>
+
+            <a href="comunicacao.php" class="bg-white p-5 rounded-xl shadow-sm border border-border group hover:border-primary transition-all">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                    <i data-lucide="mail" class="w-5 h-5"></i>
+                </div>
+                <h3 class="text-base font-bold text-text mb-1 tracking-tight">Comunicação</h3>
+                <p class="text-xs text-text-secondary leading-relaxed">Envio de comunicados e e-mails.</p>
+                <div class="mt-4 flex justify-end">
+                    <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-primary transition-all"></i>
+                </div>
+            </a>
             <?php endif; ?>
         </div>
     </div>

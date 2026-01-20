@@ -128,4 +128,37 @@ function formatarData($data) {
 function sanitize($data) {
     return htmlspecialchars(strip_tags(trim($data)));
 }
+
+/**
+ * Função para enviar e-mail utilizando as configurações do banco de dados
+ */
+function enviarEmail($to, $subject, $message, $config = null) {
+    global $conn;
+    
+    // Se não passar a config, busca no banco
+    if (!$config) {
+        $res = $conn->query("SELECT * FROM email_config LIMIT 1");
+        $config = $res->fetch_assoc();
+    }
+    
+    if (!$config) return false;
+
+    $from = $config['from_email'];
+    $from_name = $config['from_name'];
+
+    // Cabeçalhos para e-mail HTML
+    $headers = "MIME-Version: 1.0" . "\r\n";
+    $headers .= "Content-type:text/html;charset=UTF-8" . "\r\n";
+    $headers .= "From: {$from_name} <{$from}>" . "\r\n";
+    $headers .= "Reply-To: {$from}" . "\r\n";
+    $headers .= "X-Mailer: PHP/" . phpversion();
+
+    // Nota: Em ambientes XAMPP, mail() depende do sendmail.php ou servidor SMTP local.
+    // Em produção, esta função deve ser substituída por PHPMailer via SMTP real.
+    try {
+        return mail($to, $subject, $message, $headers);
+    } catch (Exception $e) {
+        return false;
+    }
+}
 ?>
