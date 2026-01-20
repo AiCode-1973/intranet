@@ -4,7 +4,8 @@ $in_admin = strpos($_SERVER['PHP_SELF'], '/admin/') !== false;
 $root_path = $in_admin ? '../' : '';
 $current_page = basename($_SERVER['PHP_SELF']);
 ?>
-<aside class="fixed top-0 left-0 h-screen w-64 bg-sidebar text-white z-50 flex flex-col shadow-2xl transition-all duration-300 overflow-hidden">
+<aside id="mainSidebar" class="fixed top-0 left-0 h-screen w-64 bg-sidebar text-white z-50 flex flex-col shadow-2xl transition-transform duration-300 -translate-x-full lg:translate-x-0 overflow-hidden">
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-[-1] lg:hidden opacity-0 invisible transition-all duration-300" onclick="toggleSidebar()"></div>
     <!-- Logo -->
     <div class="p-6 pt-8 mb-4 flex-shrink-0">
         <a href="<?php echo $root_path; ?>dashboard.php" class="flex items-center gap-3">

@@ -58,7 +58,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
 <body class="bg-background text-text font-sans selection:bg-primary/20">
     <?php include 'header.php'; ?>
     
-    <div class="p-6 w-full max-w-7xl mx-auto flex-grow">
+    <div class="p-4 md:p-6 w-full max-w-7xl mx-auto flex-grow">
         <!-- Dashboard Header (Slim) -->
         <div class="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div>
@@ -134,7 +134,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
         </div>
 
         <!-- Main Dashboard Modules -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <!-- Biblioteca / Protocolos -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col">
                 <div class="flex items-center justify-between mb-4">

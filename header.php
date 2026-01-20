@@ -7,8 +7,13 @@ $root_path = $in_admin ? '../' : '';
 <?php include $root_path . 'sidebar.php'; ?>
 
 <!-- Top Header -->
-<header class="fixed top-0 left-64 right-0 bg-white border-b border-border shadow-sm z-40 h-16">
-    <div class="flex items-center justify-end h-full px-8 gap-6">
+<header class="fixed top-0 left-0 lg:left-64 right-0 bg-white border-b border-border shadow-sm z-40 h-16">
+    <div class="flex items-center justify-between lg:justify-end h-full px-4 lg:px-8 gap-6">
+        <!-- Mobile Menu Toggle -->
+        <button onclick="toggleSidebar()" class="lg:hidden p-2 text-text-secondary hover:text-primary transition-colors">
+            <i data-lucide="menu" class="w-6 h-6"></i>
+        </button>
+
         <!-- Welcome Message -->
         <div class="text-sm text-text-secondary hidden md:block">
             Bem-vindo, <span class="font-semibold text-text"><?php echo $_SESSION['usuario_nome']; ?></span>
@@ -39,6 +44,23 @@ $root_path = $in_admin ? '../' : '';
     </div>
 </header>
 
+<script>
+    function toggleSidebar() {
+        const sidebar = document.getElementById('mainSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        if (sidebar.classList.contains('-translate-x-full')) {
+            sidebar.classList.remove('-translate-x-full');
+            overlay.classList.remove('opacity-0', 'invisible');
+            overlay.classList.add('opacity-100', 'visible');
+        } else {
+            sidebar.classList.add('-translate-x-full');
+            overlay.classList.add('opacity-0', 'invisible');
+            overlay.classList.remove('opacity-100', 'visible');
+        }
+    }
+</script>
+
 <!-- Main Content Wrapper -->
-<div class="min-h-screen flex flex-col pl-64 pt-16 bg-background">
+<div class="min-h-screen flex flex-col pl-0 lg:pl-64 pt-16 bg-background">
 
