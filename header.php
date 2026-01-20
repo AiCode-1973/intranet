@@ -63,14 +63,22 @@ $root_path = $in_admin ? '../' : '';
             
             <style>
                 .avatar-3x4 {
-                    width: 36px;
-                    height: 48px;
+                    width: 38px;
+                    height: 50px;
                     object-fit: cover;
-                    border-radius: 6px;
+                    border-radius: 8px;
                     border: 2px solid white;
-                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    box-shadow: 
+                        0 4px 6px -1px rgba(0,0,0,0.1), 
+                        0 2px 4px -1px rgba(0,0,0,0.06),
+                        inset 0 0 0 1px rgba(0,0,0,0.05);
                     image-rendering: -webkit-optimize-contrast;
                     image-rendering: crisp-edges;
+                    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+                }
+                .avatar-3x4:hover {
+                    transform: scale(1.15) rotate(2deg);
+                    z-index: 60;
                 }
             </style>
             

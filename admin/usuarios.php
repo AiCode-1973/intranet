@@ -181,25 +181,50 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
             justify-content: center;
         }
         .foto-3x4 {
-            width: 54px; /* Aumentado levemente para melhor visibilidade */
-            height: 72px;
+            width: 58px;
+            height: 77px;
             object-fit: cover;
-            border-radius: 8px;
+            border-radius: 10px;
             border: 2px solid #fff;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-            image-rendering: -webkit-optimize-contrast; /* Melhora nitidez */
+            box-shadow: 
+                0 4px 6px -1px rgba(0, 0, 0, 0.1), 
+                0 2px 4px -1px rgba(0, 0, 0, 0.06),
+                0 0 0 1px rgba(var(--color-primary), 0.05);
+            image-rendering: -webkit-optimize-contrast;
             image-rendering: crisp-edges;
             background-color: #f8fafc;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .group:hover .foto-3x4 {
+            transform: scale(1.05) translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: rgba(var(--color-primary), 0.2);
         }
         .foto-3x4-large {
-            width: 120px;
-            height: 160px;
+            width: 140px;
+            height: 186px;
             object-fit: cover;
-            border-radius: 12px;
-            border: 3px solid #fff;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-radius: 16px;
+            border: 4px solid #fff;
+            box-shadow: 
+                0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+                0 10px 10px -5px rgba(0, 0, 0, 0.04);
             image-rendering: -webkit-optimize-contrast;
             background-color: #f8fafc;
+            transition: transform 0.3s ease;
+        }
+        /* Efeito de brilho sutil para fotos */
+        .avatar-container {
+            position: relative;
+            display: inline-block;
+        }
+        .avatar-container::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+            pointer-events: none;
         }
     </style>
 </head>
@@ -297,11 +322,11 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
                                 <td class="p-3">
                                     <div class="flex items-center gap-3">
                                         <?php if (!empty($usuario['foto'])): ?>
-                                            <div class="relative group/avatar">
-                                                <img src="../uploads/fotos/<?php echo $usuario['foto']; ?>" alt="Foto" class="foto-3x4 transition-transform group-hover/avatar:scale-110">
+                                            <div class="avatar-container">
+                                                <img src="../uploads/fotos/<?php echo $usuario['foto']; ?>" alt="Foto" class="foto-3x4">
                                             </div>
                                         <?php else: ?>
-                                            <div class="w-11 h-11 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 text-primary text-xs font-bold shadow-sm">
+                                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 text-primary text-sm font-black shadow-inner">
                                                 <?php echo substr($usuario['nome'], 0, 1); ?>
                                             </div>
                                         <?php endif; ?>
