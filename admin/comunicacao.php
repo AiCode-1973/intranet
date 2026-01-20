@@ -90,6 +90,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
                           LEFT JOIN usuarios u ON l.usuario_id = u.id 
                           ORDER BY l.data_envio DESC LIMIT 10");
 }
+
+// Excluir todos os logs
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'limpar_historico') {
+    if ($conn->query("DELETE FROM email_logs")) {
+        $mensagem = "Histórico de envios limpo com sucesso.";
+        $tipo_mensagem = "success";
+        registrarLog($conn, "Limpou todo o histórico de e-mails");
+    } else {
+        $mensagem = "Erro ao limpar histórico: " . $conn->error;
+        $tipo_mensagem = "danger";
+    }
+    
+    // Recarregar logs (vazio)
+    $logs = $conn->query("SELECT l.*, u.nome as usuario_nome 
+                          FROM email_logs l 
+                          LEFT JOIN usuarios u ON l.usuario_id = u.id 
+                          ORDER BY l.data_envio DESC LIMIT 10");
+}
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -181,10 +199,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
             <!-- Sidebar Info & Logs -->
             <div class="space-y-6">
                 <div class="bg-white rounded-3xl border border-border p-6 shadow-sm">
-                    <h3 class="text-xs font-black text-text-secondary uppercase tracking-widest mb-4 flex items-center gap-2">
-                        <i data-lucide="history" class="w-4 h-4 text-primary"></i>
-                        Envios Recentes
-                    </h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xs font-black text-text-secondary uppercase tracking-widest flex items-center gap-2">
+                            <i data-lucide="history" class="w-4 h-4 text-primary"></i>
+                            Envios Recentes
+                        </h3>
+                        <?php if ($logs->num_rows > 0): ?>
+                            <button onclick="limparHistorico()" class="text-[9px] font-black text-rose-500 hover:text-rose-600 uppercase tracking-tighter flex items-center gap-1 transition-colors" title="Limpar tudo">
+                                <i data-lucide="trash" class="w-3 h-3"></i>
+                                Limpar Tudo
+                            </button>
+                        <?php endif; ?>
+                    </div>
                     
                     <div class="space-y-4">
                         <?php if ($logs->num_rows > 0): ?>
@@ -252,6 +278,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
                 form.innerHTML = `
                     <input type="hidden" name="acao" value="excluir_log">
                     <input type="hidden" name="log_id" value="${id}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function limparHistorico() {
+            if (confirm('ATENÇÃO: Deseja apagar TODO o histórico de envios? Esta ação não pode ser desfeita.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="acao" value="limpar_historico">
                 `;
                 document.body.appendChild(form);
                 form.submit();
