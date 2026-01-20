@@ -52,8 +52,8 @@ $certificado = $conn->query("SELECT * FROM edu_certificados WHERE usuario_id = $
 
         <div class="bg-white rounded-3xl shadow-xl border border-border overflow-hidden mb-8">
             <?php if ($curso['capa']): ?>
-                <div class="w-full h-48 md:h-64 overflow-hidden relative">
-                    <img src="<?php echo $curso['capa']; ?>" class="w-full h-full object-cover">
+                <div class="w-full h-48 md:h-64 overflow-hidden relative flex items-center justify-center bg-gray-100">
+                    <img src="<?php echo $curso['capa']; ?>" class="w-full h-full object-cover object-center">
                     <div class="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent"></div>
                 </div>
             <?php endif; ?>
