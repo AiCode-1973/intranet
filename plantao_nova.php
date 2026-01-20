@@ -9,8 +9,14 @@ $mensagem = '';
 $tipo_mensagem = '';
 
 // Buscar colaboradores do mesmo setor (exceto o próprio usuário)
-$setor_id = $_SESSION['setor_id'];
-$colaboradores = $conn->query("SELECT id, nome FROM usuarios WHERE setor_id = $setor_id AND id != $usuario_id AND ativo = 1 ORDER BY nome ASC");
+$setor_id = isset($_SESSION['setor_id']) ? $_SESSION['setor_id'] : null;
+
+if ($setor_id) {
+    $colaboradores = $conn->query("SELECT id, nome FROM usuarios WHERE setor_id = $setor_id AND id != $usuario_id AND ativo = 1 ORDER BY nome ASC");
+} else {
+    // Se for um admin sem setor, permitir escolher qualquer um
+    $colaboradores = $conn->query("SELECT id, nome FROM usuarios WHERE id != $usuario_id AND ativo = 1 ORDER BY nome ASC");
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'solicitar') {
     $colaborador_id = intval($_POST['colaborador_id']);
@@ -23,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt = $conn->prepare("INSERT INTO trocas_plantao 
         (solicitante_id, data_plantao_solicitante, data_troca_solicitante, colaborador_id, data_plantao_colaborador, data_troca_colaborador, observacoes) 
         VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param("isssiss", $usuario_id, $data_plantao_sol, $data_troca_sol, $colaborador_id, $data_plantao_col, $data_troca_col, $observacoes);
+    $stmt->bind_param("ississs", $usuario_id, $data_plantao_sol, $data_troca_sol, $colaborador_id, $data_plantao_col, $data_troca_col, $observacoes);
 
     if ($stmt->execute()) {
         $mensagem = "Solicitação de troca enviada com sucesso! Aguardando aceite do colaborador.";
