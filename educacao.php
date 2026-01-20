@@ -102,9 +102,9 @@ $percentual_global = ($total_aulas > 0) ? round(($concluidas / $total_aulas) * 1
             while($cl = $cursos_livres->fetch_assoc()):
             ?>
                 <a href="edu_curso.php?id=<?php echo $cl['id']; ?>" class="bg-white rounded-2xl border border-border hover:border-indigo-500 transition-all group overflow-hidden flex flex-col">
-                    <div class="h-24 bg-gray-100 shrink-0">
+                    <div class="h-24 bg-gray-100 shrink-0 flex items-center justify-center overflow-hidden">
                         <?php if ($cl['capa']): ?>
-                            <img src="<?php echo $cl['capa']; ?>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <img src="<?php echo $cl['capa']; ?>" class="w-full h-full object-cover object-top group-hover:scale-110 transition-transform duration-500">
                         <?php else: ?>
                             <div class="w-full h-full flex items-center justify-center text-indigo-500/20">
                                 <i data-lucide="book" class="w-8 h-8"></i>
