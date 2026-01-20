@@ -273,10 +273,20 @@ function processarFoto3x4($caminho_origem, $caminho_destino) {
             background-color: #f8fafc;
             transition: transform 0.3s ease;
         }
+        .foto-circular {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            image-rendering: -webkit-optimize-contrast;
+        }
         /* Efeito de brilho sutil para fotos */
         .avatar-container {
             position: relative;
             display: inline-block;
+            line-height: 0;
         }
         .avatar-container::after {
             content: '';
@@ -383,10 +393,10 @@ function processarFoto3x4($caminho_origem, $caminho_destino) {
                                     <div class="flex items-center gap-3">
                                         <?php if (!empty($usuario['foto'])): ?>
                                             <div class="avatar-container">
-                                                <img src="../uploads/fotos/<?php echo $usuario['foto']; ?>" alt="Foto" class="foto-3x4">
+                                                <img src="../uploads/fotos/<?php echo $usuario['foto']; ?>" alt="Foto" class="foto-circular transition-transform hover:scale-110">
                                             </div>
                                         <?php else: ?>
-                                            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 text-primary text-sm font-black shadow-inner">
+                                            <div class="w-11 h-11 rounded-full bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center border border-primary/20 text-primary text-xs font-black shadow-inner">
                                                 <?php echo substr($usuario['nome'], 0, 1); ?>
                                             </div>
                                         <?php endif; ?>
