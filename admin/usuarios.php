@@ -65,13 +65,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $foto_nome = time() . '_' . $cpf . '.' . $ext;
                 if (move_uploaded_file($_FILES['foto']['tmp_name'], '../uploads/fotos/' . $foto_nome)) {
                     $foto_sql = ", foto = '$foto_nome'";
+                } else {
+                    error_log("Erro ao mover arquivo para ../uploads/fotos/" . $foto_nome);
                 }
+            } elseif (isset($_FILES['foto']) && $_FILES['foto']['error'] != 0 && $_FILES['foto']['error'] != 4) {
+                error_log("Erro no upload do arquivo: " . $_FILES['foto']['error']);
             }
             
             if (!empty($_POST['senha'])) {
                 $p_senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
                 $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, senha = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, ativo = ? $foto_sql WHERE id = ?");
-                $stmt->bind_param("ssssssiiiiiii", $nome, $cpf, $email, $funcao, $p_senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $ativo, $id);
+                $stmt->bind_param("sssssiiiiiiii", $nome, $cpf, $email, $funcao, $p_senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $ativo, $id);
             } else {
                 $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, ativo = ? $foto_sql WHERE id = ?");
                 $stmt->bind_param("ssssiiiiiiii", $nome, $cpf, $email, $funcao, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $ativo, $id);
@@ -286,7 +290,7 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
                             <tr class="hover:bg-background/30 transition-colors group">
                                 <td class="p-3">
                                     <div class="flex items-center gap-3">
-                                        <?php if (!empty($usuario['foto']) && file_exists('../uploads/fotos/' . $usuario['foto'])): ?>
+                                        <?php if (!empty($usuario['foto'])): ?>
                                             <div class="relative group/avatar">
                                                 <img src="../uploads/fotos/<?php echo $usuario['foto']; ?>" alt="Foto" class="foto-3x4 transition-transform group-hover/avatar:scale-110">
                                             </div>
