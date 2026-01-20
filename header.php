@@ -63,11 +63,14 @@ $root_path = $in_admin ? '../' : '';
             
             <style>
                 .avatar-3x4 {
-                    width: 33px;
-                    height: 44px;
+                    width: 36px;
+                    height: 48px;
                     object-fit: cover;
-                    border-radius: 4px;
-                    border: 1px solid rgba(var(--color-primary), 0.2);
+                    border-radius: 6px;
+                    border: 2px solid white;
+                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    image-rendering: -webkit-optimize-contrast;
+                    image-rendering: crisp-edges;
                 }
             </style>
             

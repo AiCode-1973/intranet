@@ -181,19 +181,25 @@ $setores = $conn->query("SELECT * FROM setores WHERE ativo = 1 ORDER BY nome");
             justify-content: center;
         }
         .foto-3x4 {
-            width: 45px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 6px;
-            border: 1px solid rgba(var(--color-primary), 0.1);
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .foto-3x4-large {
-            width: 90px;
-            height: 120px;
+            width: 54px; /* Aumentado levemente para melhor visibilidade */
+            height: 72px;
             object-fit: cover;
             border-radius: 8px;
-            border: 2px solid #e2e8f0;
+            border: 2px solid #fff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            image-rendering: -webkit-optimize-contrast; /* Melhora nitidez */
+            image-rendering: crisp-edges;
+            background-color: #f8fafc;
+        }
+        .foto-3x4-large {
+            width: 120px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 3px solid #fff;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            image-rendering: -webkit-optimize-contrast;
+            background-color: #f8fafc;
         }
     </style>
 </head>
