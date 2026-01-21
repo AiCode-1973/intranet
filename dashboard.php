@@ -136,7 +136,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
         <!-- Main Dashboard Modules -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <!-- Biblioteca / Protocolos -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
                         <i data-lucide="library" class="w-4 h-4 text-primary"></i>
@@ -172,8 +172,27 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                 </a>
             </div>
 
+            <!-- Tecnologia da Informação - Artigos -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full group hover:border-primary transition-all overflow-hidden relative">
+                <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center opacity-40 group-hover:scale-110 transition-transform">
+                    <i data-lucide="monitor" class="w-10 h-10 text-blue-200"></i>
+                </div>
+                <div class="relative z-10 flex flex-col h-full">
+                    <div class="flex items-center gap-2 mb-4">
+                        <i data-lucide="monitor" class="w-4 h-4 text-primary"></i>
+                        <h3 class="text-sm font-bold text-text">Tecnologia da Informação</h3>
+                    </div>
+                    <p class="text-[11px] font-bold text-primary mb-2">Como podemos ajudar você?</p>
+                    <p class="text-[10px] text-text-secondary leading-relaxed mb-6 flex-grow">Acesse nossa base de conhecimento, manuais e resolva problemas técnicos comuns de forma rápida.</p>
+                    
+                    <a href="ti_artigos.php" class="w-full py-2 bg-primary/5 hover:bg-primary text-primary hover:text-white rounded-lg text-[9px] font-black transition-all uppercase tracking-widest border border-primary/10 text-center">
+                        Explorar Artigos de Ajuda
+                    </a>
+                </div>
+            </div>
+
             <!-- Ramais & Telefones -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col group hover:border-primary transition-all overflow-hidden relative">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full group hover:border-primary transition-all overflow-hidden relative">
                 <div class="absolute -right-4 -top-4 w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center opacity-40 group-hover:scale-110 transition-transform">
                     <i data-lucide="phone" class="w-10 h-10 text-gray-200"></i>
                 </div>
@@ -191,7 +210,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             </div>
 
             <!-- Qualidade / Métricas -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-border">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full">
                 <div class="flex items-center justify-between mb-5">
                     <div class="flex items-center gap-2">
                         <i data-lucide="bar-chart" class="w-4 h-4 text-primary"></i>
@@ -199,7 +218,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     </div>
                 </div>
                 
-                <div class="space-y-5">
+                <div class="space-y-5 flex-grow">
                     <div>
                         <div class="flex justify-between items-end mb-1.5">
                             <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest">Satisfação do Cliente</span>
@@ -231,7 +250,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             </div>
 
             <!-- Educação Permanente -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full">
                 <div class="flex items-center justify-between mb-5">
                     <div class="flex items-center gap-2">
                         <i data-lucide="graduation-cap" class="w-4 h-4 text-primary"></i>
@@ -283,8 +302,8 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     </a>
                 </div>
 
-                <!-- RH & Holerites -->
-                <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col group hover:border-indigo-500 transition-all overflow-hidden relative">
+            <!-- RH & Holerites -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full group hover:border-indigo-500 transition-all overflow-hidden relative">
                     <div class="absolute -right-4 -top-4 w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center opacity-40 group-hover:scale-110 transition-transform">
                         <i data-lucide="users" class="w-10 h-10 text-indigo-200"></i>
                     </div>
@@ -309,11 +328,11 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
 
         <!-- Operational Quick Access (Slim) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
+            <div class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center h-full gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
                 <div class="w-16 h-16 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500">
                     <i data-lucide="file-signature" class="w-8 h-8"></i>
                 </div>
-                <div>
+                <div class="flex-grow">
                     <h3 class="text-base font-bold text-text tracking-tight group-hover:text-primary transition-colors">Protocolo de Documentos</h3>
                     <p class="text-[11px] text-text-secondary leading-relaxed mb-2">Envie, receba e monitore a circulação de documentos oficiais entre departamentos.</p>
                     <div class="flex items-center gap-4">
@@ -327,7 +346,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                 </div>
             </div>
 
-            <a href="manutencao.php" class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
+            <a href="manutencao.php" class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center h-full gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
                 <div class="w-16 h-16 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all duration-500 relative">
                     <i data-lucide="wrench" class="w-8 h-8"></i>
                     <?php if ($total_manutencao_pendentes > 0): ?>

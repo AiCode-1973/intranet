@@ -14,6 +14,7 @@ $total_biblioteca = $conn->query("SELECT COUNT(*) as total FROM biblioteca")->fe
 $total_educacao = $conn->query("SELECT COUNT(*) as total FROM educacao_treinamentos")->fetch_assoc()['total'];
 $total_telefones = $conn->query("SELECT COUNT(*) as total FROM telefones")->fetch_assoc()['total'];
 $total_politicas = $conn->query("SELECT COUNT(*) as total FROM rh_politicas")->fetch_assoc()['total'];
+$total_ti_artigos = $conn->query("SELECT COUNT(*) as total FROM ti_artigos")->fetch_assoc()['total'];
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -163,6 +164,22 @@ $total_politicas = $conn->query("SELECT COUNT(*) as total FROM rh_politicas")->f
                 <p class="text-xs text-text-secondary leading-relaxed">Gestão de chamados técnicos.</p>
                 <div class="mt-4 flex justify-end">
                     <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-blue-600 transition-all"></i>
+                </div>
+            </a>
+
+            <a href="ti_artigos.php" class="bg-white p-5 rounded-xl shadow-sm border border-border group hover:border-primary transition-all">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-white transition-all duration-300 relative">
+                    <i data-lucide="file-text" class="w-5 h-5"></i>
+                    <?php if ($total_ti_artigos > 0): ?>
+                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-primary text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm ring-2 ring-primary/20">
+                            <?php echo $total_ti_artigos; ?>
+                        </span>
+                    <?php endif; ?>
+                </div>
+                <h3 class="text-base font-bold text-text mb-1 tracking-tight">Artigos de TI</h3>
+                <p class="text-xs text-text-secondary leading-relaxed">Gerencie a base de conhecimento.</p>
+                <div class="mt-4 flex justify-end">
+                    <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-primary transition-all"></i>
                 </div>
             </a>
             <?php endif; ?>
