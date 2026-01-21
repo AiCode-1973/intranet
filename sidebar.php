@@ -22,9 +22,9 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <div class="px-6 mb-6">
         <div class="flex items-center gap-3 p-3 bg-white/5 rounded-2xl border border-white/10">
             <?php if (!empty($_SESSION['usuario_foto'])): ?>
-                <img src="<?php echo $root_path; ?>uploads/fotos/<?php echo $_SESSION['usuario_foto']; ?>" alt="Foto" class="w-9 h-12 object-cover rounded-lg border border-white/20 shadow-lg">
+                <img src="<?php echo $root_path; ?>uploads/fotos/<?php echo $_SESSION['usuario_foto']; ?>" alt="Foto" class="w-12 h-12 object-cover rounded-full border border-white/20 shadow-lg">
             <?php else: ?>
-                <div class="w-9 h-12 bg-white/10 rounded-lg flex items-center justify-center border border-white/20 text-white font-bold text-sm">
+                <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center border border-white/20 text-white font-bold text-sm">
                     <?php echo substr($_SESSION['usuario_nome'], 0, 1); ?>
                 </div>
             <?php endif; ?>
