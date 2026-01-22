@@ -61,7 +61,12 @@ $certificado = $conn->query("SELECT * FROM edu_certificados WHERE usuario_id = $
             <div class="flex flex-col md:flex-row justify-between items-start gap-6">
                 <div class="flex-grow">
                     <h1 class="text-3xl font-bold text-text mb-1 tracking-tight"><?php echo $curso['titulo']; ?></h1>
-                    <p class="text-[11px] text-primary font-bold uppercase tracking-widest mb-4">Instrutor: <?php echo $curso['instrutor'] ?: 'Não informado'; ?></p>
+                    <p class="text-[11px] text-primary font-bold uppercase tracking-widest mb-1">Instrutor: <?php echo $curso['instrutor'] ?: 'Não informado'; ?></p>
+                    <?php if ($curso['formacao_instrutor']): ?>
+                        <p class="text-[10px] text-text-secondary font-medium mb-4 italic"><?php echo $curso['formacao_instrutor']; ?></p>
+                    <?php else: ?>
+                        <div class="mb-4"></div>
+                    <?php endif; ?>
                     <p class="text-text-secondary text-sm leading-relaxed mb-6"><?php echo $curso['descricao']; ?></p>
                     
                     <div class="flex flex-wrap gap-4">

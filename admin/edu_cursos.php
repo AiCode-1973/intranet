@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         $id = isset($_POST['id']) ? intval($_POST['id']) : null;
         $titulo = sanitize($_POST['titulo']);
         $instrutor = sanitize($_POST['instrutor']);
+        $formacao_instrutor = $_POST['formacao_instrutor']; // Permitir HTML se necessário, ou usar editor
         $descricao = $_POST['descricao'];
         $capa = sanitize($_POST['capa_atual'] ?? '');
         
@@ -31,12 +32,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         $status = intval($_POST['status']);
 
         if ($id) {
-            $stmt = $conn->prepare("UPDATE edu_cursos SET titulo = ?, instrutor = ?, descricao = ?, capa = ?, carga_horaria = ?, status = ? WHERE id = ?");
-            $stmt->bind_param("sssssii", $titulo, $instrutor, $descricao, $capa, $carga_horaria, $status, $id);
+            $stmt = $conn->prepare("UPDATE edu_cursos SET titulo = ?, instrutor = ?, formacao_instrutor = ?, descricao = ?, capa = ?, carga_horaria = ?, status = ? WHERE id = ?");
+            $stmt->bind_param("ssssssii", $titulo, $instrutor, $formacao_instrutor, $descricao, $capa, $carga_horaria, $status, $id);
         } else {
             $usuario_id = $_SESSION['usuario_id'];
-            $stmt = $conn->prepare("INSERT INTO edu_cursos (titulo, instrutor, descricao, capa, carga_horaria, status, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssssii", $titulo, $instrutor, $descricao, $capa, $carga_horaria, $status, $usuario_id);
+            $stmt = $conn->prepare("INSERT INTO edu_cursos (titulo, instrutor, formacao_instrutor, descricao, capa, carga_horaria, status, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ssssssii", $titulo, $instrutor, $formacao_instrutor, $descricao, $capa, $carga_horaria, $status, $usuario_id);
         }
 
         if ($stmt->execute()) {
@@ -218,9 +219,15 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                     <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Título do Curso</label>
                     <input type="text" name="titulo" id="curso_titulo" required class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary">
                 </div>
-                <div>
-                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Autor / Instrutor</label>
-                    <input type="text" name="instrutor" id="curso_instrutor" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Autor / Instrutor</label>
+                        <input type="text" name="instrutor" id="curso_instrutor" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Formação do Autor</label>
+                        <input type="text" name="formacao_instrutor" id="curso_formacao" placeholder="Ex: Graduação em RH" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Imagem de Capa (Opcional)</label>
@@ -300,6 +307,7 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                 document.getElementById('curso_id').value = dados.id;
                 document.getElementById('curso_titulo').value = dados.titulo;
                 document.getElementById('curso_instrutor').value = dados.instrutor || '';
+                document.getElementById('curso_formacao').value = dados.formacao_instrutor || '';
                 document.getElementById('curso_capa_atual').value = dados.capa || '';
                 document.getElementById('curso_descricao').value = dados.descricao;
                 document.getElementById('curso_carga').value = dados.carga_horaria;
@@ -309,6 +317,7 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                 document.getElementById('curso_id').value = '';
                 document.getElementById('curso_titulo').value = '';
                 document.getElementById('curso_instrutor').value = '';
+                document.getElementById('curso_formacao').value = '';
                 document.getElementById('curso_capa_atual').value = '';
                 document.getElementById('curso_descricao').value = '';
                 document.getElementById('curso_carga').value = '';
