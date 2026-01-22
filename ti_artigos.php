@@ -30,23 +30,23 @@ while($row = $artigos->fetch_assoc()) {
     <div class="p-4 md:p-8">
         <div class="max-w-5xl mx-auto">
             <!-- Header informativo solicitado -->
-            <div class="bg-gradient-to-r from-primary to-indigo-600 rounded-3xl p-8 md:p-12 text-white mb-8 shadow-xl relative overflow-hidden">
+            <div class="bg-gradient-to-r from-primary to-indigo-600 rounded-2xl p-6 md:p-8 text-white mb-6 shadow-lg relative overflow-hidden">
                 <div class="relative z-10">
-                    <h1 class="text-3xl md:text-4xl font-black mb-4 tracking-tight">Tecnologia da Informação</h1>
-                    <p class="text-white/80 text-lg max-w-2xl font-medium">Como podemos ajudar você hoje? Encontre tutoriais, resolva problemas comuns e aprenda a usar nossas ferramentas.</p>
+                    <h1 class="text-2xl md:text-3xl font-black mb-2 tracking-tight">Tecnologia da Informação</h1>
+                    <p class="text-white/80 text-sm md:text-base max-w-xl font-medium">Como podemos ajudar você hoje? Encontre tutoriais e resolva problemas comuns.</p>
                     
-                    <div class="mt-8 max-w-xl">
+                    <div class="mt-6 max-w-lg">
                         <form action="ti_artigos.php" method="GET" class="relative">
-                            <input type="text" name="search" value="<?php echo $search; ?>" placeholder="O que você está procurando?" class="w-full px-6 py-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl text-white placeholder:text-white/50 focus:outline-none focus:bg-white/20 transition-all shadow-inner">
-                            <button type="submit" class="absolute right-3 top-3 bg-white text-primary p-2 rounded-xl shadow-lg hover:scale-105 transition-transform">
-                                <i data-lucide="search" class="w-6 h-6"></i>
+                            <input type="text" name="search" value="<?php echo $search; ?>" placeholder="O que você está procurando?" class="w-full px-5 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-xl text-white placeholder:text-white/50 focus:outline-none focus:bg-white/20 transition-all shadow-inner text-sm">
+                            <button type="submit" class="absolute right-2 top-2 bg-white text-primary p-1.5 rounded-lg shadow-lg hover:scale-105 transition-transform">
+                                <i data-lucide="search" class="w-5 h-5"></i>
                             </button>
                         </form>
                     </div>
                 </div>
                 <!-- Elementos decorativos -->
-                <div class="absolute -right-10 -bottom-10 opacity-10">
-                    <i data-lucide="monitor" class="w-64 h-64"></i>
+                <div class="absolute -right-6 -bottom-6 opacity-10">
+                    <i data-lucide="monitor" class="w-48 h-48"></i>
                 </div>
             </div>
 
