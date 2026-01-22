@@ -47,9 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Lógica de Upload de Imagem
     $imagem_path = $_POST['imagem_atual'] ?? '';
     if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] === UPLOAD_ERR_OK) {
+        $dir_img = '../uploads/ti_imagens/';
+        if (!is_dir($dir_img)) mkdir($dir_img, 0777, true);
+        
         $ext = pathinfo($_FILES['imagem']['name'], PATHINFO_EXTENSION);
         $novo_nome_imagem = uniqid('ti_img_') . '.' . $ext;
-        if (move_uploaded_file($_FILES['imagem']['tmp_name'], '../uploads/ti_imagens/' . $novo_nome_imagem)) {
+        if (move_uploaded_file($_FILES['imagem']['tmp_name'], $dir_img . $novo_nome_imagem)) {
             $imagem_path = $novo_nome_imagem;
         }
     }
@@ -57,9 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Lógica de Upload de Anexo
     $anexo_path = $_POST['anexo_atual'] ?? '';
     if (isset($_FILES['anexo']) && $_FILES['anexo']['error'] === UPLOAD_ERR_OK) {
+        $dir_anexo = '../uploads/ti_anexos/';
+        if (!is_dir($dir_anexo)) mkdir($dir_anexo, 0777, true);
+
         $ext = pathinfo($_FILES['anexo']['name'], PATHINFO_EXTENSION);
         $novo_nome_anexo = uniqid('ti_doc_') . '.' . $ext;
-        if (move_uploaded_file($_FILES['anexo']['tmp_name'], '../uploads/ti_anexos/' . $novo_nome_anexo)) {
+        if (move_uploaded_file($_FILES['anexo']['tmp_name'], $dir_anexo . $novo_nome_anexo)) {
             $anexo_path = $novo_nome_anexo;
         }
     }
