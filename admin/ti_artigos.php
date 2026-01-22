@@ -39,14 +39,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = isset($_POST['id']) ? (int)$_POST['id'] : 0;
     $titulo = sanitize($_POST['titulo']);
     $categoria = sanitize($_POST['categoria']);
-    $conteudo = $_POST['conteudo']; // Não sanitizar totalmente para permitir HTML básico se necessário, ou usar editor
+    $conteudo = $_POST['conteudo']; 
+    $video_url = sanitize($_POST['video_url']);
     $ativo = isset($_POST['ativo']) ? 1 : 0;
     $autor_id = $_SESSION['usuario_id'];
 
+    // Lógica de Upload de Imagem
+    $imagem_path = $_POST['imagem_atual'] ?? '';
+    if (isset($_FILES['imagem']) && $_FILES['imagem']['error'] === UPLOAD_ERR_OK) {
+        $ext = pathinfo($_FILES['imagem']['name'], PATHINFO_EXTENSION);
+        $novo_nome_imagem = uniqid('ti_img_') . '.' . $ext;
+        if (move_uploaded_file($_FILES['imagem']['tmp_name'], '../uploads/ti_imagens/' . $novo_nome_imagem)) {
+            $imagem_path = $novo_nome_imagem;
+        }
+    }
+
+    // Lógica de Upload de Anexo
+    $anexo_path = $_POST['anexo_atual'] ?? '';
+    if (isset($_FILES['anexo']) && $_FILES['anexo']['error'] === UPLOAD_ERR_OK) {
+        $ext = pathinfo($_FILES['anexo']['name'], PATHINFO_EXTENSION);
+        $novo_nome_anexo = uniqid('ti_doc_') . '.' . $ext;
+        if (move_uploaded_file($_FILES['anexo']['tmp_name'], '../uploads/ti_anexos/' . $novo_nome_anexo)) {
+            $anexo_path = $novo_nome_anexo;
+        }
+    }
+
     if ($id > 0) {
         // Editar
-        $stmt = $conn->prepare("UPDATE ti_artigos SET titulo = ?, categoria = ?, conteudo = ?, ativo = ? WHERE id = ?");
-        $stmt->bind_param("sssii", $titulo, $categoria, $conteudo, $ativo, $id);
+        $stmt = $conn->prepare("UPDATE ti_artigos SET titulo = ?, categoria = ?, conteudo = ?, video_url = ?, anexo_path = ?, imagem_path = ?, ativo = ? WHERE id = ?");
+        $stmt->bind_param("ssssssii", $titulo, $categoria, $conteudo, $video_url, $anexo_path, $imagem_path, $ativo, $id);
         if ($stmt->execute()) {
             $mensagem = "Artigo atualizado com sucesso!";
             $tipo_mensagem = "success";
@@ -57,8 +78,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     } else {
         // Novo
-        $stmt = $conn->prepare("INSERT INTO ti_artigos (titulo, categoria, conteudo, ativo, autor_id) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("sssii", $titulo, $categoria, $conteudo, $ativo, $autor_id);
+        $stmt = $conn->prepare("INSERT INTO ti_artigos (titulo, categoria, conteudo, video_url, anexo_path, imagem_path, ativo, autor_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("ssssssii", $titulo, $categoria, $conteudo, $video_url, $anexo_path, $imagem_path, $ativo, $autor_id);
         if ($stmt->execute()) {
             $mensagem = "Artigo cadastrado com sucesso!";
             $tipo_mensagem = "success";
@@ -121,9 +142,11 @@ $artigos = $conn->query("SELECT a.*, u.nome as autor_nome FROM ti_artigos a LEFT
                                 <?php echo $artigo_edit ? 'Editar Artigo' : 'Novo Artigo'; ?>
                             </h2>
                             
-                            <form action="ti_artigos.php" method="POST" class="space-y-4">
+                            <form action="ti_artigos.php" method="POST" class="space-y-4" enctype="multipart/form-data">
                                 <?php if ($artigo_edit): ?>
                                     <input type="hidden" name="id" value="<?php echo $artigo_edit['id']; ?>">
+                                    <input type="hidden" name="imagem_atual" value="<?php echo $artigo_edit['imagem_path']; ?>">
+                                    <input type="hidden" name="anexo_atual" value="<?php echo $artigo_edit['anexo_path']; ?>">
                                 <?php endif; ?>
                                 
                                 <div>
@@ -131,20 +154,43 @@ $artigos = $conn->query("SELECT a.*, u.nome as autor_nome FROM ti_artigos a LEFT
                                     <input type="text" name="titulo" required value="<?php echo $artigo_edit ? $artigo_edit['titulo'] : ''; ?>" class="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm" placeholder="Ex: Como configurar o e-mail">
                                 </div>
 
-                                <div>
-                                    <label class="block text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1">Categoria</label>
-                                    <select name="categoria" class="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm">
-                                        <option value="Sistemas" <?php echo ($artigo_edit && $artigo_edit['categoria'] == 'Sistemas') ? 'selected' : ''; ?>>Sistemas</option>
-                                        <option value="Hardware" <?php echo ($artigo_edit && $artigo_edit['categoria'] == 'Hardware') ? 'selected' : ''; ?>>Hardware</option>
-                                        <option value="Rede" <?php echo ($artigo_edit && $artigo_edit['categoria'] == 'Rede') ? 'selected' : ''; ?>>Rede</option>
-                                        <option value="E-mail" <?php echo ($artigo_edit && $artigo_edit['categoria'] == 'E-mail') ? 'selected' : ''; ?>>E-mail</option>
-                                        <option value="Geral" <?php echo ($artigo_edit && $artigo_edit['categoria'] == 'Geral') ? 'selected' : ''; ?>>Geral</option>
-                                    </select>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1">Categoria</label>
+                                        <select name="categoria" class="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm">
+                                            <option value="Sistemas" <?php echo ($artigo_edit && $artigo_edit['categoria'] == 'Sistemas') ? 'selected' : ''; ?>>Sistemas</option>
+                                            <option value="Hardware" <?php echo ($artigo_edit && $artigo_edit['categoria'] == 'Hardware') ? 'selected' : ''; ?>>Hardware</option>
+                                            <option value="Rede" <?php echo ($artigo_edit && $artigo_edit['categoria'] == 'Rede') ? 'selected' : ''; ?>>Rede</option>
+                                            <option value="E-mail" <?php echo ($artigo_edit && $artigo_edit['categoria'] == 'E-mail') ? 'selected' : ''; ?>>E-mail</option>
+                                            <option value="Geral" <?php echo ($artigo_edit && $artigo_edit['categoria'] == 'Geral') ? 'selected' : ''; ?>>Geral</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1">URL do Vídeo</label>
+                                        <input type="url" name="video_url" value="<?php echo $artigo_edit ? $artigo_edit['video_url'] : ''; ?>" class="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm" placeholder="Ex: YouTube Link">
+                                    </div>
+                                </div>
+
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1">Imagem de Destaque</label>
+                                        <input type="file" name="imagem" accept="image/*" class="w-full px-4 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-xs file:hidden">
+                                        <?php if ($artigo_edit && $artigo_edit['imagem_path']): ?>
+                                            <p class="text-[9px] text-primary font-bold mt-1">✓ Tem imagem salva</p>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div>
+                                        <label class="block text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1">Anexo / Arquivo</label>
+                                        <input type="file" name="anexo" class="w-full px-4 py-1.5 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-xs file:hidden">
+                                        <?php if ($artigo_edit && $artigo_edit['anexo_path']): ?>
+                                            <p class="text-[9px] text-primary font-bold mt-1">✓ Tem anexo salvo</p>
+                                        <?php endif; ?>
+                                    </div>
                                 </div>
 
                                 <div>
-                                    <label class="block text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1">Conteúdo (HTML básico aceito)</label>
-                                    <textarea name="conteudo" required rows="10" class="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm" placeholder="Descreva o procedimento..."><?php echo $artigo_edit ? $artigo_edit['conteudo'] : ''; ?></textarea>
+                                    <label class="block text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1">Conteúdo</label>
+                                    <textarea name="conteudo" required rows="6" class="w-full px-4 py-2 bg-background border border-border rounded-lg focus:outline-none focus:border-primary text-sm" placeholder="Descreva o procedimento..."><?php echo $artigo_edit ? $artigo_edit['conteudo'] : ''; ?></textarea>
                                 </div>
 
                                 <div class="flex items-center gap-2 py-2">

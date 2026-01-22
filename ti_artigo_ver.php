@@ -52,10 +52,66 @@ if (!$artigo) {
                     </div>
                 </div>
 
+                <!-- Imagem de Destaque -->
+                <?php if ($artigo['imagem_path']): ?>
+                    <div class="mb-8 rounded-2xl overflow-hidden border border-border shadow-sm">
+                        <img src="uploads/ti_imagens/<?php echo $artigo['imagem_path']; ?>" alt="<?php echo $artigo['titulo']; ?>" class="w-full h-auto object-cover max-h-[400px]">
+                    </div>
+                <?php endif; ?>
+
                 <!-- Conteúdo do Artigo -->
-                <div class="prose prose-sm md:prose-base max-w-none text-text-secondary leading-relaxed">
+                <div class="prose prose-sm md:prose-base max-w-none text-text-secondary leading-relaxed mb-8">
                     <?php echo nl2br($artigo['conteudo']); ?>
                 </div>
+
+                <!-- Vídeo e Anexos -->
+                <?php if ($artigo['video_url'] || $artigo['anexo_path']): ?>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12 p-6 bg-background rounded-2xl border border-border">
+                        <?php if ($artigo['video_url']): ?>
+                            <div class="space-y-3">
+                                <h3 class="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="play-circle" class="w-4 h-4"></i>
+                                    Vídeo Tutorial
+                                </h3>
+                                <?php 
+                                    // Simples conversão de link do Youtube para Embed se necessário
+                                    $video_src = $artigo['video_url'];
+                                    if (strpos($video_src, 'youtube.com/watch?v=') !== false) {
+                                        $video_src = str_replace('youtube.com/watch?v=', 'youtube.com/embed/', $video_src);
+                                    } elseif (strpos($video_src, 'youtu.be/') !== false) {
+                                        $video_src = str_replace('youtu.be/', 'youtube.com/embed/', $video_src);
+                                    }
+                                ?>
+                                <div class="aspect-video rounded-xl overflow-hidden shadow-sm">
+                                    <iframe class="w-full h-full" src="<?php echo $video_src; ?>" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if ($artigo['anexo_path']): ?>
+                            <div class="space-y-3">
+                                <h3 class="text-xs font-black text-primary uppercase tracking-widest flex items-center gap-2">
+                                    <i data-lucide="paperclip" class="w-4 h-4"></i>
+                                    Material de Apoio
+                                </h3>
+                                <div class="p-4 bg-white rounded-xl border border-border flex items-center justify-between">
+                                    <div class="flex items-center gap-3">
+                                        <div class="p-2 bg-primary/5 rounded-lg text-primary">
+                                            <i data-lucide="file-text" class="w-5 h-5"></i>
+                                        </div>
+                                        <div>
+                                            <p class="text-[10px] font-bold text-text-secondary uppercase tracking-tighter leading-none mb-1">Arquivo Anexo</p>
+                                            <p class="text-xs font-black text-text truncate max-w-[150px]"><?php echo $artigo['anexo_path']; ?></p>
+                                        </div>
+                                    </div>
+                                    <a href="uploads/ti_anexos/<?php echo $artigo['anexo_path']; ?>" download class="p-2 bg-primary text-white rounded-lg hover:bg-primary-dark transition-all shadow-sm">
+                                        <i data-lucide="download" class="w-4 h-4"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+                <?php endif; ?>
 
                 <!-- Feedback Sutil -->
                 <div class="mt-12 pt-8 border-t border-border/50 flex flex-col md:flex-row items-center justify-between gap-4">
