@@ -62,18 +62,18 @@ while($row = $artigos->fetch_assoc()) {
                     <?php endif; ?>
                 </div>
             <?php else: ?>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <?php foreach ($categorias as $cat => $arts): ?>
-                        <div class="bg-white rounded-3xl p-6 shadow-sm border border-border hover:shadow-md transition-shadow">
-                            <h2 class="text-xs font-black text-primary uppercase tracking-[0.2em] mb-4 flex items-center gap-2">
-                                <i data-lucide="folder-open" class="w-4 h-4"></i>
+                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-border hover:shadow-md transition-shadow">
+                            <h2 class="text-[10px] font-black text-primary uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
+                                <i data-lucide="folder-open" class="w-3.5 h-3.5"></i>
                                 <?php echo $cat ?: 'Diversos'; ?>
                             </h2>
-                            <div class="space-y-1">
+                            <div class="space-y-0.5">
                                 <?php foreach ($arts as $art): ?>
-                                    <a href="ti_artigo_ver.php?id=<?php echo $art['id']; ?>" class="flex items-center justify-between p-3 rounded-xl hover:bg-background transition-colors group">
-                                        <span class="text-sm font-bold text-text group-hover:text-primary transition-colors"><?php echo $art['titulo']; ?></span>
-                                        <i data-lucide="arrow-right" class="w-4 h-4 text-text-secondary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>
+                                    <a href="ti_artigo_ver.php?id=<?php echo $art['id']; ?>" class="flex items-center justify-between p-2 rounded-lg hover:bg-background transition-colors group">
+                                        <span class="text-xs font-bold text-text group-hover:text-primary transition-colors"><?php echo $art['titulo']; ?></span>
+                                        <i data-lucide="arrow-right" class="w-3 h-3 text-text-secondary opacity-0 group-hover:opacity-100 group-hover:translate-x-1 transition-all"></i>
                                     </a>
                                 <?php endforeach; ?>
                             </div>
