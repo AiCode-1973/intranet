@@ -47,7 +47,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             ['icon' => 'shield-check', 'label' => 'Qualidade & Segurança', 'link' => '#'],
             ['icon' => 'users', 'label' => 'Recursos Humanos', 'link' => $root_path . 'rh.php'],
             ['icon' => 'briefcase', 'label' => 'Setores Administrativos', 'link' => '#'],
-            ['icon' => 'clipboard-list', 'label' => 'Protocolo de Documentos', 'link' => '#'],
+            ['icon' => 'stethoscope', 'label' => 'Chamados CEH', 'link' => $root_path . 'ceh.php'],
             ['icon' => 'monitor', 'label' => 'Tecnologia da Informação', 'link' => $root_path . 'ti_artigos.php'],
             ['icon' => 'wrench', 'label' => 'Infraestrutura & Manutenção', 'link' => $root_path . 'manutencao.php'],
             ['icon' => 'shield-alert', 'label' => 'Segurança do Trabalho', 'link' => '#'],

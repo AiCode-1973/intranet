@@ -328,23 +328,32 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
 
         <!-- Operational Quick Access (Slim) -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center h-full gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
-                <div class="w-16 h-16 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500">
-                    <i data-lucide="file-signature" class="w-8 h-8"></i>
+            <?php
+            // Buscar chamados CEH pendentes para o card
+            $ceh_pendentes = $conn->query("SELECT COUNT(*) as total FROM ceh_chamados WHERE status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
+            ?>
+            <a href="ceh.php" class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center h-full gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
+                <div class="w-16 h-16 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 relative">
+                    <i data-lucide="stethoscope" class="w-8 h-8"></i>
+                    <?php if ($ceh_pendentes > 0): ?>
+                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm ring-2 ring-red-500/20">
+                            <?php echo $ceh_pendentes; ?>
+                        </span>
+                    <?php endif; ?>
                 </div>
                 <div class="flex-grow">
-                    <h3 class="text-base font-bold text-text tracking-tight group-hover:text-primary transition-colors">Protocolo de Documentos</h3>
-                    <p class="text-[11px] text-text-secondary leading-relaxed mb-2">Envie, receba e monitore a circulação de documentos oficiais entre departamentos.</p>
+                    <h3 class="text-base font-bold text-text tracking-tight group-hover:text-primary transition-colors">Central de Equipamentos</h3>
+                    <p class="text-[11px] text-text-secondary leading-relaxed mb-2">Solicite manutenção, calibração ou reporte problemas em equipamentos hospitalares (CEH).</p>
                     <div class="flex items-center gap-4">
-                        <span class="text-[9px] font-black text-primary uppercase tracking-widest border-b border-primary/20 pb-0.5">Novo Envio</span>
-                        <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest border-b border-border pb-0.5">Consultar Meus</span>
+                        <span class="text-[9px] font-black text-primary uppercase tracking-widest border-b border-primary/20 pb-0.5">Novo Chamado</span>
+                        <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest border-b border-border pb-0.5">Meus Chamados</span>
                     </div>
                 </div>
                 <!-- Subtle context info -->
                 <div class="absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                    <i data-lucide="file-signature" class="w-24 h-24"></i>
+                    <i data-lucide="stethoscope" class="w-24 h-24"></i>
                 </div>
-            </div>
+            </a>
 
             <a href="manutencao.php" class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center h-full gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
                 <div class="w-16 h-16 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all duration-500 relative">
