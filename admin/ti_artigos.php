@@ -91,13 +91,10 @@ $artigos = $conn->query("SELECT a.*, u.nome as autor_nome FROM ti_artigos a LEFT
     <?php include '../tailwind_setup.php'; ?>
 </head>
 <body class="bg-background text-text font-sans selection:bg-primary/20">
-    <?php include 'header.php'; ?>
+    <?php include '../header.php'; ?>
     
-    <div class="flex h-screen overflow-hidden">
-        <?php include '../sidebar.php'; ?>
-        
-        <main class="flex-1 overflow-y-auto p-4 md:p-8 mt-16 lg:mt-0">
-            <div class="max-w-6xl mx-auto">
+    <div class="p-6 w-full max-w-7xl mx-auto flex-grow">
+        <div class="max-w-6xl mx-auto">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
                     <div>
                         <h1 class="text-2xl font-bold text-primary flex items-center gap-2">
@@ -222,9 +219,7 @@ $artigos = $conn->query("SELECT a.*, u.nome as autor_nome FROM ti_artigos a LEFT
                     </div>
                 </div>
             </div>
-        </main>
-    </div>
-
+        </div>
     <script>
     function confirmarExclusao(id, titulo) {
         if (confirm('Deseja realmente excluir o artigo "' + titulo + '"?')) {
@@ -232,6 +227,8 @@ $artigos = $conn->query("SELECT a.*, u.nome as autor_nome FROM ti_artigos a LEFT
         }
     }
     </script>
+
     <?php include '../footer.php'; ?>
+    </div> <!-- Fecha o div pl-64 do header.php -->
 </body>
 </html>
