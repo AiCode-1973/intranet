@@ -73,7 +73,11 @@ $telefones = $conn->query("
                 </div>
 
                 <h3 class="text-sm font-black text-text mb-1 relative z-10 leading-tight"><?php echo $t['nome']; ?></h3>
-                <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-6 opacity-60"><?php echo $t['setor_nome'] ?: ($t['tipo'] == 'externo' ? 'Contato Externo' : 'Geral'); ?></p>
+                <div class="flex items-center gap-2 mb-6 opacity-60">
+                    <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest"><?php echo $t['setor_nome'] ?: ($t['tipo'] == 'externo' ? 'Contato Externo' : 'Geral'); ?></p>
+                    <span class="w-1 h-1 bg-border rounded-full"></span>
+                    <p class="text-[9px] font-black <?php echo $t['unidade'] == 'Hospital' ? 'text-primary' : 'text-indigo-500'; ?> uppercase tracking-widest"><?php echo $t['unidade'] ?: 'Hospital'; ?></p>
+                </div>
 
                 <div class="mt-auto w-full pt-4 border-t border-dashed border-border flex flex-col gap-2">
                     <?php if ($t['ramal']): ?>

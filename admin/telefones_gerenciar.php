@@ -18,14 +18,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $telefone = sanitize($_POST['telefone']);
             $setor_id = $_POST['setor_id'] ? intval($_POST['setor_id']) : null;
             $tipo = $_POST['tipo'];
+            $unidade = $_POST['unidade'];
             $ordem = intval($_POST['ordem']);
             
             if ($id) {
-                $stmt = $conn->prepare("UPDATE telefones SET nome = ?, ramal = ?, telefone = ?, setor_id = ?, tipo = ?, ordem = ? WHERE id = ?");
-                $stmt->bind_param("sssisii", $nome, $ramal, $telefone, $setor_id, $tipo, $ordem, $id);
+                $stmt = $conn->prepare("UPDATE telefones SET nome = ?, ramal = ?, telefone = ?, setor_id = ?, tipo = ?, unidade = ?, ordem = ? WHERE id = ?");
+                $stmt->bind_param("sssissii", $nome, $ramal, $telefone, $setor_id, $tipo, $unidade, $ordem, $id);
             } else {
-                $stmt = $conn->prepare("INSERT INTO telefones (nome, ramal, telefone, setor_id, tipo, ordem) VALUES (?, ?, ?, ?, ?, ?)");
-                $stmt->bind_param("sssisi", $nome, $ramal, $telefone, $setor_id, $tipo, $ordem);
+                $stmt = $conn->prepare("INSERT INTO telefones (nome, ramal, telefone, setor_id, tipo, unidade, ordem) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("sssissi", $nome, $ramal, $telefone, $setor_id, $tipo, $unidade, $ordem);
             }
             
             if ($stmt->execute()) {
@@ -109,6 +110,7 @@ $telefones = $conn->query("
                         <th class="p-3 text-[10px] font-black text-text-secondary uppercase">Ramal</th>
                         <th class="p-3 text-[10px] font-black text-text-secondary uppercase">Telefone</th>
                         <th class="p-3 text-[10px] font-black text-text-secondary uppercase">Setor</th>
+                        <th class="p-3 text-[10px] font-black text-text-secondary uppercase">Unidade</th>
                         <th class="p-3 text-[10px] font-black text-text-secondary uppercase text-right">Ações</th>
                     </tr>
                 </thead>
@@ -140,6 +142,11 @@ $telefones = $conn->query("
                             <?php else: ?>
                                 <span class="text-[10px] text-text-secondary opacity-30 italic">Nenhum</span>
                             <?php endif; ?>
+                        </td>
+                        <td class="p-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded text-[9px] font-black uppercase <?php echo $t['unidade'] == 'Hospital' ? 'bg-primary/10 text-primary border-primary/20' : 'bg-indigo-50 text-indigo-600 border-indigo-100'; ?> border">
+                                <?php echo $t['unidade'] ?: 'Hospital'; ?>
+                            </span>
                         </td>
                         <td class="p-3 text-right">
                             <div class="flex justify-end gap-1.5 opacity-50 group-hover:opacity-100 transition-opacity">
@@ -201,9 +208,16 @@ $telefones = $conn->query("
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black uppercase text-text-secondary mb-1">Ordem</label>
-                        <input type="number" name="ordem" id="ordem" value="0" class="w-full p-2 bg-background border border-border rounded text-xs">
+                        <label class="block text-[10px] font-black uppercase text-text-secondary mb-1">Unidade</label>
+                        <select name="unidade" id="unidade" class="w-full p-2 bg-background border border-border rounded text-xs focus:outline-none focus:border-primary">
+                            <option value="Hospital">Hospital</option>
+                            <option value="Operadora">Operadora</option>
+                        </select>
                     </div>
+                </div>
+                <div>
+                    <label class="block text-[10px] font-black uppercase text-text-secondary mb-1">Ordem</label>
+                    <input type="number" name="ordem" id="ordem" value="0" class="w-full p-2 bg-background border border-border rounded text-xs focus:outline-none focus:border-primary">
                 </div>
                 <div class="pt-4 flex justify-end gap-2">
                     <button type="button" onclick="fecharModal()" class="px-4 py-2 text-xs font-bold text-text-secondary">Cancelar</button>
@@ -222,6 +236,7 @@ $telefones = $conn->query("
             document.getElementById('telefone').value = '';
             document.getElementById('setor_id').value = '';
             document.getElementById('tipo').value = 'setor';
+            document.getElementById('unidade').value = 'Hospital';
             document.getElementById('ordem').value = '0';
             document.getElementById('modalTelefone').classList.add('active');
         }
@@ -234,6 +249,7 @@ $telefones = $conn->query("
             document.getElementById('telefone').value = d.telefone;
             document.getElementById('setor_id').value = d.setor_id;
             document.getElementById('tipo').value = d.tipo;
+            document.getElementById('unidade').value = d.unidade || 'Hospital';
             document.getElementById('ordem').value = d.ordem;
             document.getElementById('modalTelefone').classList.add('active');
         }
