@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $titulo = sanitize($_POST['titulo']);
     $descricao = $_POST['descricao'];
     $local = sanitize($_POST['local']);
-    $prioridade = sanitize($_POST['prioridade']);
+    $prioridade = isset($_POST['prioridade']) ? sanitize($_POST['prioridade']) : 'Média';
     $categoria = sanitize($_POST['categoria']);
 
     $stmt = $conn->prepare("INSERT INTO manutencao (titulo, descricao, local, prioridade, categoria, usuario_id) VALUES (?, ?, ?, ?, ?, ?)");
@@ -243,7 +243,7 @@ $prioridade_labels = [
                                class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-orange-600 transition-all">
                     </div>
 
-                    <div>
+                    <div class="md:col-span-2">
                         <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Categoria</label>
                         <select name="categoria" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-orange-600 transition-all cursor-pointer">
                             <option value="Elétrica">Elétrica</option>
@@ -252,16 +252,6 @@ $prioridade_labels = [
                             <option value="Mobiliário">Mobiliário</option>
                             <option value="Ar Condicionado">Ar Condicionado</option>
                             <option value="Outros">Outros</option>
-                        </select>
-                    </div>
-                    
-                    <div>
-                        <label class="block text-[10px) font-black text-text-secondary mb-1 uppercase tracking-widest">Prioridade</label>
-                        <select name="prioridade" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-orange-600 transition-all cursor-pointer">
-                            <option value="Baixa">Baixa</option>
-                            <option value="Média" selected>Média</option>
-                            <option value="Alta">Alta</option>
-                            <option value="Urgente">Urgente</option>
                         </select>
                     </div>
 
