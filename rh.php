@@ -6,6 +6,16 @@ requireLogin();
 
 $usuario_id = $_SESSION['usuario_id'];
 
+// Processar Exclusão de Mensagem
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'excluir_mensagem') {
+    $msg_id = intval($_POST['msg_id']);
+    // Garantir que a mensagem pertence ao usuário logado
+    $stmt = $conn->prepare("DELETE FROM rh_mensagens WHERE id = ? AND usuario_id = ?");
+    $stmt->bind_param("ii", $msg_id, $usuario_id);
+    $stmt->execute();
+    $stmt->close();
+}
+
 // Buscar Documentos do Colaborador
 $documentos = $conn->query("
     SELECT * FROM rh_documentos 
@@ -131,7 +141,12 @@ $meses = [
                                 <div class="absolute -right-4 -top-4 w-20 h-20 bg-emerald-500/5 rounded-full blur-xl"></div>
                                 <div class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-3 relative z-10">
                                     <h3 class="text-sm font-bold text-emerald-900"><?php echo $m['assunto']; ?></h3>
-                                    <span class="text-[9px] font-black text-emerald-600/60 uppercase"><?php echo date('d/m/Y H:i', strtotime($m['created_at'])); ?></span>
+                                    <div class="flex items-center gap-4">
+                                        <span class="text-[9px] font-black text-emerald-600/60 uppercase"><?php echo date('d/m/Y H:i', strtotime($m['created_at'])); ?></span>
+                                        <button onclick="excluirMensagem(<?php echo $m['id']; ?>)" class="text-emerald-600/40 hover:text-red-500 transition-colors p-1" title="Excluir comunicado">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
                                 </div>
                                 <div class="text-xs text-emerald-800/80 leading-relaxed relative z-10 whitespace-pre-wrap"><?php echo $m['mensagem']; ?></div>
                             </div>
@@ -243,6 +258,20 @@ $meses = [
         </div>
     </div>
 
+    <script>
+        function excluirMensagem(id) {
+            if (confirm('Deseja excluir este comunicado? Esta ação não pode ser desfeita.')) {
+                const f = document.createElement('form');
+                f.method = 'POST';
+                f.innerHTML = `
+                    <input type="hidden" name="acao" value="excluir_mensagem">
+                    <input type="hidden" name="msg_id" value="${id}">
+                `;
+                document.body.appendChild(f);
+                f.submit();
+            }
+        }
+    </script>
     <?php include 'footer.php'; ?>
 </body>
 </html>
