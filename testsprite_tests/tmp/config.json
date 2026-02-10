@@ -4,16 +4,5 @@
   "scope": "codebase",
   "localEndpoint": "http://localhost:80/intranet",
   "loginUser": "000.000.000-00",
-  "loginPassword": "admin123",
-  "executionArgs": {
-    "projectName": "intranet",
-    "projectPath": "c:\\xampp1\\htdocs\\intranet",
-    "testIds": [
-      "TC001"
-    ],
-    "additionalInstruction": "Use CPF: 000.000.000-00 and Password: admin123 for all login attempts. Verify that login succeeds and redirects to dashboard.php.",
-    "envs": {
-      "API_KEY": "sk-user-r1QatNkVJyVFhgxwk9iXbY3L8jt_G_ndT96de93OF9oucryT7pPl_SBa1U4xhwYcbV5Wncm8q8y8eNj_zX00jinV5t9XT4S7LtdNRgZ09RZ6hbzY36ISru79stxj45B5GBk"
-    }
-  }
+  "loginPassword": "admin123"
 }
