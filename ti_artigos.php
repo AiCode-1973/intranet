@@ -15,6 +15,20 @@ $categorias = [];
 while($row = $artigos->fetch_assoc()) {
     $categorias[$row['categoria']][] = $row;
 }
+
+// Buscar reservas de equipamentos para os próximos 7 dias
+$hoje_sql = date('Y-m-d');
+$proximos_sql = date('Y-m-d', strtotime('+7 days'));
+$reservas_equip = $conn->query("
+    SELECT a.*, u.nome as autor_nome 
+    FROM agenda a
+    LEFT JOIN usuarios u ON a.autor_id = u.id
+    WHERE a.ativo = 1 
+    AND (a.reserva_projetor = 1 OR a.reserva_notebook = 1)
+    AND a.data_evento >= '$hoje_sql'
+    ORDER BY a.data_evento ASC, a.hora_inicio ASC
+    LIMIT 5
+");
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -49,6 +63,65 @@ while($row = $artigos->fetch_assoc()) {
                     <i data-lucide="monitor" class="w-48 h-48"></i>
                 </div>
             </div>
+
+            <!-- Card de Reservas de Equipamentos (Agenda TI) -->
+            <?php if ($reservas_equip && $reservas_equip->num_rows > 0): ?>
+            <div class="mb-8 p-6 bg-white rounded-3xl border border-border shadow-sm overflow-hidden relative group">
+                <div class="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:scale-110 transition-transform duration-700">
+                    <i data-lucide="calendar-check" class="w-24 h-24"></i>
+                </div>
+                
+                <div class="flex items-center justify-between mb-6 relative z-10">
+                    <div>
+                        <h2 class="text-sm font-black text-text uppercase tracking-widest flex items-center gap-2">
+                            <span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                            Monitoramento de Equipamentos
+                        </h2>
+                        <p class="text-[10px] text-text-secondary font-bold uppercase mt-1 tracking-tighter opacity-60">Próximos agendamentos da agenda institucional</p>
+                    </div>
+                    <a href="agenda.php" class="text-[10px] font-black text-primary uppercase tracking-widest hover:underline flex items-center gap-1">
+                        Ver Agenda Completa
+                        <i data-lucide="chevron-right" class="w-3 h-3"></i>
+                    </a>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 relative z-10">
+                    <?php while($reserva = $reservas_equip->fetch_assoc()): 
+                        $data_f = date('d/m', strtotime($reserva['data_evento']));
+                        $hora_f = date('H:i', strtotime($reserva['hora_inicio']));
+                        $is_hoje = ($reserva['data_evento'] == $hoje_sql);
+                    ?>
+                    <div class="p-4 rounded-2xl <?php echo $is_hoje ? 'bg-amber-50 border-amber-100' : 'bg-background/50 border-border'; ?> border flex flex-col gap-3 group/item hover:border-primary/30 transition-all">
+                        <div class="flex justify-between items-start">
+                            <div class="flex flex-col">
+                                <span class="text-[10px] font-black <?php echo $is_hoje ? 'text-amber-600' : 'text-primary'; ?> uppercase"><?php echo $is_hoje ? 'HOJE' : $data_f; ?> • <?php echo $hora_f; ?></span>
+                                <h4 class="text-xs font-bold text-text truncate max-w-[150px]"><?php echo $reserva['titulo']; ?></h4>
+                            </div>
+                            <div class="flex gap-1">
+                                <?php if($reserva['reserva_projetor']): ?>
+                                    <div class="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-primary" title="Projetor">
+                                        <i data-lucide="projector" class="w-3.5 h-3.5"></i>
+                                    </div>
+                                <?php endif; ?>
+                                <?php if($reserva['reserva_notebook']): ?>
+                                    <div class="w-6 h-6 rounded-lg bg-white shadow-sm flex items-center justify-center text-indigo-500" title="Notebook">
+                                        <i data-lucide="laptop" class="w-3.5 h-3.5"></i>
+                                    </div>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between text-[9px] font-bold text-text-secondary/60 uppercase">
+                            <span class="flex items-center gap-1">
+                                <i data-lucide="map-pin" class="w-3 h-3"></i>
+                                <?php echo $reserva['local_evento'] ?: 'S/ Local'; ?>
+                            </span>
+                            <span class="truncate max-w-[80px]">Org: <?php echo $reserva['autor_nome']; ?></span>
+                        </div>
+                    </div>
+                    <?php endwhile; ?>
+                </div>
+            </div>
+            <?php endif; ?>
 
             <?php if (empty($categorias)): ?>
                 <div class="text-center py-20 bg-white rounded-3xl border border-border shadow-sm">
