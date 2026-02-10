@@ -13,6 +13,9 @@ $total_eventos_hoje = $conn->query("SELECT COUNT(*) as total FROM agenda WHERE a
 $mes_dia_atual = date('m-d');
 $total_niver_hoje = $conn->query("SELECT COUNT(*) as total FROM usuarios WHERE data_nascimento LIKE '%-$mes_dia_atual' AND ativo = 1")->fetch_assoc()['total'];
 
+$mes_atual = date('m');
+$total_niver_mes = $conn->query("SELECT COUNT(*) as total FROM usuarios WHERE MONTH(data_nascimento) = '$mes_atual' AND ativo = 1")->fetch_assoc()['total'];
+
 $uid = $_SESSION['usuario_id'];
 if (isAdmin()) {
     $total_chamados_pendentes = $conn->query("SELECT COUNT(*) as total FROM chamados WHERE status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
@@ -114,8 +117,8 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                         <i data-lucide="cake" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-text"><?php echo $total_niver_hoje; ?></h3>
-                        <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Aniversariantes</p>
+                        <h3 class="text-xl font-bold text-text"><?php echo $total_niver_mes; ?></h3>
+                        <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">No Mês</p>
                     </div>
                 </div>
             </a>
