@@ -1,0 +1,554 @@
+[
+  {
+    "id": "TC001",
+    "title": "Login success with valid CPF and password",
+    "description": "Verify that user can successfully login using valid CPF and password credentials.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to login page"
+      },
+      {
+        "type": "action",
+        "description": "Enter valid CPF"
+      },
+      {
+        "type": "action",
+        "description": "Enter valid password"
+      },
+      {
+        "type": "action",
+        "description": "Click login button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user is redirected to dashboard page"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Login failure with invalid CPF",
+    "description": "Verify that login fails when using an invalid CPF format or non-registered CPF.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to login page"
+      },
+      {
+        "type": "action",
+        "description": "Enter invalid CPF format or unregistered CPF"
+      },
+      {
+        "type": "action",
+        "description": "Enter any password"
+      },
+      {
+        "type": "action",
+        "description": "Click login button"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify login fails and an invalid credentials error message is shown"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Password recovery flow works correctly",
+    "description": "Verify that users are able to request password recovery and reset passwords securely.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to password recovery page"
+      },
+      {
+        "type": "action",
+        "description": "Enter registered CPF or email for recovery"
+      },
+      {
+        "type": "action",
+        "description": "Submit recovery request"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that recovery instructions are sent to user securely"
+      },
+      {
+        "type": "action",
+        "description": "Follow recovery link to reset password"
+      },
+      {
+        "type": "action",
+        "description": "Enter new valid password and confirm"
+      },
+      {
+        "type": "action",
+        "description": "Submit new password"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify password has been successfully reset and user can login with new password"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "Logout terminates session properly",
+    "description": "Verify logout functionality invalidates user session and redirects to login page.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login successfully to the system"
+      },
+      {
+        "type": "action",
+        "description": "Click logout button/link"
+      },
+      {
+        "type": "assertion",
+        "description": "Ensure session is terminated and user is redirected to login page"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "Dashboard data displays correctly for user",
+    "description": "Verify that the dashboard shows relevant information and navigation options as per user role.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as a regular employee"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify dashboard page displays upcoming events, notifications, and quick links"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Institutional agenda prevents double bookings",
+    "description": "Validate that resource reservations for projectors and notebooks do not allow double booking for the same time slot.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login to agenda module"
+      },
+      {
+        "type": "action",
+        "description": "Reserve a projector for a specific date and time slot"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to reserve the same projector for overlapping date and time slot"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify reservation is blocked and appropriate message is shown to user"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Resource reservation triggers automatic IT support ticket",
+    "description": "Verify that when a hardware resource is reserved, an automatic IT support ticket is created and visible in Support system.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login and reserve a notebook resource via agenda"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that an IT support ticket linked to the reservation is automatically created"
+      },
+      {
+        "type": "action",
+        "description": "Login to IT support module as IT staff"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that the new support ticket is visible and contains correct reservation details"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "HR module allows document upload and access control",
+    "description": "Verify HR users can upload employee documents and access is properly restricted based on permissions.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as HR user"
+      },
+      {
+        "type": "action",
+        "description": "Upload a new employee document in RH module"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm document upload succeeds and is linked to correct employee profile"
+      },
+      {
+        "type": "action",
+        "description": "Login as non-HR user"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access HR documents"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied due to permissions"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Digital time tracking clock-in with supervisor validation",
+    "description": "Ensure employees can submit digital clock-ins that require supervisor validation and that status updates correctly.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as employee and submit clock-in time via RH module"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify submission status is 'Pending Validation'"
+      },
+      {
+        "type": "action",
+        "description": "Login as supervisor"
+      },
+      {
+        "type": "action",
+        "description": "Validate or reject employee's clock-in"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm status updates accordingly to 'Validated' or 'Rejected'"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "IT support ticket lifecycle management",
+    "description": "Verify IT tickets can be created, updated, assigned, and resolved, with status properly reflected and visible to users and IT staff.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as user and create new IT support ticket"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify ticket is assigned unique ID and status is 'Open'"
+      },
+      {
+        "type": "action",
+        "description": "Login as IT staff"
+      },
+      {
+        "type": "action",
+        "description": "Assign ticket to self and update ticket status to 'In Progress'"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm ticket status change is saved and visible to all relevant users"
+      },
+      {
+        "type": "action",
+        "description": "Set ticket status to 'Resolved' and add resolution comments"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify ticket resolution is logged and user is notified"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Knowledge base article search and access control",
+    "description": "Validate that users can search for technical articles in knowledge base and that access respects user roles.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as generic user"
+      },
+      {
+        "type": "action",
+        "description": "Search knowledge base for a keyword"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify search results are relevant and accessible"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access restricted articles (if any)"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that restricted articles are blocked for unauthorized users"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Education platform course enrollment and completion",
+    "description": "Verify that users can browse course catalog, enroll in courses, watch lessons, take quizzes, and receive certificates upon successful completion.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as a user"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to education platform and browse course catalog"
+      },
+      {
+        "type": "action",
+        "description": "Enroll in a course"
+      },
+      {
+        "type": "action",
+        "description": "Access course lessons and complete them"
+      },
+      {
+        "type": "action",
+        "description": "Take associated quizzes/exams"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify quizzes are graded correctly with pass/fail outcomes"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that a certificate is generated automatically upon successful completion"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Educational quiz failure handling",
+    "description": "Verify that unsuccessful quiz attempts can be retaken and are handled correctly without granting certificates.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Take an exam and fail"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no certificate is issued"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to retake the quiz"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm retake is allowed"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Maintenance request creation and status updates",
+    "description": "Verify users can submit infrastructure and hospital equipment maintenance requests and can see up-to-date statuses.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login and navigate to maintenance module"
+      },
+      {
+        "type": "action",
+        "description": "Submit new maintenance request with required information"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that maintenance request is saved and assigned unique request ID"
+      },
+      {
+        "type": "action",
+        "description": "Update maintenance request status as maintenance team"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm that status updates are reflected in user view"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Corporate communication mural displays recent announcements",
+    "description": "Verify that the digital mural displays latest announcements properly and updates in timely manner.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Post an announcement using mural admin interface"
+      },
+      {
+        "type": "action",
+        "description": "Access mural page as regular user"
+      },
+      {
+        "type": "assertion",
+        "description": "Validate that announcement appears correctly on mural"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "Inter-user messaging functionality",
+    "description": "Verify that users can send, receive, and read private messages within the system.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "User A logs in and sends a message to User B"
+      },
+      {
+        "type": "action",
+        "description": "User B logs in and checks inbox"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify User B receives the message with correct content and timestamp"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Employee birthday listing displays accurate data",
+    "description": "Verify that birthday listings show correct employee names and dates, updated monthly.",
+    "category": "functional",
+    "priority": "Low",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Enter employee data with birthday information into system"
+      },
+      {
+        "type": "action",
+        "description": "Access birthday listing"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm listing shows all upcoming birthdays for current month accurately"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Administration module enforces role-based permissions",
+    "description": "Verify that actions in administration panel are restricted according to user roles and permissions.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as administrator"
+      },
+      {
+        "type": "action",
+        "description": "Add, modify and delete users, sectors, and permissions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify changes are saved and audit log entries are recorded"
+      },
+      {
+        "type": "action",
+        "description": "Login as non-admin user"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to access admin panel functions"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access denied and no admin changes can be made"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Administration audit logs record all critical changes",
+    "description": "Verify that all modifications in system settings, user management, and permissions are logged with user and timestamp.",
+    "category": "security",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as admin and perform various configuration changes"
+      },
+      {
+        "type": "action",
+        "description": "Access audit logs page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify log entries correspond to changes made with accurate user and timestamp information"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Digital library document access control",
+    "description": "Verify that documents and manuals in the digital library are accessible only to authorized users.",
+    "category": "security",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Upload documents to the digital library with specific access permissions"
+      },
+      {
+        "type": "action",
+        "description": "Login as authorized user and access documents"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm authorized user can view and download documents"
+      },
+      {
+        "type": "action",
+        "description": "Login as unauthorized user and attempt access"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied and proper error message is displayed"
+      }
+    ]
+  }
+]

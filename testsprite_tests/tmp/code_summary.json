@@ -1,0 +1,115 @@
+{
+    "tech_stack": [
+        "PHP",
+        "HTML",
+        "JavaScript",
+        "Tailwind CSS",
+        "MySQL",
+        "Lucide Icons"
+    ],
+    "features": [
+        {
+            "name": "Authentication",
+            "description": "User login, logout, and password management systems.",
+            "files": [
+                "login.php",
+                "logout.php",
+                "recuperar_senha.php",
+                "resetar_senha.php",
+                "alterar_senha.php"
+            ]
+        },
+        {
+            "name": "Dashboard",
+            "description": "Central hub for navigation and system overview.",
+            "files": [
+                "dashboard.php",
+                "index.php"
+            ]
+        },
+        {
+            "name": "Agenda",
+            "description": "Management of institutional events and resource reservations (projector, notebook).",
+            "files": [
+                "agenda.php",
+                "admin/agenda_gerenciar.php",
+                "setup_agenda.php"
+            ]
+        },
+        {
+            "name": "Human Resources (RH)",
+            "description": "Employee document management, communications, and time tracking (ponto).",
+            "files": [
+                "rh.php",
+                "admin/rh_gerenciar.php",
+                "rh_ponto.php",
+                "rh_ponto_novo.php",
+                "rh_ponto_detalhes.php",
+                "admin/rh_ponto_relatorio.php"
+            ]
+        },
+        {
+            "name": "IT Support & Knowledge Base",
+            "description": "Ticketing system for IT issues and a library of technical articles.",
+            "files": [
+                "suporte.php",
+                "admin/suporte_gerenciar.php",
+                "ti_artigos.php",
+                "ti_artigo_ver.php",
+                "admin/ti_artigos.php"
+            ]
+        },
+        {
+            "name": "Education Platform",
+            "description": "Management of courses, lessons, exams, and certificates.",
+            "files": [
+                "educacao.php",
+                "edu_curso.php",
+                "edu_aula.php",
+                "edu_prova.php",
+                "edu_certificado.php",
+                "admin/edu_cursos.php",
+                "admin/edu_alunos.php",
+                "admin/edu_provas.php",
+                "admin/edu_trilhas.php"
+            ]
+        },
+        {
+            "name": "Maintenance & CEH",
+            "description": "Service requests for infrastructure and hospital equipment maintenance.",
+            "files": [
+                "manutencao.php",
+                "admin/manutencao_gerenciar.php",
+                "ceh.php",
+                "admin/ceh_gerenciar.php"
+            ]
+        },
+        {
+            "name": "Corporate Communication",
+            "description": "Management of mural announcements and inter-user messaging.",
+            "files": [
+                "mural.php",
+                "admin/mural_gerenciar.php",
+                "mensagens.php"
+            ]
+        },
+        {
+            "name": "Administration",
+            "description": "System-wide settings, user management, sectors, and permissions.",
+            "files": [
+                "admin/usuarios.php",
+                "admin/setores.php",
+                "admin/permissoes.php",
+                "admin/logs.php"
+            ]
+        },
+        {
+            "name": "Digital Library",
+            "description": "Storage and management of institutional documents and manuals.",
+            "files": [
+                "biblioteca.php",
+                "admin/biblioteca_gerenciar.php"
+            ]
+        }
+    ]
+}
