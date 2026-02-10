@@ -194,10 +194,25 @@ $meses_pt = [
                                     <?php echo $evento['local_evento']; ?>
                                 </span>
                                 <?php endif; ?>
+                                
                                 <span class="flex items-center gap-1.5">
                                     <i data-lucide="user" class="w-3 h-3 text-primary"></i>
                                     Org: <?php echo $evento['autor_nome']; ?>
                                 </span>
+
+                                <?php if ($evento['reserva_projetor']): ?>
+                                <span class="flex items-center gap-1 px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded-md border border-blue-100 animate-in fade-in zoom-in duration-300">
+                                    <i data-lucide="projector" class="w-2.5 h-2.5"></i>
+                                    Projetor
+                                </span>
+                                <?php endif; ?>
+
+                                <?php if ($evento['reserva_notebook']): ?>
+                                <span class="flex items-center gap-1 px-1.5 py-0.5 bg-indigo-50 text-indigo-600 rounded-md border border-indigo-100 animate-in fade-in zoom-in duration-300">
+                                    <i data-lucide="laptop" class="w-2.5 h-2.5"></i>
+                                    Notebook
+                                </span>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
