@@ -31,11 +31,11 @@
             <!-- Links Section -->
             <div class="flex flex-col items-center md:items-end gap-2">
                 <div class="flex gap-4">
-                    <a href="#" class="text-[11px] font-bold text-text-secondary hover:text-primary transition-colors flex items-center gap-1.5">
+                    <a href="<?php echo $root_path; ?>privacidade.php" class="text-[11px] font-bold text-text-secondary hover:text-primary transition-colors flex items-center gap-1.5">
                         <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
                         Privacidade
                     </a>
-                    <a href="#" class="text-[11px] font-bold text-text-secondary hover:text-primary transition-colors flex items-center gap-1.5">
+                    <a href="<?php echo $root_path; ?>ajuda.php" class="text-[11px] font-bold text-text-secondary hover:text-primary transition-colors flex items-center gap-1.5">
                         <i data-lucide="help-circle" class="w-3.5 h-3.5"></i>
                         Ajuda
                     </a>
