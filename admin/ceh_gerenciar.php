@@ -29,6 +29,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->close();
 }
 
+// Processar exclusão do chamado CEH
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'excluir_chamado_ceh' && isAdmin()) {
+    $id = intval($_POST['id']);
+    
+    $stmt = $conn->prepare("DELETE FROM ceh_chamados WHERE id = ?");
+    $stmt->bind_param("i", $id);
+    
+    if ($stmt->execute()) {
+        $mensagem = "Chamado CEH #$id removido!";
+        $tipo_mensagem = "success";
+        registrarLog($conn, "Excluiu chamado CEH #$id");
+    } else {
+        $mensagem = "Erro ao excluir: " . $conn->error;
+        $tipo_mensagem = "danger";
+    }
+    $stmt->close();
+}
+
 // Buscar todos os chamados CEH com detalhes
 $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante
         FROM ceh_chamados c 
@@ -214,9 +232,16 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
                                     <?php endif; ?>
                                 </td>
                                 <td class="p-3 text-right">
-                                    <button onclick='abrirAtendimento(<?php echo json_encode($chamado); ?>)' class="px-3 py-1 bg-primary text-white rounded-lg font-black uppercase tracking-widest text-[9px] transition-all hover:bg-primary-hover shadow-md shadow-primary/10 active:scale-95">
-                                        Gerenciar
-                                    </button>
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button onclick='abrirAtendimento(<?php echo json_encode($chamado); ?>)' class="px-3 py-1 bg-primary text-white rounded-lg font-black uppercase tracking-widest text-[9px] transition-all hover:bg-primary-hover shadow-md shadow-primary/10 active:scale-95">
+                                            Gerenciar
+                                        </button>
+                                        <?php if (isAdmin()): ?>
+                                        <button onclick="excluirChamado(<?php echo $chamado['id']; ?>)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-all active:scale-90" title="Excluir Registro">
+                                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                        </button>
+                                        <?php endif; ?>
+                                    </div>
                                 </td>
                             </tr>
                             <?php endwhile; ?>
@@ -317,6 +342,19 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
             document.getElementById('modalAtender').classList.add('active');
         }
         function fecharModal() { document.getElementById('modalAtender').classList.remove('active'); }
+
+        function excluirChamado(id) {
+            if (confirm('Tem certeza que deseja excluir permanentemente este chamado CEH? Esta ação não pode ser desfeita.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="acao" value="excluir_chamado_ceh">
+                    <input type="hidden" name="id" value="${id}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
     </script>
     <?php include '../footer.php'; ?>
 </body>

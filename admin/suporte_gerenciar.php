@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
 }
 
 // Processar exclusão do chamado
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'excluir_chamado') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'excluir_chamado' && isAdmin()) {
     $id = intval($_POST['id']);
     
     $stmt = $conn->prepare("DELETE FROM chamados WHERE id = ?");
@@ -232,9 +232,11 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                                     <button onclick='abrirAtendimento(<?php echo json_encode($chamado); ?>)' class="px-3 py-1 bg-primary text-white rounded-lg font-black uppercase tracking-widest text-[9px] transition-all hover:bg-primary-hover shadow-md shadow-primary/10 active:scale-95">
                                         Gerenciar
                                     </button>
+                                    <?php if (isAdmin()): ?>
                                     <button onclick="excluirChamado(<?php echo $chamado['id']; ?>)" class="p-1.5 text-rose-500 hover:bg-rose-50 rounded-lg transition-all active:scale-90" title="Excluir Registro">
                                         <i data-lucide="trash-2" class="w-4 h-4"></i>
                                     </button>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

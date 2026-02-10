@@ -168,7 +168,7 @@ $prioridade_labels = [
                                 $style = $status_styles[$chamado['status']];
                                 $prio = $prioridade_labels[$chamado['prioridade']];
                             ?>
-                            <tr class="hover:bg-background/20 transition-colors group">
+                            <tr onclick='verDetalhes(<?php echo json_encode($chamado); ?>)' class="hover:bg-background/20 transition-colors group cursor-pointer">
                                 <td class="p-3">
                                     <div class="flex items-center gap-3">
                                         <span class="text-[9px] font-mono font-bold text-text-secondary opacity-50">#<?php echo str_pad($chamado['id'], 3, '0', STR_PAD_LEFT); ?></span>
@@ -270,9 +270,100 @@ $prioridade_labels = [
         </div>
     </div>
 
+    <!-- Modal Detalhes do Chamado CEH -->
+    <div id="modalDetalhes" class="modal">
+        <div class="bg-white w-full max-w-md mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150">
+            <div id="modal_header_bg" class="px-5 py-4 text-white flex justify-between items-center bg-primary">
+                <div>
+                    <h2 class="text-base font-bold flex items-center gap-2">
+                        <span id="detalhe_id" class="bg-white/10 px-1.5 py-0.5 rounded text-[10px] font-mono">#000</span>
+                        Detalhes CEH
+                    </h2>
+                    <p id="detalhe_status_label" class="text-white/70 text-[10px] uppercase font-bold tracking-widest mt-0.5">Status: ---</p>
+                </div>
+                <button class="p-1.5 hover:bg-white/10 rounded-lg transition-colors" onclick="fecharModalDetalhes()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Equipamento / Problema</label>
+                    <p id="detalhe_titulo" class="text-sm font-bold text-text">---</p>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Descrição Técnica</label>
+                    <div id="detalhe_descricao" class="text-xs text-text-secondary leading-relaxed bg-background p-3 rounded-lg border border-border/50 max-h-32 overflow-y-auto italic">---</div>
+                </div>
+
+                <div id="container_resolucao" class="hidden animate-in fade-in slide-in-from-bottom-2">
+                    <label class="block text-[10px] font-black text-emerald-600 mb-1 uppercase tracking-widest flex items-center gap-1">
+                        <i data-lucide="check-circle-2" class="w-3 h-3"></i>
+                        Laudo de Resolução
+                    </label>
+                    <div id="detalhe_resolucao" class="text-xs text-emerald-700 leading-relaxed bg-emerald-50 p-3 rounded-lg border border-emerald-100 font-bold whitespace-pre-wrap">---</div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-2 border-t border-border">
+                    <div>
+                        <label class="block text-[10px] font-black text-text-secondary mb-0.5 uppercase tracking-widest opacity-50">Responsável CEH</label>
+                        <p id="detalhe_tecnico" class="text-[11px] font-bold text-text">---</p>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-text-secondary mb-0.5 uppercase tracking-widest opacity-50">Abertura</label>
+                        <p id="detalhe_data" class="text-[11px] font-bold text-text text-right">---</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-4 bg-gray-50 flex justify-end">
+                <button onclick="fecharModalDetalhes()" class="px-6 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all shadow-sm uppercase tracking-widest">Fechar</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function abrirModal() { document.getElementById('modalChamado').classList.add('active'); }
         function fecharModal() { document.getElementById('modalChamado').classList.remove('active'); }
+
+        function verDetalhes(chamado) {
+            document.getElementById('detalhe_id').textContent = '#' + chamado.id.toString().padStart(3, '0');
+            document.getElementById('detalhe_titulo').textContent = chamado.titulo;
+            document.getElementById('detalhe_descricao').textContent = chamado.descricao;
+            document.getElementById('detalhe_status_label').textContent = 'Status: ' + chamado.status;
+            document.getElementById('detalhe_tecnico').textContent = chamado.tecnico || 'Em Análise';
+            document.getElementById('detalhe_data').textContent = chamado.data_abertura;
+
+            const resContainer = document.getElementById('container_resolucao');
+            const resText = document.getElementById('detalhe_resolucao');
+            const header = document.getElementById('modal_header_bg');
+
+            // Resetar cores do header baseado no status
+            header.className = 'px-5 py-4 text-white flex justify-between items-center ';
+            if (chamado.status === 'Resolvido') {
+                header.classList.add('bg-emerald-600');
+                if (chamado.resolucao) {
+                    resContainer.classList.remove('hidden');
+                    resText.textContent = chamado.resolucao;
+                } else {
+                    resContainer.classList.add('hidden');
+                }
+            } else if (chamado.status === 'Cancelado') {
+                header.classList.add('bg-gray-500');
+                resContainer.classList.add('hidden');
+            } else {
+                header.classList.add('bg-primary');
+                resContainer.classList.add('hidden');
+            }
+
+            document.getElementById('modalDetalhes').classList.add('active');
+            lucide.createIcons();
+        }
+
+        function fecharModalDetalhes() {
+            document.getElementById('modalDetalhes').classList.remove('active');
+        }
     </script>
     <?php include 'footer.php'; ?>
 </body>

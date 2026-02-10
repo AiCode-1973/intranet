@@ -30,6 +30,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         }
         $stmt->close();
     }
+
+    // Processar exclusão do chamado
+    if ($_POST['acao'] == 'excluir_chamado' && isAdmin()) {
+        $id = intval($_POST['id']);
+        
+        $stmt = $conn->prepare("DELETE FROM manutencao WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        
+        if ($stmt->execute()) {
+            $mensagem = "Ordem de Serviço #$id removida com sucesso!";
+            $tipo_mensagem = "success";
+            registrarLog($conn, "Excluiu ordem de serviço #$id");
+        } else {
+            $mensagem = "Erro ao excluir: " . $conn->error;
+            $tipo_mensagem = "danger";
+        }
+        $stmt->close();
+    }
 }
 
 // Filtros
@@ -145,10 +163,19 @@ $status_styles = [
                                 <?php echo $c['tecnico_nome'] ?: '<span class="italic opacity-30">Pendente</span>'; ?>
                             </td>
                             <td class="p-3 text-right">
-                                <button onclick='abrirModal(<?php echo json_encode($c); ?>)' 
-                                        class="p-2 hover:bg-primary/10 text-text-secondary hover:text-primary transition-all rounded-lg">
-                                    <i data-lucide="edit-3" class="w-4 h-4"></i>
-                                </button>
+                                <div class="flex items-center justify-end gap-1">
+                                    <button onclick='abrirModal(<?php echo json_encode($c); ?>)' 
+                                            class="p-2 hover:bg-primary/10 text-text-secondary hover:text-primary transition-all rounded-lg" title="Editar/Ver">
+                                        <i data-lucide="edit-3" class="w-4 h-4"></i>
+                                    </button>
+                                    
+                                    <?php if (isAdmin()): ?>
+                                    <button onclick="excluirChamado(<?php echo $c['id']; ?>)" 
+                                            class="p-2 hover:bg-rose-50 text-text-secondary hover:text-rose-500 transition-all rounded-lg" title="Excluir OS">
+                                        <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                    </button>
+                                    <?php endif; ?>
+                                </div>
                             </td>
                         </tr>
                         <?php endforeach; ?>
@@ -225,6 +252,19 @@ $status_styles = [
             document.getElementById('modalEditar').classList.add('active');
         }
         function fecharModal() { document.getElementById('modalEditar').classList.remove('active'); }
+
+        function excluirChamado(id) {
+            if (confirm('Tem certeza que deseja excluir permanentemente esta ordem de serviço? Esta ação não pode ser desfeita.')) {
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.innerHTML = `
+                    <input type="hidden" name="acao" value="excluir_chamado">
+                    <input type="hidden" name="id" value="${id}">
+                `;
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
     </script>
     <?php include '../footer.php'; ?>
 </body>
