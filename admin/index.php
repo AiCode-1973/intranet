@@ -15,6 +15,7 @@ $total_educacao = $conn->query("SELECT COUNT(*) as total FROM educacao_treinamen
 $total_telefones = $conn->query("SELECT COUNT(*) as total FROM telefones")->fetch_assoc()['total'];
 $total_politicas = $conn->query("SELECT COUNT(*) as total FROM rh_politicas")->fetch_assoc()['total'];
 $total_ti_artigos = $conn->query("SELECT COUNT(*) as total FROM ti_artigos")->fetch_assoc()['total'];
+$total_ceh = $conn->query("SELECT COUNT(*) as total FROM ceh_chamados WHERE status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -180,6 +181,24 @@ $total_ti_artigos = $conn->query("SELECT COUNT(*) as total FROM ti_artigos")->fe
                 <p class="text-xs text-text-secondary leading-relaxed">Gerencie a base de conhecimento.</p>
                 <div class="mt-4 flex justify-end">
                     <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-primary transition-all"></i>
+                </div>
+            </a>
+            <?php endif; ?>
+
+            <?php if (isTecnico() || isAdmin()): ?>
+            <a href="ceh_gerenciar.php" class="bg-white p-5 rounded-xl shadow-sm border border-border group hover:border-emerald-600 transition-all">
+                <div class="w-10 h-10 rounded-xl bg-emerald-600/10 flex items-center justify-center text-emerald-600 mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 relative">
+                    <i data-lucide="stethoscope" class="w-5 h-5"></i>
+                    <?php if ($total_ceh > 0): ?>
+                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm ring-2 ring-red-500/20">
+                            <?php echo $total_ceh; ?>
+                        </span>
+                    <?php endif; ?>
+                </div>
+                <h3 class="text-base font-bold text-text mb-1 tracking-tight">Engenharia Clínica (CEH)</h3>
+                <p class="text-xs text-text-secondary leading-relaxed">Gestão de equipamentos hospitalares.</p>
+                <div class="mt-4 flex justify-end">
+                    <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-emerald-600 transition-all"></i>
                 </div>
             </a>
             <?php endif; ?>
