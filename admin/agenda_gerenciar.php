@@ -19,16 +19,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $hora_fim = !empty($_POST['hora_fim']) ? $_POST['hora_fim'] : null;
             $local_evento = sanitize($_POST['local_evento']);
             $categoria = sanitize($_POST['categoria']);
+            $reserva_projetor = isset($_POST['reserva_projetor']) ? 1 : 0;
+            $reserva_notebook = isset($_POST['reserva_notebook']) ? 1 : 0;
             $ativo = isset($_POST['ativo']) ? 1 : 0;
             $autor_id = $_SESSION['usuario_id'];
 
             if ($acao == 'criar') {
-                $stmt = $conn->prepare("INSERT INTO agenda (titulo, descricao, data_evento, hora_inicio, hora_fim, local_evento, categoria, autor_id, ativo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                $stmt->bind_param("sssssssii", $titulo, $descricao, $data_evento, $hora_inicio, $hora_fim, $local_evento, $categoria, $autor_id, $ativo);
+                $stmt = $conn->prepare("INSERT INTO agenda (titulo, descricao, data_evento, hora_inicio, hora_fim, local_evento, categoria, reserva_projetor, reserva_notebook, autor_id, ativo) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("ssssssisiii", $titulo, $descricao, $data_evento, $hora_inicio, $hora_fim, $local_evento, $categoria, $reserva_projetor, $reserva_notebook, $autor_id, $ativo);
             } else {
                 $id = intval($_POST['id']);
-                $stmt = $conn->prepare("UPDATE agenda SET titulo = ?, descricao = ?, data_evento = ?, hora_inicio = ?, hora_fim = ?, local_evento = ?, categoria = ?, ativo = ? WHERE id = ?");
-                $stmt->bind_param("sssssssid", $titulo, $descricao, $data_evento, $hora_inicio, $hora_fim, $local_evento, $categoria, $ativo, $id);
+                $stmt = $conn->prepare("UPDATE agenda SET titulo = ?, descricao = ?, data_evento = ?, hora_inicio = ?, hora_fim = ?, local_evento = ?, categoria = ?, reserva_projetor = ?, reserva_notebook = ?, ativo = ? WHERE id = ?");
+                $stmt->bind_param("ssssssisiii", $titulo, $descricao, $data_evento, $hora_inicio, $hora_fim, $local_evento, $categoria, $reserva_projetor, $reserva_notebook, $ativo, $id);
             }
 
             if ($stmt->execute()) {
@@ -222,10 +224,25 @@ $eventos = $conn->query("
                         <textarea name="descricao" id="descricao" rows="4" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all"></textarea>
                     </div>
 
-                    <div class="md:col-span-3 pt-2">
-                        <label class="flex items-center gap-1.5 cursor-pointer">
+                    <div class="md:col-span-3 pt-2 grid grid-cols-2 gap-3">
+                        <label class="flex items-center gap-1.5 cursor-pointer p-2 rounded-lg bg-gray-50 border border-border hover:border-primary transition-all group">
+                            <input type="checkbox" name="reserva_projetor" id="reserva_projetor" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="projector" class="w-3.5 h-3.5 text-text-secondary group-hover:text-primary"></i>
+                                <span class="text-[10px] font-black text-text-secondary uppercase tracking-tighter">Reservar Projetor</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center gap-1.5 cursor-pointer p-2 rounded-lg bg-gray-50 border border-border hover:border-primary transition-all group">
+                            <input type="checkbox" name="reserva_notebook" id="reserva_notebook" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="laptop" class="w-3.5 h-3.5 text-text-secondary group-hover:text-primary"></i>
+                                <span class="text-[10px] font-black text-text-secondary uppercase tracking-tighter">Reservar Notebook</span>
+                            </div>
+                        </label>
+                        
+                        <label class="flex items-center gap-1.5 cursor-pointer col-span-2 mt-1 pl-1">
                             <input type="checkbox" name="ativo" id="ativo" checked class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
-                            <span class="text-[11px] font-black text-text-secondary uppercase tracking-tighter">Evento Ativo/Visível</span>
+                            <span class="text-[10px] font-black text-text-secondary uppercase tracking-tighter">Evento Ativo/Visível no Calendário</span>
                         </label>
                     </div>
                 </div>
@@ -252,6 +269,8 @@ $eventos = $conn->query("
             document.getElementById('hora_fim').value = '';
             document.getElementById('local_evento').value = '';
             document.getElementById('categoria').value = 'Reunião';
+            document.getElementById('reserva_projetor').checked = false;
+            document.getElementById('reserva_notebook').checked = false;
             document.getElementById('ativo').checked = true;
             document.getElementById('modalEvento').classList.add('active');
         }
@@ -266,6 +285,8 @@ $eventos = $conn->query("
             document.getElementById('hora_fim').value = evento.hora_fim;
             document.getElementById('local_evento').value = evento.local_evento;
             document.getElementById('categoria').value = evento.categoria;
+            document.getElementById('reserva_projetor').checked = evento.reserva_projetor == 1;
+            document.getElementById('reserva_notebook').checked = evento.reserva_notebook == 1;
             document.getElementById('ativo').checked = evento.ativo == 1;
             document.getElementById('modalEvento').classList.add('active');
         }
