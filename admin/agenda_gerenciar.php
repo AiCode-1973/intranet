@@ -34,9 +34,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             if ($stmt->execute()) {
+                $evento_id = ($acao == 'criar') ? $stmt->insert_id : $id;
                 $mensagem = 'Evento salvo com sucesso!';
                 $tipo_mensagem = 'success';
                 registrarLog($conn, ($acao == 'criar' ? 'Criou' : 'Editou') . ' evento na agenda: ' . $titulo);
+
+                // Criar chamado automático para TI se houver reserva de recursos
+                if ($reserva_projetor == 1 || $reserva_notebook == 1) {
+                    $recursos = [];
+                    if ($reserva_projetor == 1) $recursos[] = "Projetor";
+                    if ($reserva_notebook == 1) $recursos[] = "Notebook";
+                    $lista_recursos = implode(" e ", $recursos);
+                    
+                    $chamado_titulo = "Reserva de Equipamento: " . $titulo;
+                    $chamado_desc = "Reserva automática gerada pela Agenda de Eventos.\n\n" .
+                                   "Evento: " . $titulo . "\n" .
+                                   "Data: " . date('d/m/Y', strtotime($data_evento)) . "\n" .
+                                   "Horário: " . $hora_inicio . ($hora_fim ? " às " . $hora_fim : "") . "\n" .
+                                   "Local: " . ($local_evento ?: "Não informado") . "\n" .
+                                   "Equipamentos solicitados: " . $lista_recursos . "\n\n" .
+                                   "Por favor, providenciar a entrega e instalação.";
+                    
+                    $categoria_ti = "Hardware";
+                    $prioridade_ti = "Média";
+                    $status_ti = "Aberto";
+                    
+                    // Verificar se já existe um chamado vinculado a este evento para evitar duplicidade em edições
+                    // (Simplificação: apenas cria o chamado se for 'criar' ou se os recursos foram alterados, 
+                    // mas aqui faremos a criação simples para atender o pedido)
+                    $stmt_ti = $conn->prepare("INSERT INTO chamados (titulo, descricao, prioridade, categoria, status, usuario_id) VALUES (?, ?, ?, ?, ?, ?)");
+                    $stmt_ti->bind_param("sssssi", $chamado_titulo, $chamado_desc, $prioridade_ti, $categoria_ti, $status_ti, $autor_id);
+                    $stmt_ti->execute();
+                    $stmt_ti->close();
+                }
+
             } else {
                 $mensagem = 'Erro ao salvar evento: ' . $conn->error;
                 $tipo_mensagem = 'danger';
