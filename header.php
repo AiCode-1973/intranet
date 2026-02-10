@@ -86,18 +86,41 @@ $root_path = $in_admin ? '../' : '';
                 <i data-lucide="bell" class="w-5 h-5 text-primary"></i>
             </button>
 
-            <!-- User Profile Avatar -->
-            <div class="flex items-center gap-2 ml-2 pl-4 border-l border-border">
-                <?php if (!empty($_SESSION['usuario_foto'])): ?>
-                    <img src="<?php echo $root_path; ?>uploads/fotos/<?php echo $_SESSION['usuario_foto']; ?>" alt="Foto" class="avatar-3x4 shadow-sm">
-                <?php else: ?>
-                    <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/30 overflow-hidden shadow-inner font-bold text-primary">
-                        <?php echo substr($_SESSION['usuario_nome'], 0, 1); ?>
+            <!-- User Profile Avatar with Dropdown -->
+            <div class="relative group ml-2 pl-4 border-l border-border">
+                <button class="flex items-center gap-2 focus:outline-none">
+                    <?php if (!empty($_SESSION['usuario_foto'])): ?>
+                        <img src="<?php echo $root_path; ?>uploads/fotos/<?php echo $_SESSION['usuario_foto']; ?>" alt="Foto" class="avatar-3x4 shadow-sm">
+                    <?php else: ?>
+                        <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/30 overflow-hidden shadow-inner font-bold text-primary">
+                            <?php echo substr($_SESSION['usuario_nome'], 0, 1); ?>
+                        </div>
+                    <?php endif; ?>
+                    <i data-lucide="chevron-down" class="w-4 h-4 text-text-secondary group-hover:text-primary transition-colors"></i>
+                </button>
+
+                <!-- Dropdown Menu -->
+                <div class="absolute right-0 mt-2 w-56 bg-white rounded-2xl shadow-2xl border border-border opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform origin-top-right group-hover:scale-100 scale-95 z-50 overflow-hidden">
+                    <div class="p-4 border-b border-border bg-gray-50 flex flex-col gap-0.5">
+                        <span class="text-xs font-black text-text truncate"><?php echo $_SESSION['usuario_nome']; ?></span>
+                        <span class="text-[10px] text-text-secondary font-bold tracking-tight"><?php echo $_SESSION['usuario_cpf']; ?></span>
                     </div>
-                <?php endif; ?>
-                <a href="<?php echo $root_path; ?>logout.php" class="text-text-secondary hover:text-red-500 transition-colors" title="Sair">
-                    <i data-lucide="log-out" class="w-5 h-5"></i>
-                </a>
+                    <div class="p-2">
+                        <a href="<?php echo $root_path; ?>alterar_senha.php" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-text-secondary hover:bg-primary/[0.05] hover:text-primary transition-all group/item">
+                            <div class="w-8 h-8 rounded-lg bg-gray-100 group-hover/item:bg-primary/10 flex items-center justify-center transition-colors">
+                                <i data-lucide="key-round" class="w-4 h-4"></i>
+                            </div>
+                            <span>Alterar Senha</span>
+                        </a>
+                        <hr class="my-2 border-border/50">
+                        <a href="<?php echo $root_path; ?>logout.php" class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-semibold text-red-500 hover:bg-red-50 transition-all group/item">
+                            <div class="w-8 h-8 rounded-lg bg-red-100/50 flex items-center justify-center">
+                                <i data-lucide="log-out" class="w-4 h-4"></i>
+                            </div>
+                            <span>Sair do Sistema</span>
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
