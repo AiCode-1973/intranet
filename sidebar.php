@@ -79,7 +79,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
     </nav>
 
     <!-- Admin Link at Bottom -->
-    <?php if (isRHAdmin() || isEduAdmin()): ?>
+    <?php if (isAdminDashboardUser()): ?>
     <div class="p-4 border-t border-white/10 mt-auto flex-shrink-0">
         <a href="<?php echo $in_admin ? 'index.php' : 'admin/index.php'; ?>" 
            class="flex items-center justify-between gap-3 px-4 py-3 rounded-md text-sm text-white/80 hover:bg-white/10 hover:text-white transition-all">
