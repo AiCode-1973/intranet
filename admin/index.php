@@ -288,6 +288,7 @@ $total_ceh = $conn->query("SELECT COUNT(*) as total FROM ceh_chamados WHERE stat
                 </div>
             </a>
             <?php endif; ?>
+            <?php if (isAdmin() || isRHAdmin()): ?>
             <!-- Troca de Plantão (Novo) -->
             <a href="plantao_gerenciar.php" class="bg-white p-6 rounded-3xl border border-border shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
                 <div class="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 group-hover:bg-primary/10 transition-colors"></div>
@@ -303,6 +304,7 @@ $total_ceh = $conn->query("SELECT COUNT(*) as total FROM ceh_chamados WHERE stat
                     </div>
                 </div>
             </a>
+            <?php endif; ?>
         </div>
     </div>
     
