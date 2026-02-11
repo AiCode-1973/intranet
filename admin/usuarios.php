@@ -23,6 +23,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $is_tecnico = isset($_POST['is_tecnico']) ? 1 : 0;
             $is_manutencao = isset($_POST['is_manutencao']) ? 1 : 0;
             $is_educacao = isset($_POST['is_educacao']) ? 1 : 0;
+            $is_ceh = isset($_POST['is_ceh']) ? 1 : 0;
             
             // Upload e Processamento da foto
             $foto_nome = null;
@@ -37,8 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
             
-            $stmt = $conn->prepare("INSERT INTO usuarios (nome, cpf, email, foto, funcao, senha, setor_id, superior_id, is_admin, is_tecnico, is_manutencao, is_educacao) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssssiiiiii", $nome, $cpf, $email, $foto_nome, $funcao, $senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao);
+            $stmt = $conn->prepare("INSERT INTO usuarios (nome, cpf, email, foto, funcao, senha, setor_id, superior_id, is_admin, is_tecnico, is_manutencao, is_educacao, is_ceh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ssssssiiiiiii", $nome, $cpf, $email, $foto_nome, $funcao, $senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $is_ceh);
             
             if ($stmt->execute()) {
                 $mensagem = 'Usuário criado com sucesso!';
@@ -62,6 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $is_tecnico = isset($_POST['is_tecnico']) ? 1 : 0;
             $is_manutencao = isset($_POST['is_manutencao']) ? 1 : 0;
             $is_educacao = isset($_POST['is_educacao']) ? 1 : 0;
+            $is_ceh = isset($_POST['is_ceh']) ? 1 : 0;
             $ativo = isset($_POST['ativo']) ? 1 : 0;
             
             $foto_sql = "";
@@ -78,11 +80,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             if (!empty($_POST['senha'])) {
                 $p_senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
-                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, senha = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, ativo = ? $foto_sql WHERE id = ?");
-                $stmt->bind_param("sssssiiiiiiii", $nome, $cpf, $email, $funcao, $p_senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $ativo, $id);
+                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, senha = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, is_ceh = ?, ativo = ? $foto_sql WHERE id = ?");
+                $stmt->bind_param("sssssiiiiiiiii", $nome, $cpf, $email, $funcao, $p_senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $is_ceh, $ativo, $id);
             } else {
-                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, ativo = ? $foto_sql WHERE id = ?");
-                $stmt->bind_param("ssssiiiiiiii", $nome, $cpf, $email, $funcao, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $ativo, $id);
+                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, is_ceh = ?, ativo = ? $foto_sql WHERE id = ?");
+                $stmt->bind_param("ssssiiiiiiiii", $nome, $cpf, $email, $funcao, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $is_ceh, $ativo, $id);
             }
             
             if ($stmt->execute()) {
@@ -150,7 +152,7 @@ $total_rows = $total_query->fetch_assoc()['total'];
 $total_pages = ceil($total_rows / $limit);
 
 $usuarios = $conn->query("
-    SELECT u.id, u.nome, u.cpf, u.email, u.foto, u.funcao, u.setor_id, u.superior_id, u.is_admin, u.is_tecnico, u.is_manutencao, u.is_educacao, u.ativo, u.ultimo_acesso, s.nome as setor_nome 
+    SELECT u.id, u.nome, u.cpf, u.email, u.foto, u.funcao, u.setor_id, u.superior_id, u.is_admin, u.is_tecnico, u.is_manutencao, u.is_educacao, u.is_ceh, u.ativo, u.ultimo_acesso, s.nome as setor_nome 
     FROM usuarios u
     LEFT JOIN setores s ON u.setor_id = s.id
     $where
@@ -618,6 +620,11 @@ function processarFoto3x4($caminho_origem, $caminho_destino) {
                             <input type="checkbox" id="is_educacao" name="is_educacao" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
                             <span class="text-[11px] font-bold text-text-secondary">Gestor Educação</span>
                         </label>
+
+                        <label class="flex items-center gap-1.5 cursor-pointer">
+                            <input type="checkbox" id="is_ceh" name="is_ceh" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
+                            <span class="text-[11px] font-bold text-text-secondary">Técnico CEH</span>
+                        </label>
                         
                         <div id="ativoGroup" style="display: none;">
                             <label class="flex items-center gap-1.5 cursor-pointer">
@@ -690,6 +697,7 @@ function processarFoto3x4($caminho_origem, $caminho_destino) {
             document.getElementById('is_tecnico').checked = false;
             document.getElementById('is_manutencao').checked = false;
             document.getElementById('is_educacao').checked = false;
+            document.getElementById('is_ceh').checked = false;
             document.getElementById('ativo').checked = true;
             document.getElementById('ativoGroup').style.display = 'none';
             document.getElementById('superior_id').value = '';
@@ -719,6 +727,7 @@ function processarFoto3x4($caminho_origem, $caminho_destino) {
             document.getElementById('is_tecnico').checked = usuario.is_tecnico == 1;
             document.getElementById('is_manutencao').checked = usuario.is_manutencao == 1;
             document.getElementById('is_educacao').checked = usuario.is_educacao == 1;
+            document.getElementById('is_ceh').checked = usuario.is_ceh == 1;
             document.getElementById('ativo').checked = usuario.ativo == 1;
             document.getElementById('ativoGroup').style.display = 'block';
             

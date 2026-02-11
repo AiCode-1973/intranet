@@ -185,7 +185,7 @@ $total_ceh = $conn->query("SELECT COUNT(*) as total FROM ceh_chamados WHERE stat
             </a>
             <?php endif; ?>
 
-            <?php if (isTecnico() || isAdmin()): ?>
+            <?php if (isCEH()): ?>
             <a href="ceh_gerenciar.php" class="bg-white p-5 rounded-xl shadow-sm border border-border group hover:border-emerald-600 transition-all">
                 <div class="w-10 h-10 rounded-xl bg-emerald-600/10 flex items-center justify-center text-emerald-600 mb-4 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300 relative">
                     <i data-lucide="stethoscope" class="w-5 h-5"></i>

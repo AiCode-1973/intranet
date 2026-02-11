@@ -2,7 +2,7 @@
 require_once '../config.php';
 require_once '../functions.php';
 
-requireTecnico();
+requireCEH();
 
 $mensagem = '';
 $tipo_mensagem = '';

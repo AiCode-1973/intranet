@@ -25,8 +25,12 @@ function isManutencao() {
     return isAdmin() || (isset($_SESSION['is_manutencao']) && $_SESSION['is_manutencao'] == 1);
 }
 
+function isCEH() {
+    return isAdmin() || (isset($_SESSION['is_ceh']) && $_SESSION['is_ceh'] == 1);
+}
+
 function isAdminDashboardUser() {
-    return isRHAdmin() || isEduAdmin() || isTecnico() || isManutencao();
+    return isRHAdmin() || isEduAdmin() || isTecnico() || isManutencao() || isCEH();
 }
 
 function requireLogin() {
@@ -83,6 +87,14 @@ function requireTecnico() {
 function requireManutencao() {
     requireLogin();
     if (!isManutencao()) {
+        header('Location: ../index.php');
+        exit;
+    }
+}
+
+function requireCEH() {
+    requireLogin();
+    if (!isCEH()) {
         header('Location: ../index.php');
         exit;
     }

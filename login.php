@@ -8,7 +8,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $cpf = preg_replace('/[^0-9]/', '', sanitize($_POST['cpf']));
     $senha = $_POST['senha'];
     
-    $stmt = $conn->prepare("SELECT id, nome, email, cpf, senha, setor_id, is_admin, is_tecnico, is_manutencao, is_educacao, foto FROM usuarios WHERE cpf = ? AND ativo = 1");
+    $stmt = $conn->prepare("SELECT id, nome, email, cpf, senha, setor_id, is_admin, is_tecnico, is_manutencao, is_educacao, is_ceh, foto FROM usuarios WHERE cpf = ? AND ativo = 1");
     $stmt->bind_param("s", $cpf);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -24,6 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['is_tecnico'] = $row['is_tecnico'];
             $_SESSION['is_manutencao'] = $row['is_manutencao'];
             $_SESSION['is_educacao'] = $row['is_educacao'];
+            $_SESSION['is_ceh'] = $row['is_ceh'];
             $_SESSION['usuario_foto'] = $row['foto'];
             
             $stmt_update = $conn->prepare("UPDATE usuarios SET ultimo_acesso = NOW() WHERE id = ?");
