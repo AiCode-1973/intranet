@@ -87,6 +87,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
 
         <!-- Upper Quick Grid (Slim Cards) -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'mural')): ?>
             <a href="mural.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-primary transition-all">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all">
@@ -98,7 +99,9 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     </div>
                 </div>
             </a>
+            <?php endif; ?>
 
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'agenda')): ?>
             <a href="agenda.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-primary transition-all">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all">
@@ -110,7 +113,9 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     </div>
                 </div>
             </a>
+            <?php endif; ?>
 
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'aniversariantes')): ?>
             <a href="aniversariantes.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-primary transition-all">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center text-pink-500 group-hover:bg-pink-500 group-hover:text-white transition-all">
@@ -122,7 +127,9 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     </div>
                 </div>
             </a>
+            <?php endif; ?>
 
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'suporte')): ?>
             <a href="suporte.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-primary transition-all">
                 <div class="flex items-center gap-3">
                     <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all">
@@ -134,11 +141,13 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     </div>
                 </div>
             </a>
+            <?php endif; ?>
         </div>
 
         <!-- Main Dashboard Modules -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <!-- Biblioteca / Protocolos -->
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'biblioteca')): ?>
             <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
@@ -174,8 +183,10 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     Acessar Acervo Completo
                 </a>
             </div>
+            <?php endif; ?>
 
             <!-- Tecnologia da Informação - Artigos -->
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'ti_artigos')): ?>
             <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full group hover:border-primary transition-all overflow-hidden relative">
                 <div class="absolute -right-4 -top-4 w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center opacity-40 group-hover:scale-110 transition-transform">
                     <i data-lucide="monitor" class="w-10 h-10 text-blue-200"></i>
@@ -193,8 +204,10 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     </a>
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- Ramais & Telefones -->
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'telefones')): ?>
             <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full group hover:border-primary transition-all overflow-hidden relative">
                 <div class="absolute -right-4 -top-4 w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center opacity-40 group-hover:scale-110 transition-transform">
                     <i data-lucide="phone" class="w-10 h-10 text-gray-200"></i>
@@ -211,6 +224,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     </a>
                 </div>
             </div>
+            <?php endif; ?>
 
             <!-- Qualidade / Métricas -->
             <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full">
@@ -253,6 +267,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             </div>
 
             <!-- Educação Permanente -->
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'educacao')): ?>
             <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full">
                 <div class="flex items-center justify-between mb-5">
                     <div class="flex items-center gap-2">
@@ -304,8 +319,10 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                         Ver Todos Treinamentos
                     </a>
                 </div>
+            <?php endif; ?>
 
             <!-- RH & Holerites -->
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'rh')): ?>
             <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full group hover:border-indigo-500 transition-all overflow-hidden relative">
                     <div class="absolute -right-4 -top-4 w-20 h-20 bg-indigo-50 rounded-full flex items-center justify-center opacity-40 group-hover:scale-110 transition-transform">
                         <i data-lucide="users" class="w-10 h-10 text-indigo-200"></i>
@@ -327,6 +344,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                         </a>
                     </div>
                 </div>
+            <?php endif; ?>
         </div>
 
         <!-- Operational Quick Access (Slim) -->
@@ -335,6 +353,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             // Buscar chamados CEH pendentes para o card
             $ceh_pendentes = $conn->query("SELECT COUNT(*) as total FROM ceh_chamados WHERE status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
             ?>
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'ceh')): ?>
             <a href="ceh.php" class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center h-full gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
                 <div class="w-16 h-16 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 relative">
                     <i data-lucide="stethoscope" class="w-8 h-8"></i>
@@ -357,7 +376,9 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     <i data-lucide="stethoscope" class="w-24 h-24"></i>
                 </div>
             </a>
+            <?php endif; ?>
 
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'manutencao')): ?>
             <a href="manutencao.php" class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center h-full gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
                 <div class="w-16 h-16 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all duration-500 relative">
                     <i data-lucide="wrench" class="w-8 h-8"></i>
@@ -380,6 +401,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     <i data-lucide="wrench" class="w-24 h-24"></i>
                 </div>
             </a>
+            <?php endif; ?>
         </div>
     </div>
     

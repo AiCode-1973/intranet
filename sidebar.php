@@ -39,27 +39,32 @@ $current_page = basename($_SERVER['PHP_SELF']);
     <nav class="flex-grow px-2 space-y-1 overflow-y-auto no-scrollbar min-h-0">
         <?php
         $menu_items = [
-            ['icon' => 'layout-dashboard', 'label' => 'Início', 'link' => $root_path . 'dashboard.php'],
-            ['icon' => 'megaphone', 'label' => 'Mural de Avisos', 'link' => $root_path . 'mural.php'],
-            ['icon' => 'calendar', 'label' => 'Agenda de Eventos', 'link' => $root_path . 'agenda.php'],
-            ['icon' => 'cake', 'label' => 'Aniversariantes', 'link' => $root_path . 'aniversariantes.php'],
-            ['icon' => 'activity', 'label' => 'Assistencial', 'link' => '#'],
-            ['icon' => 'shield-check', 'label' => 'Qualidade & Segurança', 'link' => '#'],
-            ['icon' => 'users', 'label' => 'Recursos Humanos', 'link' => $root_path . 'rh.php'],
-            ['icon' => 'briefcase', 'label' => 'Setores Administrativos', 'link' => '#'],
-            ['icon' => 'stethoscope', 'label' => 'Chamados CEH', 'link' => $root_path . 'ceh.php'],
-            ['icon' => 'monitor', 'label' => 'Tecnologia da Informação', 'link' => $root_path . 'ti_artigos.php'],
-            ['icon' => 'wrench', 'label' => 'Infraestrutura & Manutenção', 'link' => $root_path . 'manutencao.php'],
-            ['icon' => 'shield-alert', 'label' => 'Segurança do Trabalho', 'link' => '#'],
-            ['icon' => 'files', 'label' => 'Documentos & Biblioteca', 'link' => $root_path . 'biblioteca.php'],
-            ['icon' => 'graduation-cap', 'label' => 'Educação Permanente', 'link' => $root_path . 'educacao.php'],
-            ['icon' => 'headset', 'label' => 'Ouvidoria', 'link' => '#'],
-            ['icon' => 'monitor-dot', 'label' => 'Suporte de TI', 'link' => $root_path . 'suporte.php'],
-            ['icon' => 'phone', 'label' => 'Ramais & Telefones', 'link' => $root_path . 'telefones.php'],
-            ['icon' => 'refresh-cw', 'label' => 'Troca de Plantão', 'link' => $root_path . 'plantao_trocas.php'],
+            ['icon' => 'layout-dashboard', 'label' => 'Início', 'link' => $root_path . 'dashboard.php', 'slug' => 'dashboard'],
+            ['icon' => 'megaphone', 'label' => 'Mural de Avisos', 'link' => $root_path . 'mural.php', 'slug' => 'mural'],
+            ['icon' => 'calendar', 'label' => 'Agenda de Eventos', 'link' => $root_path . 'agenda.php', 'slug' => 'agenda'],
+            ['icon' => 'cake', 'label' => 'Aniversariantes', 'link' => $root_path . 'aniversariantes.php', 'slug' => 'aniversariantes'],
+            ['icon' => 'activity', 'label' => 'Assistencial', 'link' => '#', 'slug' => 'assistencial'],
+            ['icon' => 'shield-check', 'label' => 'Qualidade & Segurança', 'link' => '#', 'slug' => 'qualidade'],
+            ['icon' => 'users', 'label' => 'Recursos Humanos', 'link' => $root_path . 'rh.php', 'slug' => 'rh'],
+            ['icon' => 'briefcase', 'label' => 'Setores Administrativos', 'link' => '#', 'slug' => 'setores_admin'],
+            ['icon' => 'stethoscope', 'label' => 'Chamados CEH', 'link' => $root_path . 'ceh.php', 'slug' => 'ceh'],
+            ['icon' => 'monitor', 'label' => 'Tecnologia da Informação', 'link' => $root_path . 'ti_artigos.php', 'slug' => 'ti_artigos'],
+            ['icon' => 'wrench', 'label' => 'Infraestrutura & Manutenção', 'link' => $root_path . 'manutencao.php', 'slug' => 'manutencao'],
+            ['icon' => 'shield-alert', 'label' => 'Segurança do Trabalho', 'link' => '#', 'slug' => 'seguranca_trabalho'],
+            ['icon' => 'files', 'label' => 'Documentos & Biblioteca', 'link' => $root_path . 'biblioteca.php', 'slug' => 'biblioteca'],
+            ['icon' => 'graduation-cap', 'label' => 'Educação Permanente', 'link' => $root_path . 'educacao.php', 'slug' => 'educacao'],
+            ['icon' => 'headset', 'label' => 'Ouvidoria', 'link' => '#', 'slug' => 'ouvidoria'],
+            ['icon' => 'monitor-dot', 'label' => 'Suporte de TI', 'link' => $root_path . 'suporte.php', 'slug' => 'suporte'],
+            ['icon' => 'phone', 'label' => 'Ramais & Telefones', 'link' => $root_path . 'telefones.php', 'slug' => 'telefones'],
+            ['icon' => 'refresh-cw', 'label' => 'Troca de Plantão', 'link' => $root_path . 'plantao_trocas.php', 'slug' => 'plantao'],
         ];
 
         foreach ($menu_items as $item) {
+            // Check permission
+            if (!temPermissao($conn, $_SESSION['setor_id'], $item['slug'])) {
+                continue;
+            }
+
             $is_active = ($current_page == basename($item['link']));
             $active_class = $is_active 
                 ? 'bg-white/20 text-white font-semibold' 
