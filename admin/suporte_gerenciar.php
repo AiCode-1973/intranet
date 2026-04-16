@@ -51,7 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
 }
 
 // Buscar todos os chamados com detalhes
-$sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante
+$sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante,
+               c.satisfacao_nota, c.satisfacao_comentario
         FROM chamados c 
         JOIN usuarios u ON c.usuario_id = u.id 
         LEFT JOIN setores s ON u.setor_id = s.id
@@ -189,6 +190,7 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Prioridade</th>
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Status</th>
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Técnico</th>
+                            <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Avaliação</th>
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Ação</th>
                         </tr>
                     </thead>
@@ -228,6 +230,21 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                                     </div>
                                 <?php else: ?>
                                     <span class="text-gray-300 italic text-[10px]">Pendente</span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="p-3 text-center">
+                                <?php if ($chamado['satisfacao_nota']): ?>
+                                    <div class="flex flex-col items-center">
+                                        <div class="flex items-center text-amber-500">
+                                            <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                            <span class="font-bold ml-1"><?php echo $chamado['satisfacao_nota']; ?>/5</span>
+                                        </div>
+                                        <?php if($chamado['satisfacao_comentario']): ?>
+                                            <span class="text-[8px] text-text-secondary italic max-w-[80px] truncate" title="<?php echo $chamado['satisfacao_comentario']; ?>">"<?php echo $chamado['satisfacao_comentario']; ?>"</span>
+                                        <?php endif; ?>
+                                    </div>
+                                <?php else: ?>
+                                    <span class="text-gray-300">-</span>
                                 <?php endif; ?>
                             </td>
                             <td class="p-3 text-right">

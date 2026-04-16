@@ -29,6 +29,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->close();
 }
 
+// Processar Pesquisa de Satisfação
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'enviar_satisfacao') {
+    $id = intval($_POST['id']);
+    $nota = intval($_POST['satisfacao_nota']);
+    $comentario = sanitize($_POST['satisfacao_comentario']);
+    $data_satisfacao = date('Y-m-d H:i:s');
+
+    // Validação de segurança: o chamado deve pertencer ao usuário e estar Resolvido
+    $check_stmt = $conn->prepare("SELECT id FROM chamados WHERE id = ? AND usuario_id = ? AND status = 'Resolvido'");
+    $check_stmt->bind_param("ii", $id, $usuario_id);
+    $check_stmt->execute();
+    if ($check_stmt->get_result()->num_rows > 0) {
+        $stmt = $conn->prepare("UPDATE chamados SET satisfacao_nota = ?, satisfacao_comentario = ?, data_satisfacao = ? WHERE id = ?");
+        $stmt->bind_param("issi", $nota, $comentario, $data_satisfacao, $id);
+        if ($stmt->execute()) {
+            $mensagem = "Obrigado pelo seu feedback! Pesquisa de satisfação enviada.";
+            $tipo_mensagem = "success";
+            registrarLog($conn, "Enviou pesquisa de satisfação para chamado #$id");
+        }
+        $stmt->close();
+    }
+    $check_stmt->close();
+}
+
 // Filtros
 $filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $where_clauses = [];
@@ -317,17 +341,71 @@ $prioridade_labels = [
                 </div>
             </div>
 
-            <div class="p-4 bg-gray-50 flex justify-end">
+            <div class="p-4 bg-gray-50 flex justify-between items-center">
+                <div id="btn_satisfacao_container" class="hidden">
+                    <button onclick="exibirPesquisaSatisfacao()" class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+                        <i data-lucide="star" class="w-3.5 h-3.5"></i>
+                        Avaliar Atendimento
+                    </button>
+                </div>
                 <button onclick="fecharModalDetalhes()" class="px-6 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all shadow-sm uppercase tracking-widest">Fechar</button>
             </div>
         </div>
     </div>
 
-    <script>
+    <!-- Modal Pesquisa de Satisfação -->
+    <div id="modalSatisfacao" class="modal">
+        <div class="bg-white w-full max-w-sm mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150">
+            <div class="bg-amber-500 px-5 py-4 text-white flex justify-between items-center">
+                <div>
+                    <h2 class="text-base font-bold">Avaliação de Atendimento</h2>
+                    <p class="text-white/70 text-[10px] uppercase font-bold tracking-widest">Sua opinião é importante</p>
+                </div>
+                <button class="p-1.5 hover:bg-white/10 rounded-lg transition-colors" onclick="fecharModalSatisfacao()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <form method="POST" action="" class="p-5 space-y-4">
+                <input type="hidden" name="acao" value="enviar_satisfacao">
+                <input type="hidden" name="id" id="satisfacao_chamado_id">
+                
+                <div>
+                    <label class="block text-[10px] font-black text-text-secondary mb-3 uppercase tracking-widest text-center">Como você avalia o atendimento técnico?</label>
+                    <div class="flex justify-center gap-2">
+                        <?php for($i=1; $i<=5; $i++): ?>
+                        <label class="cursor-pointer group">
+                            <input type="radio" name="satisfacao_nota" value="<?php echo $i; ?>" required class="peer hidden">
+                            <div class="w-10 h-10 rounded-lg border-2 border-border flex items-center justify-center text-lg font-bold text-text-secondary peer-checked:bg-amber-500 peer-checked:border-amber-500 peer-checked:text-white transition-all group-hover:border-amber-300">
+                                <?php echo $i; ?>
+                            </div>
+                        </label>
+                        <?php endfor; ?>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Comentário Adicional (Opcional)</label>
+                    <textarea name="satisfacao_comentario" rows="3" placeholder="Conte-nos um pouco mais sobre sua experiência..."
+                              class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-amber-500 transition-all"></textarea>
+                </div>
+
+                <div class="flex flex-col gap-2 pt-2">
+                    <button type="submit" class="w-full bg-amber-500 hover:bg-amber-600 text-white py-2 rounded-lg text-xs font-bold shadow-md transition-all active:scale-95 uppercase tracking-widest">Enviar Avaliação</button>
+                    <button type="button" onclick="fecharModalSatisfacao()" class="w-full py-2 text-[10px] font-bold text-text-secondary hover:text-text transition-colors uppercase tracking-widest">Agora não</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script id="current_chamado_script">
+        let currentChamado = null;
+    </script>
         function abrirModal() { document.getElementById('modalChamado').classList.add('active'); }
         function fecharModal() { document.getElementById('modalChamado').classList.remove('active'); }
 
         function verDetalhes(chamado) {
+            currentChamado = chamado; // Armazenar chamado atual para pesquisa de satisfação
             document.getElementById('detalhe_id').textContent = '#' + chamado.id.toString().padStart(3, '0');
             document.getElementById('detalhe_titulo').textContent = chamado.titulo;
             document.getElementById('detalhe_descricao').textContent = chamado.descricao;
@@ -338,12 +416,21 @@ $prioridade_labels = [
             const resContainer = document.getElementById('container_resolucao');
             const resText = document.getElementById('detalhe_resolucao');
             const header = document.getElementById('modal_header_bg');
+            const satisBtn = document.getElementById('btn_satisfacao_container');
 
             if (chamado.resolucao) {
                 resContainer.classList.remove('hidden');
                 resText.textContent = chamado.resolucao;
             } else {
                 resContainer.classList.add('hidden');
+            }
+
+            // Exibir ou ocultar botão de pesquisa de satisfação
+            // Só exibe se estiver Resolvido e ainda não foi avaliado
+            if (chamado.status === 'Resolvido' && !chamado.satisfacao_nota) {
+                satisBtn.classList.remove('hidden');
+            } else {
+                satisBtn.classList.add('hidden');
             }
 
             // Ajustar cores do header baseado no status
@@ -364,6 +451,16 @@ $prioridade_labels = [
 
         function fecharModalDetalhes() {
             document.getElementById('modalDetalhes').classList.remove('active');
+        }
+
+        function exibirPesquisaSatisfacao() {
+            if (!currentChamado) return;
+            document.getElementById('satisfacao_chamado_id').value = currentChamado.id;
+            document.getElementById('modalSatisfacao').classList.add('active');
+        }
+
+        function fecharModalSatisfacao() {
+            document.getElementById('modalSatisfacao').classList.remove('active');
         }
     </script>
     <?php include 'footer.php'; ?>
