@@ -56,6 +56,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Principal - APAS Intranet</title>
+    <?php include 'tailwind_setup.php'; ?>
     <style>
         .modal-info { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 1rem; }
         .modal-info.active { display: flex; }
