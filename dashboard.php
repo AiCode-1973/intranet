@@ -228,34 +228,45 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
 
             <!-- Informações & Saúde -->
             <?php if (temPermissao($conn, $_SESSION['setor_id'], 'informacoes')): ?>
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full group hover:border-primary transition-all">
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full group hover:border-primary transition-all overflow-hidden relative">
                 <div class="flex items-center justify-between mb-5">
                     <div class="flex items-center gap-2">
                         <i data-lucide="info" class="w-4 h-4 text-primary"></i>
                         <h3 class="text-sm font-bold text-text">Informações & Saúde</h3>
                     </div>
-                    <span class="text-[8px] font-black bg-primary/5 text-primary px-1.5 py-0.5 rounded uppercase tracking-widest">Links Externos</span>
+                    <span class="text-[8px] font-black bg-primary/5 text-primary px-1.5 py-0.5 rounded uppercase tracking-widest">Informativos</span>
                 </div>
                 
-                <div class="space-y-4 flex-grow">
+                <div class="space-y-4 flex-grow overflow-y-auto pr-1 no-scrollbar max-h-[250px]">
                     <?php 
-                    $info_res = $conn->query("SELECT * FROM informacoes WHERE ativo = 1 ORDER BY created_at DESC LIMIT 4");
+                    $info_res = $conn->query("SELECT * FROM informacoes WHERE ativo = 1 ORDER BY created_at DESC LIMIT 6");
                     if ($info_res->num_rows > 0):
                         while($info = $info_res->fetch_assoc()):
+                            $has_url = !empty($info['url']);
                     ?>
-                        <a href="<?php echo $info['url']; ?>" target="_blank" class="block group/item">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest group-hover/item:text-primary transition-colors flex items-center gap-1.5">
-                                    <i data-lucide="<?php echo $info['icone']; ?>" class="w-3 h-3"></i>
+                        <div class="group/item bg-background/30 rounded-lg p-3 border border-border/40 hover:border-primary/30 transition-all">
+                            <div class="flex items-center justify-between mb-1.5">
+                                <span class="text-[9px] font-black text-primary uppercase tracking-widest flex items-center gap-1.5">
+                                    <i data-lucide="<?php echo $info['icone'] ?: 'info'; ?>" class="w-3.5 h-3.5"></i>
                                     <?php echo $info['titulo']; ?>
                                 </span>
-                                <i data-lucide="external-link" class="w-2.5 h-2.5 text-text-secondary opacity-0 group-hover/item:opacity-100 transition-all"></i>
+                                <?php if ($has_url): ?>
+                                    <a href="<?php echo $info['url']; ?>" target="_blank" class="p-1 hover:bg-primary/10 rounded transition-colors text-text-secondary/60 hover:text-primary">
+                                        <i data-lucide="external-link" class="w-3 h-3"></i>
+                                    </a>
+                                <?php endif; ?>
                             </div>
-                            <!-- Linha decorativa similar ao indicador -->
-                            <div class="h-0.5 w-full bg-gray-50 rounded-full overflow-hidden border border-border/10">
+                            
+                            <?php if (!empty($info['conteudo'])): ?>
+                                <p class="text-[10px] text-text-secondary leading-relaxed italic mb-1 line-clamp-3">
+                                    <?php echo nl2br(strip_tags($info['conteudo'])); ?>
+                                </p>
+                            <?php endif; ?>
+
+                            <div class="h-0.5 w-full bg-gray-100 rounded-full overflow-hidden mt-2">
                                 <div class="h-full bg-primary/20 group-hover/item:bg-primary transition-all duration-500 w-full transform origin-left scale-x-0 group-hover/item:scale-x-100"></div>
                             </div>
-                        </a>
+                        </div>
                     <?php 
                         endwhile;
                     else: 
@@ -264,14 +275,6 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                             Nenhuma informação cadastrada.
                         </div>
                     <?php endif; ?>
-                </div>
-
-                <div class="mt-8 p-3 bg-primary/[0.03] border border-primary/10 rounded-lg flex items-center justify-between group cursor-pointer hover:bg-primary/5 transition-all">
-                    <div>
-                        <p class="text-[10px] font-black text-primary uppercase tracking-tighter">Fique por dentro</p>
-                        <p class="text-[11px] font-bold text-text-secondary">Informações essenciais para sua rotina</p>
-                    </div>
-                    <i data-lucide="alert-circle" class="w-4 h-4 text-primary opacity-30 group-hover:opacity-100 transition-opacity"></i>
                 </div>
             </div>
             <?php endif; ?>
