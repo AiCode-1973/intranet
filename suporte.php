@@ -398,9 +398,9 @@ $prioridade_labels = [
         </div>
     </div>
 
-    <script id="current_chamado_script">
+    <script>
         let currentChamado = null;
-    </script>
+
         function abrirModal() { document.getElementById('modalChamado').classList.add('active'); }
         function fecharModal() { document.getElementById('modalChamado').classList.remove('active'); }
 
