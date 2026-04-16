@@ -192,9 +192,22 @@ $informacoes = $conn->query("SELECT * FROM informacoes ORDER BY created_at DESC"
                         </select>
                     </div>
                     <div>
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Ícone (Lucide)</label>
-                        <input type="text" name="icone" id="icone" placeholder="link, info, anchor..." 
-                               class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Ícone</label>
+                        <select name="icone" id="icone" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
+                            <option value="info">Informação (Padrão)</option>
+                            <option value="link">Link / Corrente</option>
+                            <option value="heart-pulse">Saúde / Pulso</option>
+                            <option value="stethoscop">Estetoscópio</option>
+                            <option value="activity">Atividade / Gráfico</option>
+                            <option value="alert-circle">Aviso / Alerta</option>
+                            <option value="file-text">Documento / Texto</option>
+                            <option value="newspaper">Notícia / Jornal</option>
+                            <option value="help-circle">Ajuda / Dúvida</option>
+                            <option value="shield-check">Segurança / Check</option>
+                            <option value="megaphone">Comunicado</option>
+                            <option value="calendar">Calendário</option>
+                            <option value="users">Usuários / Equipe</option>
+                        </select>
                     </div>
                 </div>
 
