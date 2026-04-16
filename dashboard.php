@@ -226,45 +226,56 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             </div>
             <?php endif; ?>
 
-            <!-- Qualidade / Métricas -->
-            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full">
+            <!-- Informações & Saúde -->
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'informacoes')): ?>
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full group hover:border-primary transition-all">
                 <div class="flex items-center justify-between mb-5">
                     <div class="flex items-center gap-2">
-                        <i data-lucide="bar-chart" class="w-4 h-4 text-primary"></i>
-                        <h3 class="text-sm font-bold text-text">Indicadores de Qualidade</h3>
+                        <i data-lucide="info" class="w-4 h-4 text-primary"></i>
+                        <h3 class="text-sm font-bold text-text">Informações & Saúde</h3>
                     </div>
+                    <span class="text-[8px] font-black bg-primary/5 text-primary px-1.5 py-0.5 rounded uppercase tracking-widest">Links Externos</span>
                 </div>
                 
-                <div class="space-y-5 flex-grow">
-                    <div>
-                        <div class="flex justify-between items-end mb-1.5">
-                            <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest">Satisfação do Cliente</span>
-                            <span class="text-xs font-black text-primary">94%</span>
+                <div class="space-y-4 flex-grow">
+                    <?php 
+                    $info_res = $conn->query("SELECT * FROM informacoes WHERE ativo = 1 ORDER BY created_at DESC LIMIT 4");
+                    if ($info_res->num_rows > 0):
+                        while($info = $info_res->fetch_assoc()):
+                    ?>
+                        <a href="<?php echo $info['url']; ?>" target="_blank" class="block group/item">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest group-hover/item:text-primary transition-colors flex items-center gap-1.5">
+                                    <i data-lucide="<?php echo $info['icone']; ?>" class="w-3 h-3"></i>
+                                    <?php echo $info['titulo']; ?>
+                                </span>
+                                <i data-lucide="external-link" class="w-2.5 h-2.5 text-text-secondary opacity-0 group-hover/item:opacity-100 transition-all"></i>
+                            </div>
+                            <!-- Linha decorativa similar ao indicador -->
+                            <div class="h-0.5 w-full bg-gray-50 rounded-full overflow-hidden border border-border/10">
+                                <div class="h-full bg-primary/20 group-hover/item:bg-primary transition-all duration-500 w-full transform origin-left scale-x-0 group-hover/item:scale-x-100"></div>
+                            </div>
+                        </a>
+                    <?php 
+                        endwhile;
+                    else: 
+                    ?>
+                        <div class="h-full flex items-center justify-center py-8 opacity-20 italic text-[10px]">
+                            Nenhuma informação cadastrada.
                         </div>
-                        <div class="h-1.5 w-full bg-gray-50 rounded-full overflow-hidden border border-border/20">
-                            <div class="h-full bg-primary rounded-full transition-all duration-1000" style="width: 94%"></div>
-                        </div>
-                    </div>
-                    
-                    <div>
-                        <div class="flex justify-between items-end mb-1.5">
-                            <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest">Tempo Médio de Atendimento</span>
-                            <span class="text-xs font-black text-primary">22 min</span>
-                        </div>
-                        <div class="h-1.5 w-full bg-gray-50 rounded-full overflow-hidden border border-border/20">
-                            <div class="h-full bg-indigo-400 rounded-full transition-all duration-1000" style="width: 75%"></div>
-                        </div>
-                    </div>
+                    <?php endif; ?>
                 </div>
 
                 <div class="mt-8 p-3 bg-primary/[0.03] border border-primary/10 rounded-lg flex items-center justify-between group cursor-pointer hover:bg-primary/5 transition-all">
                     <div>
-                        <p class="text-[10px] font-black text-primary uppercase tracking-tighter">Meta Mensal</p>
-                        <p class="text-[11px] font-bold text-text-secondary">Unidade atingiu 98% da meta</p>
+                        <p class="text-[10px] font-black text-primary uppercase tracking-tighter">Fique por dentro</p>
+                        <p class="text-[11px] font-bold text-text-secondary">Informações essenciais para sua rotina</p>
                     </div>
-                    <i data-lucide="trending-up" class="w-4 h-4 text-primary opacity-30 group-hover:opacity-100 transition-opacity"></i>
+                    <i data-lucide="alert-circle" class="w-4 h-4 text-primary opacity-30 group-hover:opacity-100 transition-opacity"></i>
                 </div>
             </div>
+            <?php endif; ?>
+
 
             <!-- Educação Permanente -->
             <?php if (temPermissao($conn, $_SESSION['setor_id'], 'educacao')): ?>

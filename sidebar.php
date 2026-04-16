@@ -53,10 +53,11 @@ $current_page = basename($_SERVER['PHP_SELF']);
             ['icon' => 'shield-alert', 'label' => 'Segurança do Trabalho', 'link' => '#', 'slug' => 'seguranca_trabalho'],
             ['icon' => 'files', 'label' => 'Documentos & Biblioteca', 'link' => $root_path . 'biblioteca.php', 'slug' => 'biblioteca'],
             ['icon' => 'graduation-cap', 'label' => 'Educação Permanente', 'link' => $root_path . 'educacao.php', 'slug' => 'educacao'],
-            ['icon' => 'headset', 'label' => 'Ouvidoria', 'link' => '#', 'slug' => 'ouvidoria'],
             ['icon' => 'monitor-dot', 'label' => 'Suporte de TI', 'link' => $root_path . 'suporte.php', 'slug' => 'suporte'],
             ['icon' => 'phone', 'label' => 'Ramais & Telefones', 'link' => $root_path . 'telefones.php', 'slug' => 'telefones'],
+            ['icon' => 'info', 'label' => 'Informações & Saúde', 'link' => '#', 'slug' => 'informacoes'],
             ['icon' => 'refresh-cw', 'label' => 'Troca de Plantão', 'link' => $root_path . 'plantao_trocas.php', 'slug' => 'plantao'],
+
         ];
 
         foreach ($menu_items as $item) {

@@ -287,7 +287,19 @@ $total_ceh = $conn->query("SELECT COUNT(*) as total FROM ceh_chamados WHERE stat
                     <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-primary transition-all"></i>
                 </div>
             </a>
+
+            <a href="informacoes_gerenciar.php" class="bg-white p-5 rounded-xl shadow-sm border border-border group hover:border-primary transition-all">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary mb-4 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                    <i data-lucide="info" class="w-5 h-5"></i>
+                </div>
+                <h3 class="text-base font-bold text-text mb-1 tracking-tight">Informações & Saúde</h3>
+                <p class="text-xs text-text-secondary leading-relaxed">Gerencie links e notícias do dashboard.</p>
+                <div class="mt-4 flex justify-end">
+                    <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-primary transition-all"></i>
+                </div>
+            </a>
             <?php endif; ?>
+
             <?php if (isAdmin() || isRHAdmin()): ?>
             <!-- Troca de Plantão (Novo) -->
             <a href="plantao_gerenciar.php" class="bg-white p-6 rounded-3xl border border-border shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
