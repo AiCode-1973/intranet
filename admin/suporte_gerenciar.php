@@ -290,6 +290,18 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                 </div>
             </div>
 
+            <!-- Visualização da Avaliação do Usuário -->
+            <div id="container_feedback" class="hidden p-4 bg-amber-50 border-b border-amber-100 animate-in fade-in slide-in-from-top-2">
+                <div class="flex items-center justify-between mb-1">
+                    <span class="text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-1">
+                        <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                        Avaliação do Usuário
+                    </span>
+                    <span id="feedback_nota" class="text-xs font-bold text-amber-700">--/5</span>
+                </div>
+                <p id="feedback_texto" class="text-xs text-amber-800 italic leading-relaxed">---</p>
+            </div>
+
             <form method="POST" action="" class="p-5 space-y-4">
                 <input type="hidden" name="acao" value="atualizar_chamado">
                 <input type="hidden" name="id" id="form_id">
@@ -344,8 +356,22 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
             document.getElementById('form_status').value = chamado.status;
             document.getElementById('form_tecnico').value = chamado.tecnico_id || '';
             document.getElementById('form_resolucao').value = chamado.resolucao || '';
+
+            // Lógica para exibir feedback do usuário
+            const feedbackContainer = document.getElementById('container_feedback');
+            const feedbackNota = document.getElementById('feedback_nota');
+            const feedbackTexto = document.getElementById('feedback_texto');
+
+            if (chamado.satisfacao_nota) {
+                feedbackContainer.classList.remove('hidden');
+                feedbackNota.textContent = chamado.satisfacao_nota + '/5';
+                feedbackTexto.textContent = chamado.satisfacao_comentario ? '"' + chamado.satisfacao_comentario + '"' : 'Usuário não deixou comentário.';
+            } else {
+                feedbackContainer.classList.add('hidden');
+            }
             
             document.getElementById('modalAtender').classList.add('active');
+            lucide.createIcons();
         }
         function fecharModal() { document.getElementById('modalAtender').classList.remove('active'); }
 
