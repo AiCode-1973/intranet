@@ -56,7 +56,10 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Painel Principal - APAS Intranet</title>
-    <?php include 'tailwind_setup.php'; ?>
+    <style>
+        .modal-info { display: none; position: fixed; z-index: 1000; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 1rem; }
+        .modal-info.active { display: flex; }
+    </style>
 </head>
 <body class="bg-background text-text font-sans selection:bg-primary/20">
     <?php include 'header.php'; ?>
@@ -244,22 +247,26 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                         while($info = $info_res->fetch_assoc()):
                             $has_url = !empty($info['url']);
                     ?>
-                        <div class="group/item bg-background/30 rounded-lg p-3 border border-border/40 hover:border-primary/30 transition-all">
+                        <div onclick='verDetalhesInfo(<?php echo json_encode($info, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>)' 
+                             class="group/item bg-background/30 rounded-lg p-3 border border-border/40 hover:border-primary/30 transition-all cursor-pointer">
                             <div class="flex items-center justify-between mb-1.5">
                                 <span class="text-[9px] font-black text-primary uppercase tracking-widest flex items-center gap-1.5">
                                     <i data-lucide="<?php echo $info['icone'] ?: 'info'; ?>" class="w-3.5 h-3.5"></i>
                                     <?php echo $info['titulo']; ?>
                                 </span>
-                                <?php if ($has_url): ?>
-                                    <a href="<?php echo $info['url']; ?>" target="_blank" class="p-1 hover:bg-primary/10 rounded transition-colors text-text-secondary/60 hover:text-primary">
-                                        <i data-lucide="external-link" class="w-3 h-3"></i>
-                                    </a>
-                                <?php endif; ?>
+                                <div class="flex items-center gap-1.5">
+                                    <i data-lucide="eye" class="w-3 h-3 text-primary opacity-0 group-hover/item:opacity-100 transition-all"></i>
+                                    <?php if ($has_url): ?>
+                                        <a href="<?php echo $info['url']; ?>" target="_blank" onclick="event.stopPropagation()" class="p-1 hover:bg-primary/10 rounded transition-colors text-text-secondary/60 hover:text-primary">
+                                            <i data-lucide="external-link" class="w-3 h-3"></i>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
                             </div>
                             
                             <?php if (!empty($info['conteudo'])): ?>
-                                <p class="text-[10px] text-text-secondary leading-relaxed italic mb-1 line-clamp-3">
-                                    <?php echo nl2br(strip_tags($info['conteudo'])); ?>
+                                <p class="text-[10px] text-text-secondary leading-relaxed italic mb-1 line-clamp-2">
+                                    <?php echo strip_tags($info['conteudo']); ?>
                                 </p>
                             <?php endif; ?>
 
@@ -420,5 +427,80 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
     </div>
     
     <?php include 'footer.php'; ?>
+
+    <!-- Modal de Detalhes da Informação -->
+    <div id="modalInfoDetalhes" class="modal-info" onclick="fecharModalInfo(event)">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-border overflow-hidden transform transition-all" onclick="event.stopPropagation()">
+            <div class="bg-primary p-6 text-white relative">
+                <div class="flex items-center gap-3 mb-2">
+                    <div id="infoIconeContainer" class="p-2 bg-white/20 rounded-lg">
+                        <i id="infoIcone" data-lucide="info" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <span id="infoTipo" class="text-[10px] font-black uppercase tracking-widest opacity-70"></span>
+                        <h2 id="infoTitulo" class="text-xl font-bold leading-tight"></h2>
+                    </div>
+                </div>
+                <button onclick="fecharModalInfo()" class="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-8">
+                <div id="infoConteudo" class="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+                </div>
+                
+                <div id="infoFooter" class="mt-8 pt-6 border-t border-border flex justify-between items-center">
+                    <button onclick="fecharModalInfo()" class="px-6 py-2 text-xs font-bold text-text-secondary hover:text-text transition-colors uppercase tracking-widest">Fechar</button>
+                    <a id="infoLinkExterno" href="#" target="_blank" class="hidden bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl text-xs font-bold shadow-lg transition-all flex items-center gap-2 active:scale-95 uppercase tracking-widest">
+                        Acessar Link Externo <i data-lucide="external-link" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function verDetalhesInfo(info) {
+            document.getElementById('infoTitulo').textContent = info.titulo;
+            document.getElementById('infoTipo').textContent = info.tipo;
+            document.getElementById('infoConteudo').innerHTML = info.conteudo ? info.conteudo.replace(/\n/g, '<br>') : '<em class="opacity-50">Sem conteúdo adicional.</em>';
+            
+            // Ícone
+            const iconeName = info.icone || 'info';
+            const iconeElement = document.getElementById('infoIcone');
+            iconeElement.setAttribute('data-lucide', iconeName);
+            
+            // Link Externo
+            const linkBtn = document.getElementById('infoLinkExterno');
+            if (info.url && info.url.trim() !== '') {
+                linkBtn.href = info.url;
+                linkBtn.classList.remove('hidden');
+            } else {
+                linkBtn.classList.add('hidden');
+            }
+            
+            // Ativar modal
+            document.getElementById('modalInfoDetalhes').classList.add('active');
+            
+            // Atualizar ícones lucide dentro do modal
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        }
+
+        function fecharModalInfo() {
+            document.getElementById('modalInfoDetalhes').classList.remove('active');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('mainSidebar');
+            if (sidebar.classList.contains('-translate-x-full')) {
+                sidebar.classList.remove('-translate-x-full');
+            } else {
+                sidebar.classList.add('-translate-x-full');
+            }
+        }
+    </script>
 </body>
 </html>
