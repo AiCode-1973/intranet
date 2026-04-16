@@ -264,12 +264,6 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                                     <?php endif; ?>
                                 </div>
                             </div>
-                            
-                            <?php if (!empty($info['conteudo'])): ?>
-                                <p class="text-[10px] text-text-secondary leading-relaxed italic mb-1 line-clamp-2">
-                                    <?php echo strip_tags($info['conteudo']); ?>
-                                </p>
-                            <?php endif; ?>
 
                             <div class="h-0.5 w-full bg-gray-100 rounded-full overflow-hidden mt-2">
                                 <div class="h-full bg-primary/20 group-hover/item:bg-primary transition-all duration-500 w-full transform origin-left scale-x-0 group-hover/item:scale-x-100"></div>
