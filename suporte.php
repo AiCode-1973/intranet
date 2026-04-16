@@ -372,15 +372,27 @@ $prioridade_labels = [
                 
                 <div>
                     <label class="block text-[10px] font-black text-text-secondary mb-3 uppercase tracking-widest text-center">Como você avalia o atendimento técnico?</label>
-                    <div class="flex justify-center gap-2">
+                    <div class="flex justify-center gap-2 mb-3">
                         <?php for($i=1; $i<=5; $i++): ?>
                         <label class="cursor-pointer group">
                             <input type="radio" name="satisfacao_nota" value="<?php echo $i; ?>" required class="peer hidden">
-                            <div class="w-10 h-10 rounded-lg border-2 border-border flex items-center justify-center text-lg font-bold text-text-secondary peer-checked:bg-amber-500 peer-checked:border-amber-500 peer-checked:text-white transition-all group-hover:border-amber-300">
+                            <div class="w-10 h-10 rounded-lg border-2 border-border flex items-center justify-center text-sm font-bold text-text-secondary peer-checked:bg-amber-500 peer-checked:border-amber-500 peer-checked:text-white transition-all group-hover:border-amber-300">
                                 <?php echo $i; ?>
                             </div>
                         </label>
                         <?php endfor; ?>
+                    </div>
+                    <!-- Legenda das notas -->
+                    <div class="grid grid-cols-2 gap-2 text-[8px] font-bold uppercase tracking-tighter text-text-secondary/60">
+                        <div class="flex flex-col">
+                            <span>1 - Muito Ruim</span>
+                            <span>2 - Ruim</span>
+                        </div>
+                        <div class="flex flex-col text-right">
+                            <span>4 - Bom</span>
+                            <span>5 - Excelente</span>
+                        </div>
+                        <div class="col-span-2 text-center text-primary/80">3 - Regular / Neutro</div>
                     </div>
                 </div>
 
