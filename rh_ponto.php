@@ -5,6 +5,29 @@ require_once 'functions.php';
 requireLogin();
 
 $usuario_id = $_SESSION['usuario_id'];
+$mensagem = '';
+$tipo_mensagem = '';
+
+// Processar Exclusão de Ocorrência
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'excluir_ocorrencia') {
+    $id_excluir = intval($_POST['id']);
+    
+    // Só permite excluir se for do próprio usuário e se estiver em status PENDENTE ou RASCUNHO/REJEITADO
+    // Decisão: vamos permitir excluir apenas se não estiver VALIDADO/APROVADO para evitar quebra de fluxo
+    $check = $conn->query("SELECT status FROM rh_ponto_ocorrencias WHERE id = $id_excluir AND usuario_id = $usuario_id");
+    if ($check->num_rows > 0) {
+        $status_atual = $check->fetch_assoc()['status'];
+        if ($status_atual == 'PENDENTE' || $status_atual == 'RASCUNHO' || $status_atual == 'REJEITADO') {
+            $conn->query("DELETE FROM rh_ponto_ocorrencias WHERE id = $id_excluir");
+            $mensagem = "Ocorrência excluída com sucesso!";
+            $tipo_mensagem = "success";
+            registrarLog($conn, "Excluiu ocorrência de ponto ID: $id_excluir");
+        } else {
+            $mensagem = "Não é possível excluir uma ocorrência que já foi validada ou aprovada.";
+            $tipo_mensagem = "danger";
+        }
+    }
+}
 
 // Buscar Ocorrências do Funcionário
 $ocorrencias = $conn->query("
@@ -45,6 +68,16 @@ $status_colors = [
                 <h1 class="text-2xl font-black text-primary tracking-tight">Histórico de Ocorrências</h1>
                 <p class="text-text-secondary text-xs font-medium">Acompanhe o status das suas solicitações de ajuste de ponto.</p>
             </div>
+            
+            <?php if ($mensagem): ?>
+                <div class="fixed top-24 right-6 z-50 p-4 rounded-2xl border shadow-2xl animate-bounce-short <?php echo $tipo_mensagem == 'success' ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'; ?>">
+                    <div class="flex items-center gap-3">
+                        <i data-lucide="<?php echo $tipo_mensagem == 'success' ? 'check-circle' : 'alert-circle'; ?>" class="w-5 h-5"></i>
+                        <span class="text-xs font-black uppercase tracking-widest"><?php echo $mensagem; ?></span>
+                    </div>
+                </div>
+            <?php endif; ?>
+
             <div class="flex gap-2">
                 <a href="rh.php" class="px-4 py-2 bg-white border border-border text-text-secondary hover:text-text rounded-xl text-xs font-bold transition-all shadow-sm">Voltar</a>
                 <a href="rh_ponto_novo.php" class="px-4 py-2 bg-primary text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-primary/20">Nova Ocorrência</a>
@@ -85,6 +118,12 @@ $status_colors = [
                                 <i data-lucide="eye" class="w-4 h-4"></i>
                             </a>
                         <?php endif; ?>
+
+                        <?php if($o['status'] == 'PENDENTE' || $o['status'] == 'RASCUNHO' || $o['status'] == 'REJEITADO'): ?>
+                            <button onclick="excluirOcorrencia(<?php echo $o['id']; ?>)" class="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-all" title="Excluir Ocorrência">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            </button>
+                        <?php endif; ?>
                     </div>
                 </div>
                 <?php endwhile; ?>
@@ -98,5 +137,19 @@ $status_colors = [
     </div>
 
     <?php include 'footer.php'; ?>
+
+    <form id="formExcluir" method="POST" action="" style="display:none;">
+        <input type="hidden" name="acao" value="excluir_ocorrencia">
+        <input type="hidden" name="id" id="excluir_id">
+    </form>
+
+    <script>
+        function excluirOcorrencia(id) {
+            if (confirm('Tem certeza que deseja excluir esta ocorrência? Esta ação não pode ser desfeita.')) {
+                document.getElementById('excluir_id').value = id;
+                document.getElementById('formExcluir').submit();
+            }
+        }
+    </script>
 </body>
 </html>
