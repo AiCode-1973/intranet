@@ -4,8 +4,11 @@ require_once '../functions.php';
 
 requireTecnico();
 
-$mensagem = '';
-$tipo_mensagem = '';
+if (isset($_GET['msg']) && $_GET['msg'] == 'sucesso') {
+    $msg_id = intval($_GET['id']);
+    $mensagem = "Chamado #$msg_id atualizado!";
+    $tipo_mensagem = "success";
+}
 
 // Processar atualização do chamado
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'atualizar_chamado') {
@@ -19,9 +22,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->bind_param("ssisi", $status, $resolucao, $tecnico_id, $data_fechamento, $id);
 
     if ($stmt->execute()) {
-        $mensagem = "Chamado #$id atualizado!";
-        $tipo_mensagem = "success";
         registrarLog($conn, "Atualizou chamado #$id para status: $status");
+        header("Location: suporte_gerenciar.php?msg=sucesso&id=$id");
+        exit;
     } else {
         $mensagem = "Erro ao atualizar: " . $conn->error;
         $tipo_mensagem = "danger";
