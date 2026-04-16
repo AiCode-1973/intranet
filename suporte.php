@@ -339,22 +339,23 @@ $prioridade_labels = [
             const resText = document.getElementById('detalhe_resolucao');
             const header = document.getElementById('modal_header_bg');
 
-            // Resetar cores do header baseado no status
+            if (chamado.resolucao) {
+                resContainer.classList.remove('hidden');
+                resText.textContent = chamado.resolucao;
+            } else {
+                resContainer.classList.add('hidden');
+            }
+
+            // Ajustar cores do header baseado no status
             header.className = 'px-5 py-4 text-white flex justify-between items-center ';
             if (chamado.status === 'Resolvido') {
                 header.classList.add('bg-emerald-500');
-                if (chamado.resolucao) {
-                    resContainer.classList.remove('hidden');
-                    resText.textContent = chamado.resolucao;
-                } else {
-                    resContainer.classList.add('hidden');
-                }
             } else if (chamado.status === 'Cancelado') {
                 header.classList.add('bg-gray-500');
-                resContainer.classList.add('hidden');
+            } else if (chamado.status === 'Em Atendimento') {
+                header.classList.add('bg-amber-500');
             } else {
                 header.classList.add('bg-primary');
-                resContainer.classList.add('hidden');
             }
 
             document.getElementById('modalDetalhes').classList.add('active');
