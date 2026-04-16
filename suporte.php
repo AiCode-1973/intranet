@@ -19,9 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->bind_param("ssssi", $titulo, $descricao, $prioridade, $categoria, $usuario_id);
 
     if ($stmt->execute()) {
-        $mensagem = "Chamado aberto com sucesso! Em breve um técnico irá atendê-lo.";
-        $tipo_mensagem = "success";
         registrarLog($conn, "Abriu chamado de TI: " . $titulo);
+        header("Location: suporte.php?msg=aberto");
+        exit;
     } else {
         $mensagem = "Erro ao abrir chamado: " . $conn->error;
         $tipo_mensagem = "danger";
@@ -44,13 +44,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
         $stmt = $conn->prepare("UPDATE chamados SET satisfacao_nota = ?, satisfacao_comentario = ?, data_satisfacao = ? WHERE id = ?");
         $stmt->bind_param("issi", $nota, $comentario, $data_satisfacao, $id);
         if ($stmt->execute()) {
-            $mensagem = "Obrigado pelo seu feedback! Pesquisa de satisfação enviada.";
-            $tipo_mensagem = "success";
             registrarLog($conn, "Enviou pesquisa de satisfação para chamado #$id");
+            header("Location: suporte.php?msg=avaliado");
+            exit;
         }
         $stmt->close();
     }
     $check_stmt->close();
+}
+
+// Mensagens de feedback
+if (isset($_GET['msg'])) {
+    if ($_GET['msg'] == 'aberto') {
+        $mensagem = "Chamado aberto com sucesso! Em breve um técnico irá atendê-lo.";
+        $tipo_mensagem = "success";
+    } elseif ($_GET['msg'] == 'avaliado') {
+        $mensagem = "Obrigado pelo seu feedback! Pesquisa de satisfação enviada.";
+        $tipo_mensagem = "success";
+    }
 }
 
 // Filtros
