@@ -11,13 +11,14 @@ $tipo_mensagem = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
     $titulo = sanitize($_POST['titulo']);
     $url = $_POST['url']; // URL can contain special chars
+    $conteudo = $_POST['conteudo']; // Novo campo de texto
     $tipo = sanitize($_POST['tipo']);
     $icone = sanitize($_POST['icone'] ?: 'link');
     $ativo = isset($_POST['ativo']) ? 1 : 0;
 
     if ($_POST['acao'] == 'salvar') {
-        $stmt = $conn->prepare("INSERT INTO informacoes (titulo, url, tipo, icone, ativo) VALUES (?, ?, ?, ?, ?)");
-        $stmt->bind_param("ssssi", $titulo, $url, $tipo, $icone, $ativo);
+        $stmt = $conn->prepare("INSERT INTO informacoes (titulo, url, conteudo, tipo, icone, ativo) VALUES (?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("sssssi", $titulo, $url, $conteudo, $tipo, $icone, $ativo);
 
         if ($stmt->execute()) {
             $mensagem = "Informação cadastrada com sucesso!";
@@ -29,8 +30,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         }
     } elseif ($_POST['acao'] == 'editar') {
         $id = intval($_POST['id']);
-        $stmt = $conn->prepare("UPDATE informacoes SET titulo = ?, url = ?, tipo = ?, icone = ?, ativo = ? WHERE id = ?");
-        $stmt->bind_param("ssssii", $titulo, $url, $tipo, $icone, $ativo, $id);
+        $stmt = $conn->prepare("UPDATE informacoes SET titulo = ?, url = ?, conteudo = ?, tipo = ?, icone = ?, ativo = ? WHERE id = ?");
+        $stmt->bind_param("sssssii", $titulo, $url, $conteudo, $tipo, $icone, $ativo, $id);
 
         if ($stmt->execute()) {
             $mensagem = "Informação atualizada com sucesso!";
@@ -170,8 +171,14 @@ $informacoes = $conn->query("SELECT * FROM informacoes ORDER BY created_at DESC"
 
                 <div>
                     <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">URL Externa</label>
-                    <input type="url" name="url" id="url" required placeholder="https://exemplo.com" 
+                    <input type="url" name="url" id="url" placeholder="https://exemplo.com" 
                            class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Conteúdo / Informação Técnica</label>
+                    <textarea name="conteudo" id="conteudo" rows="4" placeholder="Digite aqui os detalhes ou informações importantes..." 
+                              class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all"></textarea>
                 </div>
 
                 <div class="grid grid-cols-2 gap-4">
@@ -216,6 +223,7 @@ $informacoes = $conn->query("SELECT * FROM informacoes ORDER BY created_at DESC"
             document.getElementById('info_id').value = '';
             document.getElementById('titulo').value = '';
             document.getElementById('url').value = '';
+            document.getElementById('conteudo').value = '';
             document.getElementById('tipo').value = 'Saúde';
             document.getElementById('icone').value = 'link';
             document.getElementById('ativo').checked = true;
@@ -228,6 +236,7 @@ $informacoes = $conn->query("SELECT * FROM informacoes ORDER BY created_at DESC"
             document.getElementById('info_id').value = info.id;
             document.getElementById('titulo').value = info.titulo;
             document.getElementById('url').value = info.url;
+            document.getElementById('conteudo').value = info.conteudo || '';
             document.getElementById('tipo').value = info.tipo;
             document.getElementById('icone').value = info.icone;
             document.getElementById('ativo').checked = info.ativo == 1;
