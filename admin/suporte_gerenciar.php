@@ -20,8 +20,8 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'sucesso') {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'atualizar_chamado') {
     $id = intval($_POST['id']);
     $status = sanitize($_POST['status']);
-    $resolucao = $_POST['resolucao'];
-    $tecnico_id = intval($_POST['tecnico_id']);
+    $resolucao = $_POST['resolucao'] ?? '';
+    $tecnico_id = !empty($_POST['tecnico_id']) ? intval($_POST['tecnico_id']) : null;
     $data_fechamento = ($status == 'Resolvido' || $status == 'Cancelado') ? date('Y-m-d H:i:s') : null;
 
     $stmt = $conn->prepare("UPDATE chamados SET status = ?, resolucao = ?, tecnico_id = ?, data_fechamento = ? WHERE id = ?");
