@@ -55,6 +55,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->close();
 }
 
+// Processar Novo Comentário do Solicitante
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'adicionar_comentario') {
+    $chamado_id = intval($_POST['chamado_id']);
+    $usuario_id = $_SESSION['usuario_id'];
+    $comentario = sanitize($_POST['comentario']);
+
+    // Segurança: Garantir que o chamado pertence ao usuário ou ele é admin
+    $check = $conn->query("SELECT id FROM chamados WHERE id = $chamado_id AND (usuario_id = $usuario_id OR 1=" . (isAdmin() ? "1" : "0") . ")");
+    
+    if ($check->num_rows > 0 && !empty($comentario)) {
+        $stmt = $conn->prepare("INSERT INTO chamados_comentarios (chamado_id, usuario_id, comentario) VALUES (?, ?, ?)");
+        $stmt->bind_param("iis", $chamado_id, $usuario_id, $comentario);
+        if ($stmt->execute()) {
+            header("Location: suporte.php?msg=comentario_ok&id=$chamado_id");
+            exit;
+        }
+        $stmt->close();
+    }
+}
+
 // Processar Pesquisa de Satisfação
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'enviar_satisfacao') {
     $id = intval($_POST['id']);
@@ -67,7 +87,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $check_stmt->bind_param("ii", $id, $usuario_id);
     $check_stmt->execute();
     if ($check_stmt->get_result()->num_rows > 0) {
-        $stmt = $conn->prepare("UPDATE chamados SET satisfacao_nota = ?, satisfacao_comentario = ?, data_satisfacao = ? WHERE id = ?");
+      elseif ($_GET['msg'] == 'comentario_ok') {
+        $mensagem = "Resposta enviada com sucesso!";
+        $tipo_mensagem = "success";
+    }   $stmt = $conn->prepare("UPDATE chamados SET satisfacao_nota = ?, satisfacao_comentario = ?, data_satisfacao = ? WHERE id = ?");
         $stmt->bind_param("issi", $nota, $comentario, $data_satisfacao, $id);
         if ($stmt->execute()) {
             registrarLog($conn, "Enviou pesquisa de satisfação para chamado #$id");
@@ -120,6 +143,16 @@ while($row = $res->fetch_assoc()) {
     $c_id = $row['id'];
     $anexos_res = $conn->query("SELECT * FROM chamados_anexos WHERE chamado_id = $c_id");
     $row['anexos'] = [];
+
+    // Buscar comentários do chamado
+    $comentarios_res = $conn->query("SELECT cc.*, u.nome as autor FROM chamados_comentarios cc 
+                                     JOIN usuarios u ON cc.usuario_id = u.id 
+                                     WHERE cc.chamado_id = $c_id 
+                                     ORDER BY cc.data_comentario ASC");
+    $row['comentarios'] = [];
+    while($coment = $comentarios_res->fetch_assoc()) {
+        $row['comentarios'][] = $coment;
+    }
     while($anexo = $anexos_res->fetch_assoc()) {
         $row['anexos'][] = $anexo;
     }
@@ -368,6 +401,28 @@ $prioridade_labels = [
                     <p id="detalhe_titulo" class="text-sm font-bold text-text">---</p>
                 </div>
 
+                <!-- Histórico de Interações (Comentários) -->
+                <div class="pt-4 border-t border-border">
+                    <label class="block text-[10px] font-black text-text-secondary mb-2 uppercase tracking-widest opacity-50 flex items-center gap-1.5">
+                        <i data-lucide="message-square" class="w-3 h-3"></i>
+                        Interações Técnicas
+                    </label>
+                    
+                    <div id="detalhe_comentarios" class="space-y-3 mb-4 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                        <!-- JS Populado -->
+                    </div>
+
+                    <form method="POST" action="" id="form_comentario_usuario" class="flex gap-2 group border-t border-border/10 pt-3">
+                        <input type="hidden" name="acao" value="adicionar_comentario">
+                        <input type="hidden" name="chamado_id" id="comentario_chamado_id">
+                        <input type="text" name="comentario" required placeholder="Responder técnico ou adicionar nota..." 
+                               class="flex-grow p-2 bg-background border border-border rounded-lg text-[10px] font-bold focus:outline-none focus:border-primary transition-all">
+                        <button type="submit" class="bg-primary text-white px-3 rounded-lg hover:bg-primary-hover transition-all shadow-md active:scale-95">
+                            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                        </button>
+                    </form>
+                </div>
+
                 <div>
                     <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Descrição do Problema</label>
                     <div id="detalhe_descricao" class="text-xs text-text-secondary leading-relaxed bg-background p-3 rounded-lg border border-border/50 max-h-32 overflow-y-auto italic">---</div>
@@ -443,6 +498,7 @@ $prioridade_labels = [
                     <div class="flex justify-between items-center px-1 text-[9px] font-bold uppercase tracking-tighter text-text-secondary/50 border-t border-border/40 pt-2">
                         <span class="flex items-center gap-1"><i data-lucide="frown" class="w-3 h-3 text-rose-400"></i> Ruim</span>
                         <span class="text-text-secondary/30 italic">Regular</span>
+            document.getElementById('comentario_chamado_id').value = chamado.id;
                         <span class="flex items-center gap-1 text-right">Excelente <i data-lucide="smile" class="w-3 h-3 text-emerald-400"></i></span>
                     </div>
                 </div>
@@ -476,7 +532,36 @@ $prioridade_labels = [
             document.getElementById('detalhe_tecnico').textContent = chamado.tecnico || 'Pendente';
             document.getElementById('detalhe_data').textContent = chamado.data_abertura;
 
-            const resContainer = document.getElementById('container_resolucao');
+            const resCcomentários
+            const comList = document.getElementById('detalhe_comentarios');
+            comList.innerHTML = '';
+            const formCom = document.getElementById('form_comentario_usuario');
+            
+            // Ocultar formulário de comentário se o chamado estiver fechado
+            if (chamado.status === 'Resolvido' || chamado.status === 'Cancelado') {
+                formCom.classList.add('hidden');
+            } else {
+                formCom.classList.remove('hidden');
+            }
+
+            if (chamado.comentarios && chamado.comentarios.length > 0) {
+                chamado.comentarios.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-background p-2 rounded-lg border border-border/40';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center mb-0.5">
+                            <span class="text-[8px] font-black text-primary uppercase">${c.autor}</span>
+                            <span class="text-[7px] text-text-secondary opacity-50">${c.data_comentario}</span>
+                        </div>
+                        <p class="text-[9px] text-text-secondary leading-tight italic">"${c.comentario}"</p>
+                    `;
+                    comList.appendChild(div);
+                });
+            } else {
+                comList.innerHTML = '<p class="text-[9px] text-text-secondary/40 italic text-center py-2">Sem mensagens no momento.</p>';
+            }
+
+            // Exibir ontainer = document.getElementById('container_resolucao');
             const resText = document.getElementById('detalhe_resolucao');
             const header = document.getElementById('modal_header_bg');
             const satisBtn = document.getElementById('btn_satisfacao_container');
