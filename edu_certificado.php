@@ -8,7 +8,8 @@ $cert_id = intval($_GET['id']);
 $user_id = $_SESSION['usuario_id'];
 
 // Buscar Certificado
-$res = $conn->query("SELECT cert.*, c.titulo as curso_titulo, c.carga_horaria, u.nome as aluno_nome 
+$res = $conn->query("SELECT cert.*, c.titulo as curso_titulo, c.carga_horaria, 
+                        c.instrutor, c.cargo_instrutor, c.assinatura_instrutor, u.nome as aluno_nome 
                     FROM edu_certificados cert
                     JOIN edu_cursos c ON cert.curso_id = c.id
                     JOIN usuarios u ON cert.usuario_id = u.id
@@ -99,10 +100,13 @@ $mes_pt = $meses[$mes_ingles];
 
             <!-- Rodapé com Assinatura e QR -->
             <div class="absolute bottom-2 left-10 right-10 flex justify-between items-end">
-                <div class="text-left">
+                <div class="text-left flex flex-col items-center">
+                    <?php if ($cert['assinatura_instrutor']): ?>
+                        <img src="<?php echo $cert['assinatura_instrutor']; ?>" class="h-16 mb-[-10px] mix-blend-multiply">
+                    <?php endif; ?>
                     <div class="w-48 h-[1px] bg-gray-400 mb-2"></div>
-                    <p class="text-[10px] font-bold text-gray-600 uppercase">Diretora Presidente</p>
-                    <p class="text-[9px] text-gray-400 italic">Jane Moreira da Silva Reis</p>
+                    <p class="text-[10px] font-bold text-gray-600 uppercase"><?php echo $cert['cargo_instrutor'] ?: 'Diretor(a) Responsável'; ?></p>
+                    <p class="text-[9px] text-gray-400 italic"><?php echo $cert['instrutor'] ?: 'Jane Moreira da Silva Reis'; ?></p>
                 </div>
 
                 <div class="flex flex-col items-center gap-1.5 opacity-80">

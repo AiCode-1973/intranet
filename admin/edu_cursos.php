@@ -13,9 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         $id = isset($_POST['id']) ? intval($_POST['id']) : null;
         $titulo = sanitize($_POST['titulo']);
         $instrutor = sanitize($_POST['instrutor']);
-        $formacao_instrutor = $_POST['formacao_instrutor']; // Permitir HTML se necessário, ou usar editor
+        $cargo_instrutor = sanitize($_POST['cargo_instrutor']);
+        $formacao_instrutor = $_POST['formacao_instrutor']; 
         $descricao = $_POST['descricao'];
         $capa = sanitize($_POST['capa_atual'] ?? '');
+        $assinatura = sanitize($_POST['assinatura_atual'] ?? '');
         
         // Processar Upload de Capa
         if (isset($_FILES['capa_arquivo']) && $_FILES['capa_arquivo']['error'] === UPLOAD_ERR_OK) {
@@ -28,16 +30,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
             }
         }
 
+        // Processar Upload de Assinatura
+        if (isset($_FILES['assinatura_arquivo']) && $_FILES['assinatura_arquivo']['error'] === UPLOAD_ERR_OK) {
+            $ext = pathinfo($_FILES['assinatura_arquivo']['name'], PATHINFO_EXTENSION);
+            $nome_arquivo = 'ass_' . time() . '_' . uniqid() . '.' . $ext;
+            
+            if (!is_dir('../uploads/instrutores')) {
+                mkdir('../uploads/instrutores', 0777, true);
+            }
+            
+            $destino = '../uploads/instrutores/' . $nome_arquivo;
+            if (move_uploaded_file($_FILES['assinatura_arquivo']['tmp_name'], $destino)) {
+                $assinatura = 'uploads/instrutores/' . $nome_arquivo;
+            }
+        }
+
         $carga_horaria = sanitize($_POST['carga_horaria']);
         $status = intval($_POST['status']);
 
         if ($id) {
-            $stmt = $conn->prepare("UPDATE edu_cursos SET titulo = ?, instrutor = ?, formacao_instrutor = ?, descricao = ?, capa = ?, carga_horaria = ?, status = ? WHERE id = ?");
-            $stmt->bind_param("ssssssii", $titulo, $instrutor, $formacao_instrutor, $descricao, $capa, $carga_horaria, $status, $id);
+            $stmt = $conn->prepare("UPDATE edu_cursos SET titulo = ?, instrutor = ?, cargo_instrutor = ?, assinatura_instrutor = ?, formacao_instrutor = ?, descricao = ?, capa = ?, carga_horaria = ?, status = ? WHERE id = ?");
+            $stmt->bind_param("ssssssssii", $titulo, $instrutor, $cargo_instrutor, $assinatura, $formacao_instrutor, $descricao, $capa, $carga_horaria, $status, $id);
         } else {
             $usuario_id = $_SESSION['usuario_id'];
-            $stmt = $conn->prepare("INSERT INTO edu_cursos (titulo, instrutor, formacao_instrutor, descricao, capa, carga_horaria, status, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssssii", $titulo, $instrutor, $formacao_instrutor, $descricao, $capa, $carga_horaria, $status, $usuario_id);
+            $stmt = $conn->prepare("INSERT INTO edu_cursos (titulo, instrutor, cargo_instrutor, assinatura_instrutor, formacao_instrutor, descricao, capa, carga_horaria, status, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ssssssssii", $titulo, $instrutor, $cargo_instrutor, $assinatura, $formacao_instrutor, $descricao, $capa, $carga_horaria, $status, $usuario_id);
         }
 
         if ($stmt->execute()) {
@@ -215,6 +232,7 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                 <input type="hidden" name="acao" value="salvar_curso">
                 <input type="hidden" name="id" id="curso_id">
                 <input type="hidden" name="capa_atual" id="curso_capa_atual">
+                <input type="hidden" name="assinatura_atual" id="curso_assinatura_atual">
                 <div>
                     <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Título do Curso</label>
                     <input type="text" name="titulo" id="curso_titulo" required class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary">
@@ -225,13 +243,23 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                         <input type="text" name="instrutor" id="curso_instrutor" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary">
                     </div>
                     <div>
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Cargo do Instrutor</label>
+                        <input type="text" name="cargo_instrutor" id="curso_cargo_instrutor" placeholder="Ex: Diretor de Operações" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary">
+                    </div>
+                    <div class="col-span-2">
                         <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Formação do Autor</label>
                         <input type="text" name="formacao_instrutor" id="curso_formacao" placeholder="Ex: Graduação em RH" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary">
                     </div>
                 </div>
-                <div>
-                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Imagem de Capa (Opcional)</label>
-                    <input type="file" name="capa_arquivo" id="curso_capa_arquivo" accept="image/*" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-primary file:text-white hover:file:bg-primary-hover">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Imagem de Capa (Opcional)</label>
+                        <input type="file" name="capa_arquivo" id="curso_capa_arquivo" accept="image/*" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-primary file:text-white hover:file:bg-primary-hover">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Assinatura Digital (Transparente)</label>
+                        <input type="file" name="assinatura_arquivo" id="curso_assinatura_arquivo" accept="image/png" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-amber-500 file:text-white hover:file:bg-amber-600">
+                    </div>
                 </div>
                 <div>
                     <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Descrição</label>
@@ -307,8 +335,10 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                 document.getElementById('curso_id').value = dados.id;
                 document.getElementById('curso_titulo').value = dados.titulo;
                 document.getElementById('curso_instrutor').value = dados.instrutor || '';
+                document.getElementById('curso_cargo_instrutor').value = dados.cargo_instrutor || '';
                 document.getElementById('curso_formacao').value = dados.formacao_instrutor || '';
                 document.getElementById('curso_capa_atual').value = dados.capa || '';
+                document.getElementById('curso_assinatura_atual').value = dados.assinatura_instrutor || '';
                 document.getElementById('curso_descricao').value = dados.descricao;
                 document.getElementById('curso_carga').value = dados.carga_horaria;
                 document.getElementById('curso_status').value = dados.status;
@@ -317,8 +347,10 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                 document.getElementById('curso_id').value = '';
                 document.getElementById('curso_titulo').value = '';
                 document.getElementById('curso_instrutor').value = '';
+                document.getElementById('curso_cargo_instrutor').value = '';
                 document.getElementById('curso_formacao').value = '';
                 document.getElementById('curso_capa_atual').value = '';
+                document.getElementById('curso_assinatura_atual').value = '';
                 document.getElementById('curso_descricao').value = '';
                 document.getElementById('curso_carga').value = '';
                 document.getElementById('modal-curso-titulo').innerText = 'Novo Curso';
