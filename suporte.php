@@ -65,7 +65,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $check = $conn->query("SELECT id FROM chamados WHERE id = $chamado_id AND (usuario_id = $usuario_id OR 1=" . (isAdmin() ? "1" : "0") . ")");
     
     if ($check->num_rows > 0 && !empty($comentario)) {
-        $stmt = $conn->prepare("INSERT INTO chamados_comentarios (chamado_id, usuario_id, comentario) VALUES (?, ?, ?)");
+        // Ao inserir comentário do usuário, marcar como não lido pelo técnico (0) e lido pelo usuário (1)
+        $stmt = $conn->prepare("INSERT INTO chamados_comentarios (chamado_id, usuario_id, comentario, lido_pelo_tecnico, lido_pelo_usuario) VALUES (?, ?, ?, 0, 1)");
         $stmt->bind_param("iis", $chamado_id, $usuario_id, $comentario);
         if ($stmt->execute()) {
             header("Location: suporte.php?msg=comentario_ok&id=$chamado_id");
@@ -73,6 +74,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
         }
         $stmt->close();
     }
+}
+
+// Processar Marcação de Leitura (AJAX)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'marcar_lido') {
+    $chamado_id = intval($_POST['chamado_id']);
+    $conn->query("UPDATE chamados_comentarios SET lido_pelo_usuario = 1 WHERE chamado_id = $chamado_id");
+    exit;
 }
 
 // Processar Pesquisa de Satisfação
@@ -143,6 +151,10 @@ while($row = $res->fetch_assoc()) {
     $c_id = $row['id'];
     $anexos_res = $conn->query("SELECT * FROM chamados_anexos WHERE chamado_id = $c_id");
     $row['anexos'] = [];
+
+    // Verificar se há comentários não lidos pelo usuário neste chamado
+    $unread_res = $conn->query("SELECT COUNT(*) FROM chamados_comentarios WHERE chamado_id = $c_id AND lido_pelo_usuario = 0");
+    $row['tem_novidade'] = ($unread_res->fetch_row()[0] > 0);
 
     // Buscar comentários do chamado
     $comentarios_res = $conn->query("SELECT cc.*, u.nome as autor FROM chamados_comentarios cc 
@@ -273,9 +285,19 @@ $prioridade_labels = [
                             <tr onclick='verDetalhes(<?php echo json_encode($chamado); ?>)' class="hover:bg-background/20 transition-colors group cursor-pointer">
                                 <td class="p-3">
                                     <div class="flex items-center gap-3">
-                                        <span class="text-[9px] font-mono font-bold text-text-secondary opacity-50">#<?php echo str_pad($chamado['id'], 3, '0', STR_PAD_LEFT); ?></span>
+                                        <div class="relative">
+                                            <span class="text-[9px] font-mono font-bold text-text-secondary opacity-50">#<?php echo str_pad($chamado['id'], 3, '0', STR_PAD_LEFT); ?></span>
+                                            <?php if ($chamado['tem_novidade']): ?>
+                                                <span class="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white animate-pulse"></span>
+                                            <?php endif; ?>
+                                        </div>
                                         <div class="flex flex-col">
-                                            <span class="font-bold text-text group-hover:text-primary transition-colors"><?php echo $chamado['titulo']; ?></span>
+                                            <div class="flex items-center gap-1.5">
+                                                <span class="font-bold text-text group-hover:text-primary transition-colors"><?php echo $chamado['titulo']; ?></span>
+                                                <?php if ($chamado['tem_novidade']): ?>
+                                                    <span class="bg-rose-50 text-rose-600 text-[8px] px-1 rounded font-black uppercase tracking-tighter border border-rose-100 italic">Novo!</span>
+                                                <?php endif; ?>
+                                            </div>
                                             <span class="text-[9px] text-text-secondary uppercase font-bold tracking-tighter"><?php echo $chamado['categoria']; ?></span>
                                         </div>
                                     </div>
@@ -532,6 +554,17 @@ $prioridade_labels = [
             document.getElementById('detalhe_tecnico').textContent = chamado.tecnico || 'Pendente';
             document.getElementById('detalhe_data').textContent = chamado.data_abertura;
             document.getElementById('comentario_chamado_id').value = chamado.id;
+
+            // Marcar comentários como lidos no banco (AJAX silencioso)
+            if (chamado.tem_novidade) {
+                fetch('suporte.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'acao=marcar_lido&chamado_id=' + chamado.id
+                }).then(() => {
+                    // Remover visualmente a notificação (opcional, melhor recarregar se precisar limpar lista)
+                });
+            }
 
             const comList = document.getElementById('detalhe_comentarios');
             comList.innerHTML = '';

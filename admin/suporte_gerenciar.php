@@ -38,7 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $comentario = sanitize($_POST['comentario']);
 
     if (!empty($comentario)) {
-        $stmt = $conn->prepare("INSERT INTO chamados_comentarios (chamado_id, usuario_id, comentario) VALUES (?, ?, ?)");
+        // Ao inserir comentário do técnico, marcar como lido pelo técnico (1) e não lido pelo usuário (0)
+        $stmt = $conn->prepare("INSERT INTO chamados_comentarios (chamado_id, usuario_id, comentario, lido_pelo_tecnico, lido_pelo_usuario) VALUES (?, ?, ?, 1, 0)");
         $stmt->bind_param("iis", $chamado_id, $usuario_id, $comentario);
         if ($stmt->execute()) {
             header("Location: suporte_gerenciar.php?msg=comentario_ok&id=$chamado_id");
@@ -46,6 +47,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
         }
         $stmt->close();
     }
+}
+
+// Processar Marcação de Leitura pelo Técnico (AJAX)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'marcar_lido_tecnico') {
+    $chamado_id = intval($_POST['chamado_id']);
+    $conn->query("UPDATE chamados_comentarios SET lido_pelo_tecnico = 1 WHERE chamado_id = $chamado_id");
+    exit;
 }
 
 // Processar exclusão do chamado
@@ -93,6 +101,10 @@ while ($row = $res_chamados->fetch_assoc()) {
     while ($anexo = $anexos_res->fetch_assoc()) {
         $row['anexos'][] = $anexo;
     }
+
+    // Verificar se há comentários não lidos pelo técnico neste chamado
+    $unread_res = $conn->query("SELECT COUNT(*) FROM chamados_comentarios WHERE chamado_id = $c_id AND lido_pelo_tecnico = 0");
+    $row['tem_novidade'] = ($unread_res->fetch_row()[0] > 0);
 
     // Buscar comentários do chamado
     $comentarios_res = $conn->query("SELECT cc.*, u.nome as autor FROM chamados_comentarios cc JOIN usuarios u ON cc.usuario_id = u.id WHERE cc.chamado_id = $c_id ORDER BY cc.data_comentario ASC");
@@ -232,12 +244,22 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                     </thead>
                     <tbody class="divide-y divide-border text-xs">
                         <?php foreach ($chamados_lista as $chamado): ?>
-                        <tr class="hover:bg-background/30 transition-colors group <?php echo in_array($chamado['status'], ['Resolvido', 'Cancelado']) ? 'opacity-40' : ''; ?>">
+                        <tr onclick='abrirAtendimento(<?php echo json_encode($chamado); ?>)' class="hover:bg-background/30 transition-colors group cursor-pointer <?php echo in_array($chamado['status'], ['Resolvido', 'Cancelado']) ? 'opacity-40' : ''; ?>">
                             <td class="p-3">
                                 <div class="flex items-center gap-2">
-                                    <span class="font-mono text-[9px] bg-gray-50 border border-border px-1 rounded text-text-secondary/50">#<?php echo str_pad($chamado['id'], 3, '0', STR_PAD_LEFT); ?></span>
+                                    <div class="relative">
+                                        <span class="font-mono text-[9px] bg-gray-50 border border-border px-1 rounded text-text-secondary/50">#<?php echo str_pad($chamado['id'], 3, '0', STR_PAD_LEFT); ?></span>
+                                        <?php if ($chamado['tem_novidade']): ?>
+                                            <span class="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white animate-pulse"></span>
+                                        <?php endif; ?>
+                                    </div>
                                     <div>
-                                        <p class="font-bold text-text leading-tight group-hover:text-primary transition-colors"><?php echo $chamado['titulo']; ?></p>
+                                        <div class="flex items-center gap-1.5">
+                                            <p class="font-bold text-text leading-tight group-hover:text-primary transition-colors"><?php echo $chamado['titulo']; ?></p>
+                                            <?php if ($chamado['tem_novidade']): ?>
+                                                <span class="bg-rose-50 text-rose-600 text-[8px] px-1 rounded font-black uppercase tracking-tighter border border-rose-100 italic">Novo!</span>
+                                            <?php endif; ?>
+                                        </div>
                                         <p class="text-[9px] text-text-secondary uppercase font-black opacity-50"><?php echo $chamado['categoria']; ?></p>
                                     </div>
                                 </div>
@@ -426,6 +448,15 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
             document.getElementById('form_status').value = chamado.status;
             document.getElementById('form_tecnico').value = chamado.tecnico_id || '';
             document.getElementById('form_resolucao').value = chamado.resolucao || '';
+
+            // Marcar como lido pelo técnico (AJAX)
+            if (chamado.tem_novidade) {
+                fetch('suporte_gerenciar.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'acao=marcar_lido_tecnico&chamado_id=' + chamado.id
+                });
+            }
 
             // Lógica para exibir feedback do usuário
             const feedbackContainer = document.getElementById('container_feedback');
