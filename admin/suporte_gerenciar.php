@@ -152,6 +152,22 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
     <style>
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         .modal.active { display: flex; align-items: center; justify-content: center; }
+        
+        /* Barra de rolagem personalizada para o histórico */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.05);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: var(--color-primary, #0056b3);
+        }
     </style>
 </head>
 <body class="bg-background text-text font-sans selection:bg-primary/20">
@@ -367,7 +383,7 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                             Histórico de Conversa
                         </label>
                         
-                        <div id="view_comentarios_list" class="flex-grow space-y-3 mb-3 overflow-y-auto pr-2 custom-scrollbar">
+                        <div id="view_comentarios_list" class="flex-grow space-y-3 mb-3 overflow-y-auto pr-2 custom-scrollbar max-h-[300px]">
                             <!-- JS Populado -->
                         </div>
 
@@ -522,6 +538,11 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                     `;
                     comList.appendChild(div);
                 });
+                
+                // Rola para o final do histórico de conversas automaticamente
+                setTimeout(() => {
+                    comList.scrollTop = comList.scrollHeight;
+                }, 100);
             } else {
                 comList.innerHTML = '<p class="text-[10px] text-text-secondary/40 italic text-center py-4">Sem interações registradas.</p>';
             }
