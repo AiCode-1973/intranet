@@ -11,6 +11,10 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'sucesso') {
 } elseif (isset($_GET['msg']) && $_GET['msg'] == 'comentario_ok') {
     $mensagem = "Comentário adicionado com sucesso!";
     $tipo_mensagem = "success";
+}
+
+// Processar Atualização de Chamado
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'atualizar_chamado') {
     $id = intval($_POST['id']);
     $status = sanitize($_POST['status']);
     $resolucao = $_POST['resolucao'];
