@@ -19,6 +19,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->bind_param("ssssi", $titulo, $descricao, $prioridade, $categoria, $usuario_id);
 
     if ($stmt->execute()) {
+        $chamado_id = $stmt->insert_id;
+        
+        // Processar anexos múltiplos
+        if (isset($_FILES['anexos']) && count($_FILES['anexos']['name']) > 0) {
+            $diretorio_anexos = 'uploads/suporte/';
+            if (!is_dir($diretorio_anexos)) {
+                mkdir($diretorio_anexos, 0777, true);
+            }
+
+            foreach ($_FILES['anexos']['name'] as $key => $nome_original) {
+                if ($_FILES['anexos']['error'][$key] === UPLOAD_ERR_OK) {
+                    $extensao = pathinfo($nome_original, PATHINFO_EXTENSION);
+                    $nome_arquivo = 'chamado_' . $chamado_id . '_' . time() . '_' . $key . '.' . $extensao;
+                    $caminho_final = $diretorio_anexos . $nome_arquivo;
+
+                    if (move_uploaded_file($_FILES['anexos']['tmp_name'][$key], $caminho_final)) {
+                        $tipo_arquivo = $_FILES['anexos']['type'][$key];
+                        $stmt_anexo = $conn->prepare("INSERT INTO chamados_anexos (chamado_id, caminho_arquivo, nome_original, tipo_arquivo) VALUES (?, ?, ?, ?)");
+                        $stmt_anexo->bind_param("isss", $chamado_id, $caminho_final, $nome_original, $tipo_arquivo);
+                        $stmt_anexo->execute();
+                        $stmt_anexo->close();
+                    }
+                }
+            }
+        }
+
         registrarLog($conn, "Abriu chamado de TI: " . $titulo);
         header("Location: suporte.php?msg=aberto");
         exit;
@@ -90,6 +116,14 @@ $chamados = [];
 $stats = ['Aberto' => 0, 'Em Atendimento' => 0, 'Aguardando Peça' => 0, 'Resolvido' => 0, 'Cancelado' => 0];
 
 while($row = $res->fetch_assoc()) {
+    // Buscar anexos do chamado
+    $c_id = $row['id'];
+    $anexos_res = $conn->query("SELECT * FROM chamados_anexos WHERE chamado_id = $c_id");
+    $row['anexos'] = [];
+    while($anexo = $anexos_res->fetch_assoc()) {
+        $row['anexos'][] = $anexo;
+    }
+    
     $chamados[] = $row;
     if (isset($stats[$row['status']])) $stats[$row['status']]++;
 }
@@ -268,7 +302,7 @@ $prioridade_labels = [
                 </button>
             </div>
             
-            <form method="POST" action="" class="p-5">
+            <form method="POST" action="" class="p-5" enctype="multipart/form-data">
                 <input type="hidden" name="acao" value="abrir_chamado">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -294,6 +328,13 @@ $prioridade_labels = [
                         <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Descrição</label>
                         <textarea name="descricao" required rows="4" placeholder="Detalhes do chamado..."
                                   class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all"></textarea>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Anexar Arquivos (Fotos, Prints, etc.)</label>
+                        <input type="file" name="anexos[]" multiple 
+                               class="w-full p-2 bg-background border border-border rounded-lg text-[10px] font-bold focus:outline-none focus:border-primary transition-all file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-primary file:text-white hover:file:bg-primary-hover cursor-pointer">
+                        <p class="text-[9px] text-text-secondary mt-1 italic">Você pode selecionar múltiplos arquivos de uma vez.</p>
                     </div>
                 </div>
 
@@ -330,6 +371,11 @@ $prioridade_labels = [
                 <div>
                     <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Descrição do Problema</label>
                     <div id="detalhe_descricao" class="text-xs text-text-secondary leading-relaxed bg-background p-3 rounded-lg border border-border/50 max-h-32 overflow-y-auto italic">---</div>
+                </div>
+
+                <div id="container_anexos" class="hidden">
+                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Arquivos Anexados</label>
+                    <div id="detalhe_anexos" class="flex flex-wrap gap-2"></div>
                 </div>
 
                 <div id="container_resolucao" class="hidden animate-in fade-in slide-in-from-bottom-2">
@@ -440,6 +486,27 @@ $prioridade_labels = [
                 resText.textContent = chamado.resolucao;
             } else {
                 resContainer.classList.add('hidden');
+            }
+
+            // Exibir anexos se houver
+            const anexoContainer = document.getElementById('container_anexos');
+            const anexoList = document.getElementById('detalhe_anexos');
+            anexoList.innerHTML = '';
+            
+            if (chamado.anexos && chamado.anexos.length > 0) {
+                anexoContainer.classList.remove('hidden');
+                chamado.anexos.forEach(anexo => {
+                    const item = document.createElement('a');
+                    item.href = anexo.caminho_arquivo;
+                    item.target = '_blank';
+                    item.className = 'flex items-center gap-1.5 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-[9px] font-bold text-text-secondary transition-all border border-border';
+                    
+                    const isImage = anexo.tipo_arquivo.includes('image');
+                    item.innerHTML = `<i data-lucide="${isImage ? 'image' : 'file-text'}" class="w-3 h-3"></i> <span>${anexo.nome_original}</span>`;
+                    anexoList.appendChild(item);
+                });
+            } else {
+                anexoContainer.classList.add('hidden');
             }
 
             // Exibir ou ocultar botão de pesquisa de satisfação
