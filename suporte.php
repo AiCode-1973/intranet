@@ -87,10 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $check_stmt->bind_param("ii", $id, $usuario_id);
     $check_stmt->execute();
     if ($check_stmt->get_result()->num_rows > 0) {
-      elseif ($_GET['msg'] == 'comentario_ok') {
-        $mensagem = "Resposta enviada com sucesso!";
-        $tipo_mensagem = "success";
-    }   $stmt = $conn->prepare("UPDATE chamados SET satisfacao_nota = ?, satisfacao_comentario = ?, data_satisfacao = ? WHERE id = ?");
+        $stmt = $conn->prepare("UPDATE chamados SET satisfacao_nota = ?, satisfacao_comentario = ?, data_satisfacao = ? WHERE id = ?");
         $stmt->bind_param("issi", $nota, $comentario, $data_satisfacao, $id);
         if ($stmt->execute()) {
             registrarLog($conn, "Enviou pesquisa de satisfação para chamado #$id");
@@ -109,6 +106,9 @@ if (isset($_GET['msg'])) {
         $tipo_mensagem = "success";
     } elseif ($_GET['msg'] == 'avaliado') {
         $mensagem = "Obrigado pelo seu feedback! Pesquisa de satisfação enviada.";
+        $tipo_mensagem = "success";
+    } elseif ($_GET['msg'] == 'comentario_ok') {
+        $mensagem = "Resposta enviada com sucesso!";
         $tipo_mensagem = "success";
     }
 }
