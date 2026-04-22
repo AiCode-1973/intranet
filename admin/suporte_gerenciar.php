@@ -522,11 +522,14 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                 anexoContainer.classList.add('hidden');
             }
 
-            // Exibir comentários se houver
+            // Exibir comentários se houver (Limitado a 3 últimas interações)
             const comList = document.getElementById('view_comentarios_list');
             comList.innerHTML = '';
             if (chamado.comentarios && chamado.comentarios.length > 0) {
-                chamado.comentarios.forEach(c => {
+                // Pegar apenas os 3 últimos comentários
+                const ultimosComentarios = chamado.comentarios.slice(-3);
+                
+                ultimosComentarios.forEach(c => {
                     const div = document.createElement('div');
                     div.className = 'bg-white p-2.5 rounded-xl border border-border/50 shadow-sm relative';
                     div.innerHTML = `
