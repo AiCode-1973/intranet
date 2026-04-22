@@ -383,7 +383,7 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                             Histórico de Conversa
                         </label>
                         
-                        <div id="view_comentarios_list" class="flex-grow space-y-3 mb-3 overflow-y-auto pr-2 custom-scrollbar max-h-[160px]">
+                        <div id="view_comentarios_list" class="flex-grow space-y-3 mb-3 overflow-y-auto pr-2 custom-scrollbar max-h-[185px]">
                             <!-- JS Populado -->
                         </div>
 
@@ -522,14 +522,12 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                 anexoContainer.classList.add('hidden');
             }
 
-            // Exibir comentários se houver (Limitado a 3 últimas interações para visualização inicial, mas com barra de rolagem)
+            // Exibir comentários se houver (Mostra tudo com rolagem, altura ajustada para o visual de 3)
             const comList = document.getElementById('view_comentarios_list');
             comList.innerHTML = '';
             if (chamado.comentarios && chamado.comentarios.length > 0) {
-                // Pegar apenas os 3 últimos comentários
-                const ultimosComentarios = chamado.comentarios.slice(-3);
-                
-                ultimosComentarios.forEach(c => {
+                // Removemos o slice para mostrar todas as interações
+                chamado.comentarios.forEach(c => {
                     const div = document.createElement('div');
                     div.className = 'bg-white p-2.5 rounded-xl border border-border/50 shadow-sm relative';
                     div.innerHTML = `
