@@ -362,8 +362,7 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                 document.getElementById('curso_carga').value = dados.carga_horaria;
                 document.getElementById('curso_status').value = dados.status;
                 document.getElementById('modal-curso-titulo').innerText = 'Editar Curso';
-            } else {ontainer_excluir_assinatura').classList.add('hidden');
-                document.getElementById('c
+            } else {
                 document.getElementById('curso_id').value = '';
                 document.getElementById('curso_titulo').value = '';
                 document.getElementById('curso_instrutor').value = '';
@@ -371,6 +370,7 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                 document.getElementById('curso_formacao').value = '';
                 document.getElementById('curso_capa_atual').value = '';
                 document.getElementById('curso_assinatura_atual').value = '';
+                document.getElementById('container_excluir_assinatura').classList.add('hidden');
                 document.getElementById('curso_descricao').value = '';
                 document.getElementById('curso_carga').value = '';
                 document.getElementById('modal-curso-titulo').innerText = 'Novo Curso';
