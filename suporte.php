@@ -531,8 +531,8 @@ $prioridade_labels = [
             document.getElementById('detalhe_status_label').textContent = 'Status: ' + chamado.status;
             document.getElementById('detalhe_tecnico').textContent = chamado.tecnico || 'Pendente';
             document.getElementById('detalhe_data').textContent = chamado.data_abertura;
+            document.getElementById('comentario_chamado_id').value = chamado.id;
 
-            const resCcomentários
             const comList = document.getElementById('detalhe_comentarios');
             comList.innerHTML = '';
             const formCom = document.getElementById('form_comentario_usuario');
@@ -561,7 +561,8 @@ $prioridade_labels = [
                 comList.innerHTML = '<p class="text-[9px] text-text-secondary/40 italic text-center py-2">Sem mensagens no momento.</p>';
             }
 
-            // Exibir ontainer = document.getElementById('container_resolucao');
+            // Exibir Detalhes Adicionais
+            const resContainer = document.getElementById('container_resolucao');
             const resText = document.getElementById('detalhe_resolucao');
             const header = document.getElementById('modal_header_bg');
             const satisBtn = document.getElementById('btn_satisfacao_container');
