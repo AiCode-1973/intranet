@@ -11,6 +11,9 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'sucesso') {
 } elseif (isset($_GET['msg']) && $_GET['msg'] == 'comentario_ok') {
     $mensagem = "Comentário adicionado com sucesso!";
     $tipo_mensagem = "success";
+} else {
+    $mensagem = "";
+    $tipo_mensagem = "";
 }
 
 // Processar Atualização de Chamado
@@ -141,10 +144,13 @@ $prioridade_styles = [
 // Stats para o dashboard superior
 $stats = ['Aberto' => 0, 'Em Atendimento' => 0, 'Total' => 0];
 $res_stats = $conn->query("SELECT status, COUNT(*) as total FROM chamados WHERE status IN ('Aberto', 'Em Atendimento') GROUP BY status");
-while($row = $res_stats->fetch_assoc()) {
-    $stats[$row['status']] = $row['total'];
+if ($res_stats) {
+    while($row = $res_stats->fetch_assoc()) {
+        $stats[$row['status']] = $row['total'];
+    }
 }
-$stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
+$res_total = $conn->query("SELECT COUNT(*) FROM chamados");
+$stats['Total'] = $res_total ? $res_total->fetch_row()[0] : 0;
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
