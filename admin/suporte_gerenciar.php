@@ -8,10 +8,9 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'sucesso') {
     $msg_id = intval($_GET['id']);
     $mensagem = "Chamado #$msg_id atualizado!";
     $tipo_mensagem = "success";
-}
-
-// Processar atualização do chamado
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'atualizar_chamado') {
+} elseif (isset($_GET['msg']) && $_GET['msg'] == 'comentario_ok') {
+    $mensagem = "Comentário adicionado com sucesso!";
+    $tipo_mensagem = "success";
     $id = intval($_POST['id']);
     $status = sanitize($_POST['status']);
     $resolucao = $_POST['resolucao'];
@@ -30,6 +29,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
         $tipo_mensagem = "danger";
     }
     $stmt->close();
+}
+
+// Processar Novo Comentário
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'adicionar_comentario') {
+    $chamado_id = intval($_POST['chamado_id']);
+    $usuario_id = $_SESSION['usuario_id'];
+    $comentario = sanitize($_POST['comentario']);
+
+    if (!empty($comentario)) {
+        $stmt = $conn->prepare("INSERT INTO chamados_comentarios (chamado_id, usuario_id, comentario) VALUES (?, ?, ?)");
+        $stmt->bind_param("iis", $chamado_id, $usuario_id, $comentario);
+        if ($stmt->execute()) {
+            header("Location: suporte_gerenciar.php?msg=comentario_ok&id=$chamado_id");
+            exit;
+        }
+        $stmt->close();
+    }
 }
 
 // Processar exclusão do chamado
@@ -77,6 +93,14 @@ while ($row = $res_chamados->fetch_assoc()) {
     while ($anexo = $anexos_res->fetch_assoc()) {
         $row['anexos'][] = $anexo;
     }
+
+    // Buscar comentários do chamado
+    $comentarios_res = $conn->query("SELECT cc.*, u.nome as autor FROM chamados_comentarios cc JOIN usuarios u ON cc.usuario_id = u.id WHERE cc.chamado_id = $c_id ORDER BY cc.data_comentario ASC");
+    $row['comentarios'] = [];
+    while ($coment = $comentarios_res->fetch_assoc()) {
+        $row['comentarios'][] = $coment;
+    }
+
     $chamados_lista[] = $row;
 }
 
@@ -313,6 +337,28 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                 </div>
             </div>
 
+            <!-- Setor de Interação / Comentários -->
+            <div class="p-4 bg-gray-50 border-b border-border">
+                <label class="block text-[10px] font-black text-text-secondary mb-2 uppercase tracking-widest flex items-center gap-1.5">
+                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+                    Interações e Comentários
+                </label>
+                
+                <div id="view_comentarios_list" class="space-y-3 mb-4 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                    <!-- JS Populado -->
+                </div>
+
+                <form method="POST" action="" class="flex gap-2">
+                    <input type="hidden" name="acao" value="adicionar_comentario">
+                    <input type="hidden" name="chamado_id" id="comentario_chamado_id">
+                    <input type="text" name="comentario" required placeholder="Pedir informação ou comentar..." 
+                           class="flex-grow p-2 bg-white border border-border rounded-lg text-[11px] font-bold focus:outline-none focus:border-primary transition-all">
+                    <button type="submit" class="bg-primary text-white p-2 rounded-lg hover:bg-primary-hover transition-all shadow-md active:scale-95">
+                        <i data-lucide="send" class="w-4 h-4"></i>
+                    </button>
+                </form>
+            </div>
+
             <!-- Visualização da Avaliação do Usuário -->
             <div id="container_feedback" class="hidden p-4 bg-amber-50 border-b border-amber-100 animate-in fade-in slide-in-from-top-2">
                 <div class="flex items-center justify-between mb-1">
@@ -376,6 +422,7 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
             document.getElementById('view_data').textContent = 'Aberto em: ' + chamado.data_abertura;
             
             document.getElementById('form_id').value = chamado.id;
+            document.getElementById('comentario_chamado_id').value = chamado.id;
             document.getElementById('form_status').value = chamado.status;
             document.getElementById('form_tecnico').value = chamado.tecnico_id || '';
             document.getElementById('form_resolucao').value = chamado.resolucao || '';
@@ -420,6 +467,26 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                 });
             } else {
                 anexoContainer.classList.add('hidden');
+            }
+
+            // Exibir comentários se houver
+            const comList = document.getElementById('view_comentarios_list');
+            comList.innerHTML = '';
+            if (chamado.comentarios && chamado.comentarios.length > 0) {
+                chamado.comentarios.forEach(c => {
+                    const div = document.createElement('div');
+                    div.className = 'bg-white p-2.5 rounded-xl border border-border/50 shadow-sm relative';
+                    div.innerHTML = `
+                        <div class="flex justify-between items-center mb-1">
+                            <span class="text-[9px] font-black text-primary uppercase">${c.autor}</span>
+                            <span class="text-[8px] text-text-secondary opacity-50">${c.data_comentario}</span>
+                        </div>
+                        <p class="text-[10px] text-text-secondary leading-tight italic">"${c.comentario}"</p>
+                    `;
+                    comList.appendChild(div);
+                });
+            } else {
+                comList.innerHTML = '<p class="text-[10px] text-text-secondary/40 italic text-center py-4">Sem interações registradas.</p>';
             }
             
             document.getElementById('modalAtender').classList.add('active');
