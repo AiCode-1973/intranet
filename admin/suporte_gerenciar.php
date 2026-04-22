@@ -66,7 +66,19 @@ $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as set
             END, 
             c.prioridade DESC, 
             c.data_abertura ASC";
-$chamados = $conn->query($sql);
+$res_chamados = $conn->query($sql);
+$chamados_lista = [];
+
+while ($row = $res_chamados->fetch_assoc()) {
+    // Buscar anexos do chamado
+    $c_id = $row['id'];
+    $anexos_res = $conn->query("SELECT * FROM chamados_anexos WHERE chamado_id = $c_id");
+    $row['anexos'] = [];
+    while ($anexo = $anexos_res->fetch_assoc()) {
+        $row['anexos'][] = $anexo;
+    }
+    $chamados_lista[] = $row;
+}
 
 // Buscar lista de técnicos (Filtra especificamente pelo atributo is_tecnico = TI)
 $tecnicos = $conn->query("SELECT id, nome FROM usuarios WHERE is_tecnico = 1 AND ativo = 1 ORDER BY nome ASC");
@@ -195,7 +207,7 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-border text-xs">
-                        <?php while ($chamado = $chamados->fetch_assoc()): ?>
+                        <?php foreach ($chamados_lista as $chamado): ?>
                         <tr class="hover:bg-background/30 transition-colors group <?php echo in_array($chamado['status'], ['Resolvido', 'Cancelado']) ? 'opacity-40' : ''; ?>">
                             <td class="p-3">
                                 <div class="flex items-center gap-2">
@@ -290,6 +302,17 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                 </div>
             </div>
 
+            <!-- Área de Anexos do Chamado (Visão Técnico) -->
+            <div id="container_anexos_view" class="hidden p-4 bg-white border-b border-border">
+                <label class="block text-[10px] font-black text-text-secondary mb-2 uppercase tracking-widest flex items-center gap-1.5">
+                    <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
+                    Arquivos Enviados pelo Solicitante
+                </label>
+                <div id="view_anexos_list" class="flex flex-wrap gap-2">
+                    <!-- JS Populado -->
+                </div>
+            </div>
+
             <!-- Visualização da Avaliação do Usuário -->
             <div id="container_feedback" class="hidden p-4 bg-amber-50 border-b border-amber-100 animate-in fade-in slide-in-from-top-2">
                 <div class="flex items-center justify-between mb-1">
@@ -368,6 +391,35 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                 feedbackTexto.textContent = chamado.satisfacao_comentario ? '"' + chamado.satisfacao_comentario + '"' : 'Usuário não deixou comentário.';
             } else {
                 feedbackContainer.classList.add('hidden');
+            }
+
+            // Exibir anexos se houver (Visão Técnico)
+            const anexoContainer = document.getElementById('container_anexos_view');
+            const anexoList = document.getElementById('view_anexos_list');
+            anexoList.innerHTML = '';
+            
+            if (chamado.anexos && chamado.anexos.length > 0) {
+                anexoContainer.classList.remove('hidden');
+                chamado.anexos.forEach(anexo => {
+                    const item = document.createElement('a');
+                    // Ajustar o caminho para sair da pasta admin/
+                    item.href = (anexo.caminho_arquivo.startsWith('../') ? '' : '../') + anexo.caminho_arquivo;
+                    item.target = '_blank';
+                    item.className = 'flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-border hover:border-primary hover:text-primary rounded-lg text-[10px] font-bold text-text-secondary transition-all shadow-sm group';
+                    
+                    // Detectar se é imagem para o ícone
+                    const ext = anexo.nome_original.split('.').pop().toLowerCase();
+                    const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
+                    
+                    item.innerHTML = `
+                        <i data-lucide="${isImg ? 'image' : 'file-text'}" class="w-3.5 h-3.5"></i>
+                        <span>${anexo.nome_original}</span>
+                        <i data-lucide="download" class="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                    `;
+                    anexoList.appendChild(item);
+                });
+            } else {
+                anexoContainer.classList.add('hidden');
             }
             
             document.getElementById('modalAtender').classList.add('active');
