@@ -19,6 +19,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         $capa = sanitize($_POST['capa_atual'] ?? '');
         $assinatura = sanitize($_POST['assinatura_atual'] ?? '');
         
+        // Opção para excluir assinatura
+        if (isset($_POST['excluir_assinatura']) && $_POST['excluir_assinatura'] == '1') {
+            $assinatura = '';
+        }
+
         // Processar Upload de Capa
         if (isset($_FILES['capa_arquivo']) && $_FILES['capa_arquivo']['error'] === UPLOAD_ERR_OK) {
             $ext = pathinfo($_FILES['capa_arquivo']['name'], PATHINFO_EXTENSION);
@@ -259,6 +264,12 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                     <div>
                         <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Assinatura Digital (Transparente)</label>
                         <input type="file" name="assinatura_arquivo" id="curso_assinatura_arquivo" accept="image/png" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary file:mr-4 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-black file:bg-amber-500 file:text-white hover:file:bg-amber-600">
+                        <div id="container_excluir_assinatura" class="mt-2 hidden">
+                            <label class="inline-flex items-center gap-2 cursor-pointer">
+                                <input type="checkbox" name="excluir_assinatura" value="1" class="rounded border-border text-primary focus:ring-primary h-3.5 w-3.5">
+                                <span class="text-[9px] font-black text-red-500 uppercase tracking-widest">Excluir assinatura atual</span>
+                            </label>
+                        </div>
                     </div>
                 </div>
                 <div>
@@ -333,6 +344,14 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
         function abrirModalCurso(dados = null) {
             if (dados) {
                 document.getElementById('curso_id').value = dados.id;
+                
+                // Mostrar opção de excluir assinatura se existir uma
+                if (dados.assinatura_instrutor) {
+                    document.getElementById('container_excluir_assinatura').classList.remove('hidden');
+                } else {
+                    document.getElementById('container_excluir_assinatura').classList.add('hidden');
+                }
+
                 document.getElementById('curso_titulo').value = dados.titulo;
                 document.getElementById('curso_instrutor').value = dados.instrutor || '';
                 document.getElementById('curso_cargo_instrutor').value = dados.cargo_instrutor || '';
@@ -343,7 +362,8 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                 document.getElementById('curso_carga').value = dados.carga_horaria;
                 document.getElementById('curso_status').value = dados.status;
                 document.getElementById('modal-curso-titulo').innerText = 'Editar Curso';
-            } else {
+            } else {ontainer_excluir_assinatura').classList.add('hidden');
+                document.getElementById('c
                 document.getElementById('curso_id').value = '';
                 document.getElementById('curso_titulo').value = '';
                 document.getElementById('curso_instrutor').value = '';

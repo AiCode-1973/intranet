@@ -105,8 +105,8 @@ $mes_pt = $meses[$mes_ingles];
                         <img src="<?php echo $cert['assinatura_instrutor']; ?>" class="h-16 mb-[-10px] mix-blend-multiply">
                     <?php endif; ?>
                     <div class="w-48 h-[1px] bg-gray-400 mb-2"></div>
-                    <p class="text-[10px] font-bold text-gray-600 uppercase"><?php echo $cert['cargo_instrutor'] ?: 'Diretor(a) Responsável'; ?></p>
-                    <p class="text-[9px] text-gray-400 italic"><?php echo $cert['instrutor'] ?: 'Jane Moreira da Silva Reis'; ?></p>
+                    <p class="text-[10px] font-bold text-gray-600 uppercase"><?php echo !empty($cert['cargo_instrutor']) ? $cert['cargo_instrutor'] : 'Diretor(a) Responsável'; ?></p>
+                    <p class="text-[9px] text-gray-400 italic"><?php echo !empty($cert['instrutor']) ? $cert['instrutor'] : 'Jane Moreira da Silva Reis'; ?></p>
                 </div>
 
                 <div class="flex flex-col items-center gap-1.5 opacity-80">
