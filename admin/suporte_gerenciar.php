@@ -325,10 +325,10 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
         </div>
     </div>
 
-    <!-- Modal Atendimento (Slim Pattern) -->
+    <!-- Modal Atendimento (Slim Pattern - Paisagem) -->
     <div id="modalAtender" class="modal">
-        <div class="bg-white w-full max-w-lg mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150">
-            <div class="bg-primary px-5 py-4 text-white flex justify-between items-center">
+        <div class="bg-white w-full max-w-5xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150 flex flex-col max-h-[90vh]">
+            <div class="bg-primary px-5 py-4 text-white flex justify-between items-center shrink-0">
                 <div>
                     <h2 class="text-base font-bold text-white uppercase flex items-center gap-2">
                         <span id="view_id" class="bg-white/10 px-1.5 py-0.5 rounded text-[10px] font-mono">#000</span>
@@ -339,99 +339,105 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM chamados")->fetch_row()[0];
                 <button onclick="fecharModal()" class="p-1.5 hover:bg-white/10 rounded-lg transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
             </div>
             
-            <div class="p-4 bg-gray-50 border-b border-border">
-                <h3 class="text-sm font-bold text-text mb-1" id="view_titulo">---</h3>
-                <p class="text-xs text-text-secondary leading-relaxed bg-white p-3 rounded-lg border border-border/50" id="view_descricao">---</p>
-                <div class="mt-3 flex gap-4 text-[9px] font-black text-text-secondary/40 uppercase tracking-widest">
-                    <span id="view_solicitante">---</span>
-                    <span id="view_data">---</span>
-                </div>
-            </div>
-
-            <!-- Área de Anexos do Chamado (Visão Técnico) -->
-            <div id="container_anexos_view" class="hidden p-4 bg-white border-b border-border">
-                <label class="block text-[10px] font-black text-text-secondary mb-2 uppercase tracking-widest flex items-center gap-1.5">
-                    <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
-                    Arquivos Enviados pelo Solicitante
-                </label>
-                <div id="view_anexos_list" class="flex flex-wrap gap-2">
-                    <!-- JS Populado -->
-                </div>
-            </div>
-
-            <!-- Setor de Interação / Comentários -->
-            <div class="p-4 bg-gray-50 border-b border-border">
-                <label class="block text-[10px] font-black text-text-secondary mb-2 uppercase tracking-widest flex items-center gap-1.5">
-                    <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
-                    Interações e Comentários
-                </label>
-                
-                <div id="view_comentarios_list" class="space-y-3 mb-4 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                    <!-- JS Populado -->
-                </div>
-
-                <form method="POST" action="" class="flex gap-2">
-                    <input type="hidden" name="acao" value="adicionar_comentario">
-                    <input type="hidden" name="chamado_id" id="comentario_chamado_id">
-                    <input type="text" name="comentario" required placeholder="Pedir informação ou comentar..." 
-                           class="flex-grow p-2 bg-white border border-border rounded-lg text-[11px] font-bold focus:outline-none focus:border-primary transition-all">
-                    <button type="submit" class="bg-primary text-white p-2 rounded-lg hover:bg-primary-hover transition-all shadow-md active:scale-95">
-                        <i data-lucide="send" class="w-4 h-4"></i>
-                    </button>
-                </form>
-            </div>
-
-            <!-- Visualização da Avaliação do Usuário -->
-            <div id="container_feedback" class="hidden p-4 bg-amber-50 border-b border-amber-100 animate-in fade-in slide-in-from-top-2">
-                <div class="flex items-center justify-between mb-1">
-                    <span class="text-[10px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-1">
-                        <i data-lucide="star" class="w-3 h-3 fill-current"></i>
-                        Avaliação do Usuário
-                    </span>
-                    <span id="feedback_nota" class="text-xs font-bold text-amber-700">--/5</span>
-                </div>
-                <p id="feedback_texto" class="text-xs text-amber-800 italic leading-relaxed">---</p>
-            </div>
-
-            <form method="POST" action="" class="p-5 space-y-4">
-                <input type="hidden" name="acao" value="atualizar_chamado">
-                <input type="hidden" name="id" id="form_id">
-                
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Avançar Status</label>
-                        <select name="status" id="form_status" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
-                            <option value="Aberto">Aberto</option>
-                            <option value="Em Atendimento">Em Atendimento</option>
-                            <option value="Aguardando Peça">Aguardando Peça</option>
-                            <option value="Resolvido">Resolvido ✅</option>
-                            <option value="Cancelado">Cancelado ❌</option>
-                        </select>
+            <div class="flex flex-col md:flex-row overflow-hidden flex-grow">
+                <!-- Coluna Esquerda: Informações e Conversa -->
+                <div class="w-full md:w-1/2 border-r border-border flex flex-col bg-gray-50/30">
+                    <div class="p-4 border-b border-border bg-gray-50 shrink-0">
+                        <h3 class="text-sm font-bold text-text mb-1" id="view_titulo">---</h3>
+                        <p class="text-xs text-text-secondary leading-relaxed bg-white p-3 rounded-lg border border-border/50 max-h-24 overflow-y-auto italic" id="view_descricao">---</p>
+                        <div class="mt-2 flex gap-4 text-[9px] font-black text-text-secondary/40 uppercase tracking-widest">
+                            <span id="view_solicitante">---</span>
+                            <span id="view_data">---</span>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Técnico Atribuído</label>
-                        <select name="tecnico_id" id="form_tecnico" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
-                            <option value="">Selecione o Técnico</option>
-                            <?php 
-                            $tecnicos->data_seek(0);
-                            while($t = $tecnicos->fetch_assoc()): ?>
-                                <option value="<?php echo $t['id']; ?>"><?php echo $t['nome']; ?></option>
-                            <?php endwhile; ?>
-                        </select>
+
+                    <!-- Área de Anexos (Compacta) -->
+                    <div id="container_anexos_view" class="hidden p-3 bg-white border-b border-border shrink-0">
+                        <label class="block text-[9px] font-black text-text-secondary mb-1.5 uppercase tracking-widest flex items-center gap-1.5">
+                            <i data-lucide="paperclip" class="w-3 h-3"></i>
+                            Anexos
+                        </label>
+                        <div id="view_anexos_list" class="flex flex-wrap gap-2"></div>
+                    </div>
+
+                    <!-- Setor de Interação / Comentários (Ocupa o resto da coluna) -->
+                    <div class="p-4 flex flex-col flex-grow overflow-hidden">
+                        <label class="block text-[9px] font-black text-text-secondary mb-2 uppercase tracking-widest flex items-center gap-1.5 shrink-0">
+                            <i data-lucide="message-square" class="w-3 h-3"></i>
+                            Histórico de Conversa
+                        </label>
+                        
+                        <div id="view_comentarios_list" class="flex-grow space-y-3 mb-3 overflow-y-auto pr-2 custom-scrollbar">
+                            <!-- JS Populado -->
+                        </div>
+
+                        <form method="POST" action="" class="flex gap-2 shrink-0">
+                            <input type="hidden" name="acao" value="adicionar_comentario">
+                            <input type="hidden" name="chamado_id" id="comentario_chamado_id">
+                            <input type="text" name="comentario" required placeholder="Pedir informação ou responder..." 
+                                   class="flex-grow p-2 bg-white border border-border rounded-lg text-[10px] font-bold focus:outline-none focus:border-primary transition-all">
+                            <button type="submit" class="bg-primary text-white p-2 rounded-lg hover:bg-primary-hover transition-all shadow-md active:scale-95">
+                                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
 
-                <div>
-                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Resolução / Observações Técnicas</label>
-                    <textarea name="resolucao" id="form_resolucao" rows="5" placeholder="Documente o atendimento ou a solução aplicada..."
-                              class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all"></textarea>
-                </div>
+                <!-- Coluna Direita: Formulário de Ação e Feedback -->
+                <div class="w-full md:w-1/2 flex flex-col overflow-y-auto custom-scrollbar">
+                    <!-- Visualização da Avaliação (Se houver) -->
+                    <div id="container_feedback" class="hidden p-4 bg-amber-50 border-b border-amber-100 shrink-0">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-[9px] font-black text-amber-700 uppercase tracking-widest flex items-center gap-1">
+                                <i data-lucide="star" class="w-3 h-3 fill-current"></i>
+                                Avaliação do Usuário
+                            </span>
+                            <span id="feedback_nota" class="text-xs font-bold text-amber-700">--/5</span>
+                        </div>
+                        <p id="feedback_texto" class="text-[10px] text-amber-800 italic leading-relaxed">---</p>
+                    </div>
 
-                <div class="flex justify-end gap-2 mt-6 pt-2">
-                    <button type="button" onclick="fecharModal()" class="px-4 py-1.5 text-xs font-bold text-text-secondary hover:text-text transition-colors uppercase">Cancelar</button>
-                    <button type="submit" class="bg-primary hover:bg-primary-hover text-white px-6 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all active:scale-95 uppercase tracking-widest">Salvar Alterações</button>
+                    <form method="POST" action="" class="p-5 flex flex-col flex-grow">
+                        <input type="hidden" name="acao" value="atualizar_chamado">
+                        <input type="hidden" name="id" id="form_id">
+                        
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Avançar Status</label>
+                                <select name="status" id="form_status" class="w-full p-2.5 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
+                                    <option value="Aberto">Aberto</option>
+                                    <option value="Em Atendimento">Em Atendimento</option>
+                                    <option value="Aguardando Peça">Aguardando Peça</option>
+                                    <option value="Resolvido">Resolvido ✅</option>
+                                    <option value="Cancelado">Cancelado ❌</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Técnico Atribuído</label>
+                                <select name="tecnico_id" id="form_tecnico" class="w-full p-2.5 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
+                                    <option value="">Selecione o Técnico</option>
+                                    <?php 
+                                    $tecnicos->data_seek(0);
+                                    while($t = $tecnicos->fetch_assoc()): ?>
+                                        <option value="<?php echo $t['id']; ?>"><?php echo $t['nome']; ?></option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex-grow flex flex-col">
+                            <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Resolução / Observações Técnicas</label>
+                            <textarea name="resolucao" id="form_resolucao" placeholder="Documente o atendimento ou a solução aplicada..."
+                                      class="flex-grow w-full p-3 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all min-h-[150px]"></textarea>
+                        </div>
+
+                        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border shrink-0">
+                            <button type="button" onclick="fecharModal()" class="px-4 py-2 text-[10px] font-bold text-text-secondary hover:text-text transition-colors uppercase">Cancelar</button>
+                            <button type="submit" class="bg-primary hover:bg-primary-hover text-white px-8 py-2 rounded-lg text-[10px] font-bold shadow-md transition-all active:scale-95 uppercase tracking-widest">Salvar Alterações</button>
+                        </div>
+                    </form>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
