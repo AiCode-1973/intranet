@@ -282,6 +282,23 @@ $meses = [
                             Acessar Sistema <i data-lucide="chevron-right" class="w-3 h-3 transition-transform group-hover:translate-x-1"></i>
                         </div>
                     </a>
+
+                    <!-- Novo Card: Recibos de Pagamento -->
+                    <a href="https://consultarecibo.com.br/login" target="_blank" class="rh-card bg-gradient-to-br from-white to-blue-50/30 p-6 rounded-3xl border border-blue-100 flex flex-col gap-4 group transition-all hover:border-blue-500 mt-4">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
+                                <i data-lucide="banknote" class="w-6 h-6"></i>
+                            </div>
+                            <span class="text-[8px] font-black bg-blue-500/10 text-blue-600 px-2 py-1 rounded-full uppercase tracking-tighter">Financeiro</span>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-text group-hover:text-blue-600 transition-colors">Recibos e Informes</h3>
+                            <p class="text-[10px] text-text-secondary mt-1 leading-relaxed italic">Consulta de recibos de pagamento (holerites) e informes de rendimentos anuais.</p>
+                        </div>
+                        <div class="flex items-center gap-2 text-[9px] font-black text-blue-600 uppercase tracking-widest mt-2">
+                            Acessar Portal <i data-lucide="chevron-right" class="w-3 h-3 transition-transform group-hover:translate-x-1"></i>
+                        </div>
+                    </a>
                 </section>
             </div>
         </div>
