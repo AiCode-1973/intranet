@@ -26,10 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['ac
     exit;
 }
 
-// Filtro por mês (Padrão: mês atual)
+// Filtro por mês
 $mes_selecionado = isset($_GET['mes']) ? (int)$_GET['mes'] : (int)date('m');
 
-// Buscar usuários admitidos no mês selecionado (Periódico)
+// Buscar usuários admitidos no mês selecionado
 $query = "
     SELECT u.*, s.nome as setor_nome 
     FROM usuarios u
@@ -123,24 +123,24 @@ $status_options = [
                         <span class="text-[7px] font-bold uppercase opacity-50"><?php echo substr($meses[(int)date('m', strtotime($u['data_admissao']))], 0, 3); ?></span>
                     </div>
 
-                    <div class="flex items-center gap-4 mb-6">
-                        <div class="w-14 h-14 rounded-2xl bg-gray-100 border-2 border-white shadow-sm flex items-center justify-center text-primary font-black text-lg overflow-hidden shrink-0">
-                            <?php if ($u['foto_path']): ?>
-                                <img src="uploads/perfil/<?php echo $u['foto_path']; ?>" class="w-full h-full object-cover">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-12 h-12 rounded-2xl bg-gray-50 border-2 border-white shadow-sm flex items-center justify-center text-primary font-black text-lg overflow-hidden shrink-0">
+                            <?php if (!empty($u['foto_path'])): ?>
+                                <img src="uploads/fotos/<?php echo $u['foto_path']; ?>" class="w-full h-full object-cover">
                             <?php else: ?>
-                                <?php echo substr($u['nome'], 0, 1); ?>
+                                <span class="opacity-30"><?php echo substr($u['nome'], 0, 1); ?></span>
                             <?php endif; ?>
                         </div>
                         <div class="min-w-0 pr-10">
-                            <h4 class="text-sm font-bold text-text truncate group-hover:text-primary transition-colors"><?php echo $u['nome']; ?></h4>
+                            <h4 class="text-xs font-bold text-text leading-tight line-clamp-2 mt-0.5 group-hover:text-primary transition-colors"><?php echo $u['nome']; ?></h4>
                             <div class="flex flex-col gap-0.5 mt-1">
-                                <span class="text-[9px] font-bold text-text-secondary/60 flex items-center gap-1 uppercase tracking-tighter">
-                                    <i data-lucide="briefcase" class="w-3 h-3"></i>
+                                <span class="text-[8px] font-bold text-text-secondary/60 flex items-center gap-1 uppercase tracking-tighter">
+                                    <i data-lucide="briefcase" class="w-2.5 h-2.5"></i>
                                     <?php echo $u['setor_nome'] ?: 'Setor não informado'; ?>
                                 </span>
-                                <span class="text-[9px] font-bold text-primary/40 flex items-center gap-1 uppercase tracking-tighter">
-                                    <i data-lucide="calendar" class="w-3 h-3"></i>
-                                    Admissão: <?php echo date('d/m/Y', strtotime($u['data_admissao'])); ?>
+                                <span class="text-[8px] font-bold text-primary/40 flex items-center gap-1 uppercase tracking-tighter">
+                                    <i data-lucide="calendar" class="w-2.5 h-2.5"></i>
+                                    Adm: <?php echo date('d/m/Y', strtotime($u['data_admissao'])); ?>
                                 </span>
                             </div>
                         </div>
@@ -154,7 +154,7 @@ $status_options = [
                                 $is_active = ($curr_status === $val);
                             ?>
                                 <button onclick="updateStatus(<?php echo $u['id']; ?>, '<?php echo $val; ?>')" 
-                                        class="py-2 rounded-xl text-[9px] font-black uppercase tracking-tighter transition-all <?php echo $is_active ? $opt['bg'] . ' ' . $opt['color'] . ' shadow-sm border border-current/10' : 'text-text-secondary/40 hover:text-text-secondary'; ?>">
+                                        class="py-1.5 rounded-xl text-[8px] font-black uppercase tracking-tighter transition-all <?php echo $is_active ? $opt['bg'] . ' ' . $opt['color'] . ' shadow-sm border border-current/10' : 'text-text-secondary/40 hover:text-text-secondary'; ?>">
                                     <?php echo $opt['label']; ?>
                                 </button>
                             <?php endforeach; ?>
