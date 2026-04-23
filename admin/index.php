@@ -16,6 +16,7 @@ $total_telefones = $conn->query("SELECT COUNT(*) as total FROM telefones")->fetc
 $total_politicas = $conn->query("SELECT COUNT(*) as total FROM rh_politicas")->fetch_assoc()['total'];
 $total_ti_artigos = $conn->query("SELECT COUNT(*) as total FROM ti_artigos")->fetch_assoc()['total'];
 $total_ceh = $conn->query("SELECT COUNT(*) as total FROM ceh_chamados WHERE status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
+$total_normas = $conn->query("SELECT COUNT(*) as total FROM normas_procedimentos")->fetch_assoc()['total'];
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -296,6 +297,22 @@ $total_ceh = $conn->query("SELECT COUNT(*) as total FROM ceh_chamados WHERE stat
                 <p class="text-xs text-text-secondary leading-relaxed">Gerencie links e notícias do dashboard.</p>
                 <div class="mt-4 flex justify-end">
                     <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-primary transition-all"></i>
+                </div>
+            </a>
+
+            <a href="normas_gerenciar.php" class="bg-white p-5 rounded-xl shadow-sm border border-border group hover:border-teal-600 transition-all">
+                <div class="w-10 h-10 rounded-xl bg-teal-600/10 flex items-center justify-center text-teal-600 mb-4 group-hover:bg-teal-600 group-hover:text-white transition-all duration-300 relative">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    <?php if ($total_normas > 0): ?>
+                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-teal-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm ring-2 ring-teal-600/20">
+                            <?php echo $total_normas; ?>
+                        </span>
+                    <?php endif; ?>
+                </div>
+                <h3 class="text-base font-bold text-text mb-1 tracking-tight">Normas & Procedimentos</h3>
+                <p class="text-xs text-text-secondary leading-relaxed">Gerencie as diretrizes da Diretoria.</p>
+                <div class="mt-4 flex justify-end">
+                    <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-teal-600 transition-all"></i>
                 </div>
             </a>
             <?php endif; ?>
