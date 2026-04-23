@@ -471,27 +471,27 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
     </div>
 
     <!-- Modal Visualizar Norma -->
-    <div id="modalVisualizarNorma" class="modal-info" onclick="fecharModalNorma(event)">
-        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all group" onclick="event.stopPropagation()">
-            <div class="bg-primary p-10 text-white relative overflow-hidden">
+    <div id="modalVisualizarNorma" class="modal-info p-4" onclick="fecharModalNorma(event)">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden transform transition-all group flex flex-col" onclick="event.stopPropagation()">
+            <div class="bg-primary p-6 md:p-10 text-white relative overflow-hidden shrink-0">
                 <div class="absolute right-0 top-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
                 
-                <div class="relative z-10">
+                <div class="relative z-10 pr-8">
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
                             <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
                         </div>
                         <span id="normaData" class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 decoration-white/30 underline underline-offset-4"></span>
                     </div>
-                    <h2 id="normaTitulo" class="text-3xl font-black leading-tight tracking-tighter"></h2>
+                    <h2 id="normaTitulo" class="text-xl md:text-3xl font-black leading-tight tracking-tighter"></h2>
                 </div>
 
-                <button onclick="fecharModalNorma()" class="absolute top-8 right-8 p-3 hover:bg-white/20 rounded-full transition-all active:scale-90 z-20">
+                <button onclick="fecharModalNorma()" class="absolute top-6 right-6 md:top-8 md:right-8 p-3 hover:bg-white/20 rounded-full transition-all active:scale-90 z-20">
                     <i data-lucide="x" class="w-6 h-6"></i>
                 </button>
             </div>
             
-            <div class="p-10">
+            <div class="p-6 md:p-10 overflow-y-auto custom-scrollbar flex-grow">
                 <div class="mb-8 p-6 bg-gray-50 rounded-2xl border-l-4 border-primary/30 relative">
                     <div class="absolute top-0 right-0 p-4 opacity-[0.05]">
                         <i data-lucide="quote" class="w-12 h-12 text-primary"></i>
@@ -500,10 +500,12 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     <div id="normaDescricao" class="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap font-medium">
                     </div>
                 </div>
-                
-                <div class="mt-10 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
-                    <button onclick="fecharModalNorma()" class="px-8 py-3 text-[10px] font-black text-text-secondary hover:text-text transition-all uppercase tracking-widest">Sair</button>
-                    <a id="normaDownload" href="#" target="_blank" class="w-full md:w-auto bg-primary hover:bg-primary-hover text-white px-10 py-4 rounded-2xl text-[10px] font-black shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 active:scale-95 uppercase tracking-widest">
+            </div>
+
+            <div class="p-6 md:p-10 pt-0 md:pt-0 shrink-0">
+                <div class="pt-6 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+                    <button onclick="fecharModalNorma()" class="px-8 py-3 text-[10px] font-black text-text-secondary hover:text-text transition-all uppercase tracking-widest order-2 md:order-1">Sair</button>
+                    <a id="normaDownload" href="#" target="_blank" class="w-full md:w-auto bg-primary hover:bg-primary-hover text-white px-10 py-4 rounded-2xl text-[10px] font-black shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 active:scale-95 uppercase tracking-widest order-1 md:order-2">
                         Visualizar Documento <i data-lucide="external-link" class="w-4 h-4"></i>
                     </a>
                 </div>
