@@ -50,7 +50,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             ['icon' => 'stethoscope', 'label' => 'Chamados CEH', 'link' => $root_path . 'ceh.php', 'slug' => 'ceh'],
             ['icon' => 'monitor', 'label' => 'Tecnologia da Informação', 'link' => $root_path . 'ti_artigos.php', 'slug' => 'ti_artigos'],
             ['icon' => 'wrench', 'label' => 'Infraestrutura & Manutenção', 'link' => $root_path . 'manutencao.php', 'slug' => 'manutencao'],
-            ['icon' => 'shield-alert', 'label' => 'Segurança do Trabalho', 'link' => '#', 'slug' => 'seguranca_trabalho'],
+            ['icon' => 'hard-hat', 'label' => 'Segurança do Trabalho', 'link' => $root_path . 'seguranca_trabalho.php', 'slug' => 'seguranca_trabalho'],
             ['icon' => 'files', 'label' => 'Documentos & Biblioteca', 'link' => $root_path . 'biblioteca.php', 'slug' => 'biblioteca'],
             ['icon' => 'graduation-cap', 'label' => 'Educação Permanente', 'link' => $root_path . 'educacao.php', 'slug' => 'educacao'],
             ['icon' => 'monitor-dot', 'label' => 'Suporte de TI', 'link' => $root_path . 'suporte.php', 'slug' => 'suporte'],
