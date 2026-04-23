@@ -64,6 +64,58 @@ $reservas_equip = $conn->query("
                 </div>
             </div>
 
+            <!-- Quadro de Estatísticas TI (Real-time) -->
+            <div class="mb-8 p-6 bg-white rounded-3xl border border-border shadow-sm overflow-hidden relative">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div class="w-full md:w-1/3">
+                        <h2 class="text-sm font-black text-text uppercase tracking-widest flex items-center gap-2 mb-1">
+                            <span class="w-2 h-2 rounded-full bg-indigo-500 animate-ping"></span>
+                            Monitoramento Real-Time
+                        </h2>
+                        <p class="text-[10px] text-text-secondary font-bold uppercase tracking-tighter opacity-60">Status atual da fila de chamados TI</p>
+                        
+                        <div class="mt-4 flex items-center gap-4">
+                            <div class="text-3xl font-black text-primary tracking-tighter" id="stat_total">0</div>
+                            <div class="text-[9px] font-black text-text-secondary uppercase leading-none opacity-40 tracking-widest">Chamados<br>Ativos Agora</div>
+                        </div>
+                    </div>
+
+                    <div class="w-full md:w-2/3 grid grid-cols-3 gap-3">
+                        <!-- Card Status: Aberto -->
+                        <div class="bg-blue-50/50 p-4 rounded-2xl border border-blue-100/50 flex flex-col items-center justify-center text-center group hover:bg-white hover:border-blue-300 transition-all cursor-default">
+                            <div class="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-blue-500 mb-2 group-hover:scale-110 transition-transform">
+                                <i data-lucide="inbox" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-xl font-black text-blue-600 mb-0.5" id="stat_abertos">0</span>
+                            <span class="text-[8px] font-black text-blue-600/60 uppercase tracking-widest">Novos</span>
+                        </div>
+
+                        <!-- Card Status: Em Atendimento -->
+                        <div class="bg-amber-50/50 p-4 rounded-2xl border border-amber-100/50 flex flex-col items-center justify-center text-center group hover:bg-white hover:border-amber-300 transition-all cursor-default">
+                            <div class="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-amber-500 mb-2 group-hover:scale-110 transition-transform">
+                                <i data-lucide="play" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-xl font-black text-amber-600 mb-0.5" id="stat_atendimento">0</span>
+                            <span class="text-[8px] font-black text-amber-600/60 uppercase tracking-widest">Em Curso</span>
+                        </div>
+
+                        <!-- Card Status: Aguardando -->
+                        <div class="bg-purple-50/50 p-4 rounded-2xl border border-purple-100/50 flex flex-col items-center justify-center text-center group hover:bg-white hover:border-purple-300 transition-all cursor-default">
+                            <div class="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-purple-500 mb-2 group-hover:scale-110 transition-transform">
+                                <i data-lucide="pause-circle" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-xl font-black text-purple-600 mb-0.5" id="stat_aguardando">0</span>
+                            <span class="text-[8px] font-black text-purple-600/60 uppercase tracking-widest">Pendente</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Progress Line decorativa -->
+                <div class="absolute bottom-0 left-0 h-1 bg-gradient-to-r from-primary/20 via-indigo-500/20 to-primary/20 w-full overflow-hidden">
+                    <div class="h-full bg-primary/40 w-1/4 animate-shimmer"></div>
+                </div>
+            </div>
+
             <!-- Card de Reservas de Equipamentos (Agenda TI) -->
             <?php if ($reservas_equip && $reservas_equip->num_rows > 0): ?>
             <div class="mb-8 p-6 bg-white rounded-3xl border border-border shadow-sm overflow-hidden relative group">
@@ -171,6 +223,26 @@ $reservas_equip = $conn->query("
         </div>
     </div>
     
+    <script>
+        function updateTIStats() {
+            fetch('api_ti_stats.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) return;
+                    
+                    document.getElementById('stat_total').textContent = data.total_ativos;
+                    document.getElementById('stat_abertos').textContent = data.abertos;
+                    document.getElementById('stat_atendimento').textContent = data.em_atendimento;
+                    document.getElementById('stat_aguardando').textContent = data.aguardando_peca;
+                })
+                .catch(err => console.error('Erro ao buscar estatísticas TI:', err));
+        }
+
+        // Atualiza a cada 30 segundos
+        updateTIStats();
+        setInterval(updateTIStats, 30000);
+    </script>
+
     <?php include 'footer.php'; ?>
     </div> <!-- Fecha o div pl-64 do header.php -->
 </body>
