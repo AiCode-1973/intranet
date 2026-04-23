@@ -297,15 +297,16 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     if ($normas_res && $normas_res->num_rows > 0):
                         while($nr = $normas_res->fetch_assoc()):
                     ?>
-                        <div class="flex items-center justify-between p-2.5 bg-background/50 rounded-lg border border-border/40 hover:border-primary/20 transition-all group">
+                        <div onclick='verNorma(<?php echo json_encode($nr, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE); ?>)' 
+                             class="flex items-center justify-between p-2.5 bg-background/50 rounded-lg border border-border/40 hover:border-primary/20 transition-all group cursor-pointer">
                             <div class="flex flex-col truncate pr-2">
                                 <span class="text-[10px] font-bold text-text group-hover:text-primary transition-colors"><?php echo $nr['titulo']; ?></span>
                                 <span class="text-[8px] text-text-secondary opacity-60 uppercase font-black tracking-tighter"><?php echo date('d/m/Y', strtotime($nr['data_publicacao'])); ?></span>
                             </div>
                             <?php if ($nr['arquivo_path']): ?>
-                                <a href="<?php echo $nr['arquivo_path']; ?>" target="_blank" class="p-1.5 bg-white border border-border rounded shadow-sm hover:text-primary transition-all">
-                                    <i data-lucide="download-cloud" class="w-3 h-3"></i>
-                                </a>
+                                <div class="p-1.5 bg-white border border-border rounded shadow-sm group-hover:text-primary transition-all">
+                                    <i data-lucide="eye" class="w-3 h-3"></i>
+                                </div>
                             <?php endif; ?>
                         </div>
                     <?php 
@@ -466,30 +467,44 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
 
     <!-- Modal de Detalhes da Informação -->
     <div id="modalInfoDetalhes" class="modal-info" onclick="fecharModalInfo(event)">
-        <div class="bg-white w-full max-w-lg rounded-2xl shadow-2xl border border-border overflow-hidden transform transition-all" onclick="event.stopPropagation()">
-            <div class="bg-primary p-6 text-white relative">
-                <div class="flex items-center gap-3 mb-2">
-                    <div id="infoIconeContainer" class="p-2 bg-white/20 rounded-lg">
-                        <i id="infoIcone" data-lucide="info" class="w-6 h-6"></i>
+        <!-- ... existing content ... -->
+    </div>
+
+    <!-- Modal Visualizar Norma -->
+    <div id="modalVisualizarNorma" class="modal-info" onclick="fecharModalNorma(event)">
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all group" onclick="event.stopPropagation()">
+            <div class="bg-primary p-10 text-white relative overflow-hidden">
+                <div class="absolute right-0 top-0 -mr-16 -mt-16 w-64 h-64 bg-white/10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
+                
+                <div class="relative z-10">
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                            <i data-lucide="shield-check" class="w-6 h-6 text-white"></i>
+                        </div>
+                        <span id="normaData" class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80 decoration-white/30 underline underline-offset-4"></span>
                     </div>
-                    <div>
-                        <span id="infoTipo" class="text-[10px] font-black uppercase tracking-widest opacity-70"></span>
-                        <h2 id="infoTitulo" class="text-xl font-bold leading-tight"></h2>
-                    </div>
+                    <h2 id="normaTitulo" class="text-3xl font-black leading-tight tracking-tighter"></h2>
                 </div>
-                <button onclick="fecharModalInfo()" class="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full transition-colors">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+
+                <button onclick="fecharModalNorma()" class="absolute top-8 right-8 p-3 hover:bg-white/20 rounded-full transition-all active:scale-90 z-20">
+                    <i data-lucide="x" class="w-6 h-6"></i>
                 </button>
             </div>
             
-            <div class="p-8">
-                <div id="infoConteudo" class="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+            <div class="p-10">
+                <div class="mb-8 p-6 bg-gray-50 rounded-2xl border-l-4 border-primary/30 relative">
+                    <div class="absolute top-0 right-0 p-4 opacity-[0.05]">
+                        <i data-lucide="quote" class="w-12 h-12 text-primary"></i>
+                    </div>
+                    <label class="text-[10px] font-black text-primary uppercase tracking-widest mb-3 block">Descrição da Diretriz</label>
+                    <div id="normaDescricao" class="text-sm text-text-secondary leading-relaxed italic">
+                    </div>
                 </div>
                 
-                <div id="infoFooter" class="mt-8 pt-6 border-t border-border flex justify-between items-center">
-                    <button onclick="fecharModalInfo()" class="px-6 py-2 text-xs font-bold text-text-secondary hover:text-text transition-colors uppercase tracking-widest">Fechar</button>
-                    <a id="infoLinkExterno" href="#" target="_blank" class="hidden bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-xl text-xs font-bold shadow-lg transition-all flex items-center gap-2 active:scale-95 uppercase tracking-widest">
-                        Acessar Link Externo <i data-lucide="external-link" class="w-4 h-4"></i>
+                <div class="mt-10 pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4">
+                    <button onclick="fecharModalNorma()" class="px-8 py-3 text-[10px] font-black text-text-secondary hover:text-text transition-all uppercase tracking-widest">Sair</button>
+                    <a id="normaDownload" href="#" target="_blank" class="w-full md:w-auto bg-primary hover:bg-primary-hover text-white px-10 py-4 rounded-2xl text-[10px] font-black shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 active:scale-95 uppercase tracking-widest">
+                        Visualizar Documento <i data-lucide="external-link" class="w-4 h-4"></i>
                     </a>
                 </div>
             </div>
@@ -497,6 +512,32 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
     </div>
 
     <script>
+        function verNorma(norma) {
+            document.getElementById('normaTitulo').textContent = norma.titulo;
+            document.getElementById('normaDescricao').textContent = norma.descricao || 'Nao há descrição detalhada para esta norma.';
+            
+            // Formatar data
+            const [ano, mes, dia] = norma.data_publicacao.split('-');
+            document.getElementById('normaData').textContent = `Publicado em ${dia}/${mes}/${ano}`;
+            
+            // Link de Download/Visualização
+            const downloadBtn = document.getElementById('normaDownload');
+            if (norma.arquivo_path) {
+                downloadBtn.href = norma.arquivo_path;
+                downloadBtn.classList.remove('hidden');
+            } else {
+                downloadBtn.classList.add('hidden');
+            }
+            
+            document.getElementById('modalVisualizarNorma').classList.add('active');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function fecharModalNorma(event) {
+            if (event && event.target !== event.currentTarget) return;
+            document.getElementById('modalVisualizarNorma').classList.remove('active');
+        }
+
         function verDetalhesInfo(info) {
             document.getElementById('infoTitulo').textContent = info.titulo;
             document.getElementById('infoTipo').textContent = info.tipo;
