@@ -16,6 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $cpf = preg_replace('/[^0-9]/', '', sanitize($_POST['cpf']));
             $email = sanitize($_POST['email']);
             $funcao = sanitize($_POST['funcao']);
+            $data_admissao = !empty($_POST['data_admissao']) ? $_POST['data_admissao'] : null;
             $senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
             $setor_id = $_POST['setor_id'] ? intval($_POST['setor_id']) : null;
             $superior_id = $_POST['superior_id'] ? intval($_POST['superior_id']) : null;
@@ -38,8 +39,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
             
-            $stmt = $conn->prepare("INSERT INTO usuarios (nome, cpf, email, foto, funcao, senha, setor_id, superior_id, is_admin, is_tecnico, is_manutencao, is_educacao, is_ceh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssssiiiiiii", $nome, $cpf, $email, $foto_nome, $funcao, $senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $is_ceh);
+            $stmt = $conn->prepare("INSERT INTO usuarios (nome, cpf, email, foto, funcao, data_admissao, senha, setor_id, superior_id, is_admin, is_tecnico, is_manutencao, is_educacao, is_ceh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("sssssssiiiiiii", $nome, $cpf, $email, $foto_nome, $funcao, $data_admissao, $senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $is_ceh);
             
             if ($stmt->execute()) {
                 $mensagem = 'Usuário criado com sucesso!';
@@ -57,6 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $cpf = preg_replace('/[^0-9]/', '', sanitize($_POST['cpf']));
             $email = sanitize($_POST['email']);
             $funcao = sanitize($_POST['funcao']);
+            $data_admissao = !empty($_POST['data_admissao']) ? $_POST['data_admissao'] : null;
             $setor_id = $_POST['setor_id'] ? intval($_POST['setor_id']) : null;
             $superior_id = $_POST['superior_id'] ? intval($_POST['superior_id']) : null;
             $is_admin = isset($_POST['is_admin']) ? 1 : 0;
@@ -80,11 +82,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             if (!empty($_POST['senha'])) {
                 $p_senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
-                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, senha = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, is_ceh = ?, ativo = ? $foto_sql WHERE id = ?");
-                $stmt->bind_param("sssssiiiiiiiii", $nome, $cpf, $email, $funcao, $p_senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $is_ceh, $ativo, $id);
+                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, data_admissao = ?, senha = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, is_ceh = ?, ativo = ? $foto_sql WHERE id = ?");
+                $stmt->bind_param("ssssssiiiiiiiii", $nome, $cpf, $email, $funcao, $data_admissao, $p_senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $is_ceh, $ativo, $id);
             } else {
-                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, is_ceh = ?, ativo = ? $foto_sql WHERE id = ?");
-                $stmt->bind_param("ssssiiiiiiiii", $nome, $cpf, $email, $funcao, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $is_ceh, $ativo, $id);
+                $stmt = $conn->prepare("UPDATE usuarios SET nome = ?, cpf = ?, email = ?, funcao = ?, data_admissao = ?, setor_id = ?, superior_id = ?, is_admin = ?, is_tecnico = ?, is_manutencao = ?, is_educacao = ?, is_ceh = ?, ativo = ? $foto_sql WHERE id = ?");
+                $stmt->bind_param("sssssiiiiiiiii", $nome, $cpf, $email, $funcao, $data_admissao, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $is_ceh, $ativo, $id);
             }
             
             if ($stmt->execute()) {
@@ -152,7 +154,7 @@ $total_rows = $total_query->fetch_assoc()['total'];
 $total_pages = ceil($total_rows / $limit);
 
 $usuarios = $conn->query("
-    SELECT u.id, u.nome, u.cpf, u.email, u.foto, u.funcao, u.setor_id, u.superior_id, u.is_admin, u.is_tecnico, u.is_manutencao, u.is_educacao, u.is_ceh, u.ativo, u.ultimo_acesso, s.nome as setor_nome 
+    SELECT u.id, u.nome, u.cpf, u.email, u.foto, u.funcao, u.data_admissao, u.setor_id, u.superior_id, u.is_admin, u.is_tecnico, u.is_manutencao, u.is_educacao, u.is_ceh, u.ativo, u.ultimo_acesso, s.nome as setor_nome 
     FROM usuarios u
     LEFT JOIN setores s ON u.setor_id = s.id
     $where
@@ -568,6 +570,11 @@ function processarFoto3x4($caminho_origem, $caminho_destino) {
                         <label for="funcao" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Função / Cargo</label>
                         <input type="text" id="funcao" name="funcao" placeholder="Ex: Analista de RH" class="w-full p-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary transition-all">
                     </div>
+
+                    <div>
+                        <label for="data_admissao" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Data de Admissão</label>
+                        <input type="date" id="data_admissao" name="data_admissao" class="w-full p-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary transition-all">
+                    </div>
                     
                     <div>
                         <label for="setor_id" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Setor</label>
@@ -689,6 +696,7 @@ function processarFoto3x4($caminho_origem, $caminho_destino) {
             document.getElementById('cpf').value = '';
             document.getElementById('email').value = '';
             document.getElementById('funcao').value = '';
+            document.getElementById('data_admissao').value = '';
             document.getElementById('senha').value = '';
             document.getElementById('senha').required = true;
             document.getElementById('senhaOpcional').textContent = '';
@@ -718,6 +726,7 @@ function processarFoto3x4($caminho_origem, $caminho_destino) {
             document.getElementById('cpf').value = formatarCPF(usuario.cpf);
             document.getElementById('email').value = usuario.email;
             document.getElementById('funcao').value = usuario.funcao || '';
+            document.getElementById('data_admissao').value = usuario.data_admissao || '';
             document.getElementById('senha').value = '';
             document.getElementById('senha').required = false;
             document.getElementById('senhaOpcional').textContent = '(manter)';
