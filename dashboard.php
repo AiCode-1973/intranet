@@ -320,7 +320,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     <?php endif; ?>
                 </div>
                 
-                <a href="#" class="mt-6 w-full py-2 bg-primary/5 hover:bg-primary text-primary hover:text-white rounded-lg text-[9px] font-black transition-all uppercase tracking-widest border border-primary/10 text-center">
+                <a href="normas.php" class="mt-6 w-full py-2 bg-primary/5 hover:bg-primary text-primary hover:text-white rounded-lg text-[9px] font-black transition-all uppercase tracking-widest border border-primary/10 text-center">
                     Ver Diretrizes da Diretoria
                 </a>
             </div>
