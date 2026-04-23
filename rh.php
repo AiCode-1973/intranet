@@ -258,47 +258,60 @@ $meses = [
                 <!-- Acesso Externo: Folha de Ponto / Madis -->
                 <section class="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
                     <div class="flex items-center gap-3 mb-6">
-                        <div class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/20">
-                            <i data-lucide="external-link" class="w-6 h-6"></i>
+                        <div class="w-10 h-10 rounded-2xl bg-primary/10 flex items-center justify-center text-primary border border-primary/20">
+                            <i data-lucide="link-2" class="w-6 h-6"></i>
                         </div>
                         <div>
-                            <h2 class="text-xl font-bold text-text">Acessos Rápidos</h2>
-                            <p class="text-[10px] font-black uppercase tracking-widest text-text-secondary opacity-60">Sistemas Externos do RH</p>
+                            <h2 class="text-xl font-bold text-text">Sistemas Corporativos</h2>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-text-secondary opacity-60">Acessos Rápidos e Externos</p>
                         </div>
                     </div>
 
-                    <a href="https://www.mdcomune.com.br/Madis/Account/LogOn" target="_blank" class="rh-card bg-gradient-to-br from-white to-orange-50/30 p-6 rounded-3xl border border-orange-100 flex flex-col gap-4 group transition-all hover:border-orange-500">
-                        <div class="flex items-center justify-between">
-                            <div class="w-12 h-12 rounded-2xl bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
-                                <i data-lucide="clock" class="w-6 h-6"></i>
+                    <div class="grid grid-cols-1 gap-4">
+                        <!-- Card Ponto -->
+                        <a href="https://www.mdcomune.com.br/Madis/Account/LogOn" target="_blank" 
+                           class="rh-card group relative bg-white p-5 rounded-[2rem] border border-border hover:border-orange-500/50 hover:shadow-2xl hover:shadow-orange-500/10 transition-all overflow-hidden">
+                            <div class="absolute -right-6 -top-6 w-24 h-24 bg-orange-500/5 rounded-full blur-2xl group-hover:scale-150 transition-all duration-700"></div>
+                            
+                            <div class="flex items-center gap-4 relative z-10">
+                                <div class="w-12 h-12 rounded-2xl bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/30 group-hover:rotate-6 transition-transform">
+                                    <i data-lucide="clock" class="w-6 h-6"></i>
+                                </div>
+                                <div class="flex-grow">
+                                    <div class="flex items-center gap-2 mb-0.5">
+                                        <h3 class="text-sm font-black text-text group-hover:text-orange-600 transition-colors">Portal do Ponto</h3>
+                                        <span class="text-[7px] font-black bg-orange-500/10 text-orange-600 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Madis</span>
+                                    </div>
+                                    <p class="text-[10px] text-text-secondary leading-tight line-clamp-2">Gestão de batidas, espelho de ponto e justificativas externas.</p>
+                                </div>
+                                <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-text-secondary group-hover:bg-orange-500 group-hover:text-white transition-all">
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </div>
                             </div>
-                            <span class="text-[8px] font-black bg-orange-500/10 text-orange-600 px-2 py-1 rounded-full uppercase tracking-tighter">Portal do Ponto</span>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-text group-hover:text-orange-600 transition-colors">Sistema MD Comune</h3>
-                            <p class="text-[10px] text-text-secondary mt-1 leading-relaxed italic">Acesse aqui sua folha de ponto externa, espelho e batidas registradas na Madis.</p>
-                        </div>
-                        <div class="flex items-center gap-2 text-[9px] font-black text-orange-600 uppercase tracking-widest mt-2">
-                            Acessar Sistema <i data-lucide="chevron-right" class="w-3 h-3 transition-transform group-hover:translate-x-1"></i>
-                        </div>
-                    </a>
+                        </a>
 
-                    <!-- Novo Card: Recibos de Pagamento -->
-                    <a href="https://consultarecibo.com.br/login" target="_blank" class="rh-card bg-gradient-to-br from-white to-blue-50/30 p-6 rounded-3xl border border-blue-100 flex flex-col gap-4 group transition-all hover:border-blue-500 mt-4">
-                        <div class="flex items-center justify-between">
-                            <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/20">
-                                <i data-lucide="banknote" class="w-6 h-6"></i>
+                        <!-- Card Holerite -->
+                        <a href="https://consultarecibo.com.br/login" target="_blank" 
+                           class="rh-card group relative bg-white p-5 rounded-[2rem] border border-border hover:border-blue-500/50 hover:shadow-2xl hover:shadow-blue-500/10 transition-all overflow-hidden border-t-4 border-t-blue-500">
+                            <div class="absolute -right-6 -top-6 w-24 h-24 bg-blue-500/5 rounded-full blur-2xl group-hover:scale-150 transition-all duration-700"></div>
+                            
+                            <div class="flex items-center gap-4 relative z-10">
+                                <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white shadow-lg shadow-blue-500/30 group-hover:-rotate-6 transition-transform">
+                                    <i data-lucide="banknote" class="w-6 h-6"></i>
+                                </div>
+                                <div class="flex-grow">
+                                    <div class="flex items-center gap-2 mb-0.5">
+                                        <h3 class="text-sm font-black text-text group-hover:text-blue-600 transition-colors">Recibos e Holerites</h3>
+                                        <span class="text-[7px] font-black bg-blue-500/10 text-blue-600 px-1.5 py-0.5 rounded-full uppercase tracking-tighter">Financeiro</span>
+                                    </div>
+                                    <p class="text-[10px] text-text-secondary leading-tight line-clamp-2">Consulta de pagamentos, 13º salário e informes anuais.</p>
+                                </div>
+                                <div class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-text-secondary group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                </div>
                             </div>
-                            <span class="text-[8px] font-black bg-blue-500/10 text-blue-600 px-2 py-1 rounded-full uppercase tracking-tighter">Financeiro</span>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-text group-hover:text-blue-600 transition-colors">Recibos e Informes</h3>
-                            <p class="text-[10px] text-text-secondary mt-1 leading-relaxed italic">Consulta de recibos de pagamento (holerites) e informes de rendimentos anuais.</p>
-                        </div>
-                        <div class="flex items-center gap-2 text-[9px] font-black text-blue-600 uppercase tracking-widest mt-2">
-                            Acessar Portal <i data-lucide="chevron-right" class="w-3 h-3 transition-transform group-hover:translate-x-1"></i>
-                        </div>
-                    </a>
+                        </a>
+                    </div>
                 </section>
             </div>
         </div>
