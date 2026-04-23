@@ -20,12 +20,13 @@ if (isset($_GET['msg']) && $_GET['msg'] == 'sucesso') {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'atualizar_chamado') {
     $id = intval($_POST['id']);
     $status = sanitize($_POST['status']);
+    $prioridade = sanitize($_POST['prioridade']);
     $resolucao = $_POST['resolucao'] ?? '';
     $tecnico_id = !empty($_POST['tecnico_id']) ? intval($_POST['tecnico_id']) : null;
     $data_fechamento = ($status == 'Resolvido' || $status == 'Cancelado') ? date('Y-m-d H:i:s') : null;
 
-    $stmt = $conn->prepare("UPDATE chamados SET status = ?, resolucao = ?, tecnico_id = ?, data_fechamento = ? WHERE id = ?");
-    $stmt->bind_param("ssisi", $status, $resolucao, $tecnico_id, $data_fechamento, $id);
+    $stmt = $conn->prepare("UPDATE chamados SET status = ?, prioridade = ?, resolucao = ?, tecnico_id = ?, data_fechamento = ? WHERE id = ?");
+    $stmt->bind_param("sssisi", $status, $prioridade, $resolucao, $tecnico_id, $data_fechamento, $id);
 
     if ($stmt->execute()) {
         registrarLog($conn, "Atualizou chamado #$id para status: $status");
@@ -439,16 +440,26 @@ $stats['Total'] = $res_total ? $res_total->fetch_row()[0] : 0;
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Técnico Atribuído</label>
-                                <select name="tecnico_id" id="form_tecnico" class="w-full p-2.5 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
-                                    <option value="">Selecione o Técnico</option>
-                                    <?php 
-                                    $tecnicos->data_seek(0);
-                                    while($t = $tecnicos->fetch_assoc()): ?>
-                                        <option value="<?php echo $t['id']; ?>"><?php echo $t['nome']; ?></option>
-                                    <?php endwhile; ?>
+                                <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Prioridade</label>
+                                <select name="prioridade" id="form_prioridade" class="w-full p-2.5 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
+                                    <option value="Baixa">Baixa</option>
+                                    <option value="Média">Média</option>
+                                    <option value="Alta">Alta</option>
+                                    <option value="Urgente">Urgente 🔥</option>
                                 </select>
                             </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Técnico Atribuído</label>
+                            <select name="tecnico_id" id="form_tecnico" class="w-full p-2.5 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
+                                <option value="">Selecione o Técnico</option>
+                                <?php 
+                                $tecnicos->data_seek(0);
+                                while($t = $tecnicos->fetch_assoc()): ?>
+                                    <option value="<?php echo $t['id']; ?>"><?php echo $t['nome']; ?></option>
+                                <?php endwhile; ?>
+                            </select>
                         </div>
 
                         <div class="flex-grow flex flex-col">
@@ -478,6 +489,7 @@ $stats['Total'] = $res_total ? $res_total->fetch_row()[0] : 0;
             document.getElementById('form_id').value = chamado.id;
             document.getElementById('comentario_chamado_id').value = chamado.id;
             document.getElementById('form_status').value = chamado.status;
+            document.getElementById('form_prioridade').value = chamado.prioridade;
             document.getElementById('form_tecnico').value = chamado.tecnico_id || '';
             document.getElementById('form_resolucao').value = chamado.resolucao || '';
 
