@@ -282,6 +282,47 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             <?php endif; ?>
 
 
+            <!-- Normas e Procedimentos (Diretoria) -->
+            <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="shield-check" class="w-4 h-4 text-primary"></i>
+                        <h3 class="text-sm font-bold text-text">Normas & Procedimentos</h3>
+                    </div>
+                </div>
+                
+                <div class="space-y-2 flex-grow">
+                    <?php 
+                    $normas_res = $conn->query("SELECT * FROM normas_procedimentos WHERE ativo = 1 ORDER BY data_publicacao DESC LIMIT 4");
+                    if ($normas_res && $normas_res->num_rows > 0):
+                        while($nr = $normas_res->fetch_assoc()):
+                    ?>
+                        <div class="flex items-center justify-between p-2.5 bg-background/50 rounded-lg border border-border/40 hover:border-primary/20 transition-all group">
+                            <div class="flex flex-col truncate pr-2">
+                                <span class="text-[10px] font-bold text-text group-hover:text-primary transition-colors"><?php echo $nr['titulo']; ?></span>
+                                <span class="text-[8px] text-text-secondary opacity-60 uppercase font-black tracking-tighter"><?php echo date('d/m/Y', strtotime($nr['data_publicacao'])); ?></span>
+                            </div>
+                            <?php if ($nr['arquivo_path']): ?>
+                                <a href="<?php echo $nr['arquivo_path']; ?>" target="_blank" class="p-1.5 bg-white border border-border rounded shadow-sm hover:text-primary transition-all">
+                                    <i data-lucide="download-cloud" class="w-3 h-3"></i>
+                                </a>
+                            <?php endif; ?>
+                        </div>
+                    <?php 
+                        endwhile;
+                    else: 
+                    ?>
+                        <div class="h-full flex items-center justify-center py-8 opacity-20 italic text-[10px]">
+                            Nenhuma norma publicada.
+                        </div>
+                    <?php endif; ?>
+                </div>
+                
+                <a href="#" class="mt-6 w-full py-2 bg-primary/5 hover:bg-primary text-primary hover:text-white rounded-lg text-[9px] font-black transition-all uppercase tracking-widest border border-primary/10 text-center">
+                    Ver Diretrizes da Diretoria
+                </a>
+            </div>
+
             <!-- Educação Permanente -->
             <?php if (temPermissao($conn, $_SESSION['setor_id'], 'educacao')): ?>
             <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full">
