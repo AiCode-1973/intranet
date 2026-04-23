@@ -80,7 +80,7 @@ $reservas_equip = $conn->query("
                         </div>
                     </div>
 
-                    <div class="w-full md:w-2/3 grid grid-cols-3 gap-3">
+                    <div class="w-full md:w-2/3 grid grid-cols-2 lg:grid-cols-4 gap-3">
                         <!-- Card Status: Aberto -->
                         <div class="bg-blue-50/50 p-4 rounded-2xl border border-blue-100/50 flex flex-col items-center justify-center text-center group hover:bg-white hover:border-blue-300 transition-all cursor-default">
                             <div class="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-blue-500 mb-2 group-hover:scale-110 transition-transform">
@@ -106,6 +106,15 @@ $reservas_equip = $conn->query("
                             </div>
                             <span class="text-xl font-black text-purple-600 mb-0.5" id="stat_aguardando">0</span>
                             <span class="text-[8px] font-black text-purple-600/60 uppercase tracking-widest">Pendente</span>
+                        </div>
+
+                        <!-- Card Status: Resolvidos Hoje -->
+                        <div class="bg-emerald-50/50 p-4 rounded-2xl border border-emerald-100/50 flex flex-col items-center justify-center text-center group hover:bg-white hover:border-emerald-300 transition-all cursor-default">
+                            <div class="w-8 h-8 rounded-xl bg-white shadow-sm flex items-center justify-center text-emerald-500 mb-2 group-hover:scale-110 transition-transform">
+                                <i data-lucide="check-circle" class="w-4 h-4"></i>
+                            </div>
+                            <span class="text-xl font-black text-emerald-600 mb-0.5" id="stat_resolvidos">0</span>
+                            <span class="text-[8px] font-black text-emerald-600/60 uppercase tracking-widest">Resolvidos Hoje</span>
                         </div>
                     </div>
                 </div>
@@ -234,6 +243,7 @@ $reservas_equip = $conn->query("
                     document.getElementById('stat_abertos').textContent = data.abertos;
                     document.getElementById('stat_atendimento').textContent = data.em_atendimento;
                     document.getElementById('stat_aguardando').textContent = data.aguardando_peca;
+                    document.getElementById('stat_resolvidos').textContent = data.resolvidos_hoje;
                 })
                 .catch(err => console.error('Erro ao buscar estatísticas TI:', err));
         }

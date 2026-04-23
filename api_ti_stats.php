@@ -15,6 +15,7 @@ $stats = [
     'abertos' => 0,
     'em_atendimento' => 0,
     'aguardando_peca' => 0,
+    'resolvidos_hoje' => 0,
     'total_ativos' => 0
 ];
 
@@ -31,6 +32,13 @@ if ($res) {
         if ($row['status'] == 'Em Atendimento') $stats['em_atendimento'] = (int)$row['total'];
         if ($row['status'] == 'Aguardando Peça') $stats['aguardando_peca'] = (int)$row['total'];
     }
+}
+
+// Buscar resolvidos hoje
+$hoje = date('Y-m-d');
+$res_resolvidos = $conn->query("SELECT COUNT(*) as total FROM chamados WHERE status = 'Resolvido' AND DATE(data_fechamento) = '$hoje'");
+if ($res_resolvidos) {
+    $stats['resolvidos_hoje'] = (int)$res_resolvidos->fetch_assoc()['total'];
 }
 
 $stats['total_ativos'] = $stats['abertos'] + $stats['em_atendimento'] + $stats['aguardando_peca'];
