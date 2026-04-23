@@ -254,6 +254,35 @@ $meses = [
                         <i data-lucide="phone" class="w-3 h-3"></i> Ramal do RH
                     </a>
                 </div>
+
+                <!-- Acesso Externo: Folha de Ponto / Madis -->
+                <section class="mt-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-10 h-10 rounded-2xl bg-orange-500/10 flex items-center justify-center text-orange-500 border border-orange-500/20">
+                            <i data-lucide="external-link" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h2 class="text-xl font-bold text-text">Acessos Rápidos</h2>
+                            <p class="text-[10px] font-black uppercase tracking-widest text-text-secondary opacity-60">Sistemas Externos do RH</p>
+                        </div>
+                    </div>
+
+                    <a href="https://www.mdcomune.com.br/Madis/Account/LogOn" target="_blank" class="rh-card bg-gradient-to-br from-white to-orange-50/30 p-6 rounded-3xl border border-orange-100 flex flex-col gap-4 group transition-all hover:border-orange-500">
+                        <div class="flex items-center justify-between">
+                            <div class="w-12 h-12 rounded-2xl bg-orange-500 flex items-center justify-center text-white shadow-lg shadow-orange-500/20">
+                                <i data-lucide="clock" class="w-6 h-6"></i>
+                            </div>
+                            <span class="text-[8px] font-black bg-orange-500/10 text-orange-600 px-2 py-1 rounded-full uppercase tracking-tighter">Portal do Ponto</span>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-text group-hover:text-orange-600 transition-colors">Sistema MD Comune</h3>
+                            <p class="text-[10px] text-text-secondary mt-1 leading-relaxed italic">Acesse aqui sua folha de ponto externa, espelho e batidas registradas na Madis.</p>
+                        </div>
+                        <div class="flex items-center gap-2 text-[9px] font-black text-orange-600 uppercase tracking-widest mt-2">
+                            Acessar Sistema <i data-lucide="chevron-right" class="w-3 h-3 transition-transform group-hover:translate-x-1"></i>
+                        </div>
+                    </a>
+                </section>
             </div>
         </div>
     </div>
