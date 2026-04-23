@@ -108,7 +108,7 @@ $status_options = [
         <!-- Colaboradores Grid -->
         <h3 class="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
             <i data-lucide="users" class="w-4 h-4"></i>
-            Funcionários com Admissão em <?php echo $meses[$mes_selecionado]; ?>
+            Funcionários com Períodico em <?php echo $meses[$mes_selecionado]; ?>
         </h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -125,8 +125,8 @@ $status_options = [
 
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-12 h-12 rounded-2xl bg-gray-50 border-2 border-white shadow-sm flex items-center justify-center text-primary font-black text-lg overflow-hidden shrink-0">
-                            <?php if (!empty($u['foto_path'])): ?>
-                                <img src="uploads/fotos/<?php echo $u['foto_path']; ?>" class="w-full h-full object-cover">
+                            <?php if (!empty($u['foto'])): ?>
+                                <img src="uploads/fotos/<?php echo $u['foto']; ?>" class="w-full h-full object-cover">
                             <?php else: ?>
                                 <span class="opacity-30"><?php echo substr($u['nome'], 0, 1); ?></span>
                             <?php endif; ?>
