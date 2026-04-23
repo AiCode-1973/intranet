@@ -283,6 +283,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
 
 
             <!-- Normas e Procedimentos (Diretoria) -->
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'normas')): ?>
             <div class="bg-white p-5 rounded-xl shadow-sm border border-border flex flex-col h-full">
                 <div class="flex items-center justify-between mb-4">
                     <div class="flex items-center gap-2">
@@ -323,6 +324,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     Ver Diretrizes da Diretoria
                 </a>
             </div>
+            <?php endif; ?>
 
             <!-- Educação Permanente -->
             <?php if (temPermissao($conn, $_SESSION['setor_id'], 'educacao')): ?>
