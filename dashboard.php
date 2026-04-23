@@ -496,8 +496,8 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     <div class="absolute top-0 right-0 p-4 opacity-[0.05]">
                         <i data-lucide="quote" class="w-12 h-12 text-primary"></i>
                     </div>
-                    <label class="text-[10px] font-black text-primary uppercase tracking-widest mb-3 block">Descrição da Diretriz</label>
-                    <div id="normaDescricao" class="text-sm text-text-secondary leading-relaxed italic">
+                    <label class="text-[10px] font-black text-primary uppercase tracking-widest mb-3 block">Diretriz Completa</label>
+                    <div id="normaDescricao" class="text-sm text-text-secondary leading-relaxed whitespace-pre-wrap font-medium">
                     </div>
                 </div>
                 
