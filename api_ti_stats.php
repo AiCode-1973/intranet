@@ -15,7 +15,7 @@ $stats = [
     'abertos' => 0,
     'em_atendimento' => 0,
     'aguardando_peca' => 0,
-    'resolvidos_hoje' => 0,
+    'resolvidos_total' => 0,
     'total_ativos' => 0
 ];
 
@@ -34,11 +34,10 @@ if ($res) {
     }
 }
 
-// Buscar resolvidos hoje
-$hoje = date('Y-m-d');
-$res_resolvidos = $conn->query("SELECT COUNT(*) as total FROM chamados WHERE status = 'Resolvido' AND DATE(data_fechamento) = '$hoje'");
+// Buscar somatória de todos os resolvidos (histórico completo)
+$res_resolvidos = $conn->query("SELECT COUNT(*) as total FROM chamados WHERE status = 'Resolvido'");
 if ($res_resolvidos) {
-    $stats['resolvidos_hoje'] = (int)$res_resolvidos->fetch_assoc()['total'];
+    $stats['resolvidos_total'] = (int)$res_resolvidos->fetch_assoc()['total'];
 }
 
 $stats['total_ativos'] = $stats['abertos'] + $stats['em_atendimento'] + $stats['aguardando_peca'];

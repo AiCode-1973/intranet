@@ -114,7 +114,7 @@ $reservas_equip = $conn->query("
                                 <i data-lucide="check-circle" class="w-4 h-4"></i>
                             </div>
                             <span class="text-xl font-black text-emerald-600 mb-0.5" id="stat_resolvidos">0</span>
-                            <span class="text-[8px] font-black text-emerald-600/60 uppercase tracking-widest">Resolvidos Hoje</span>
+                            <span class="text-[8px] font-black text-emerald-600/60 uppercase tracking-widest">Total Resolvidos</span>
                         </div>
                     </div>
                 </div>
@@ -243,7 +243,7 @@ $reservas_equip = $conn->query("
                     document.getElementById('stat_abertos').textContent = data.abertos;
                     document.getElementById('stat_atendimento').textContent = data.em_atendimento;
                     document.getElementById('stat_aguardando').textContent = data.aguardando_peca;
-                    document.getElementById('stat_resolvidos').textContent = data.resolvidos_hoje;
+                    document.getElementById('stat_resolvidos').textContent = data.resolvidos_total;
                 })
                 .catch(err => console.error('Erro ao buscar estatísticas TI:', err));
         }
