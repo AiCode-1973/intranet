@@ -52,7 +52,7 @@ $meses = [
 $status_options = [
     'pendente' => ['label' => 'Pendente', 'color' => 'text-amber-500', 'bg' => 'bg-amber-50'],
     'realizado' => ['label' => 'Realizado', 'color' => 'text-emerald-500', 'bg' => 'bg-emerald-50'],
-    'ferias' => ['label' => 'Férias', 'color' => 'text-blue-500', 'bg' => 'bg-blue-50']
+    'atrasado' => ['label' => 'Atrasado', 'color' => 'text-red-500', 'bg' => 'bg-red-50']
 ];
 ?>
 <!DOCTYPE html>
