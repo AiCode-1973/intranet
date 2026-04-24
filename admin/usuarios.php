@@ -15,42 +15,63 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $nome = sanitize($_POST['nome']);
             $cpf = preg_replace('/[^0-9]/', '', sanitize($_POST['cpf']));
             $email = sanitize($_POST['email']);
-            $funcao = sanitize($_POST['funcao']);
-            $data_admissao = !empty($_POST['data_admissao']) ? $_POST['data_admissao'] : null;
-            $senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
-            $setor_id = $_POST['setor_id'] ? intval($_POST['setor_id']) : null;
-            $superior_id = $_POST['superior_id'] ? intval($_POST['superior_id']) : null;
-            $is_admin = isset($_POST['is_admin']) ? 1 : 0;
-            $is_tecnico = isset($_POST['is_tecnico']) ? 1 : 0;
-            $is_manutencao = isset($_POST['is_manutencao']) ? 1 : 0;
-            $is_educacao = isset($_POST['is_educacao']) ? 1 : 0;
-            $is_ceh = isset($_POST['is_ceh']) ? 1 : 0;
-            
-            // Upload e Processamento da foto
-            $foto_nome = null;
-            if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
-                $ext = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
-                $foto_nome = time() . '_' . $cpf . '.jpg'; // Convertemos sempre para JPG de alta qualidade
-                
-                if (processarFoto3x4($_FILES['foto']['tmp_name'], '../uploads/fotos/' . $foto_nome)) {
-                    // Sucesso
-                } else {
-                    $foto_nome = null; // Falha no processamento
-                }
-            }
-            
-            $stmt = $conn->prepare("INSERT INTO usuarios (nome, cpf, email, foto, funcao, data_admissao, senha, setor_id, superior_id, is_admin, is_tecnico, is_manutencao, is_educacao, is_ceh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("sssssssiiiiiii", $nome, $cpf, $email, $foto_nome, $funcao, $data_admissao, $senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $is_ceh);
-            
-            if ($stmt->execute()) {
-                $mensagem = 'Usuário criado com sucesso!';
-                $tipo_mensagem = 'success';
-                registrarLog($conn, 'Criou usuário: ' . $nome);
-            } else {
-                $mensagem = 'Erro ao criar usuário: ' . $conn->error;
+
+            // Verificar se o e-mail já existe
+            $check_email = $conn->prepare("SELECT id FROM usuarios WHERE email = ?");
+            $check_email->bind_param("s", $email);
+            $check_email->execute();
+            if ($check_email->get_result()->num_rows > 0) {
+                $mensagem = 'Erro: Este e-mail já está sendo usado por outro usuário.';
                 $tipo_mensagem = 'danger';
+            } else {
+                // Verificar se o CPF já existe
+                $check_cpf = $conn->prepare("SELECT id FROM usuarios WHERE cpf = ?");
+                $check_cpf->bind_param("s", $cpf);
+                $check_cpf->execute();
+                if ($check_cpf->get_result()->num_rows > 0) {
+                    $mensagem = 'Erro: Este CPF já está cadastrado para outro usuário.';
+                    $tipo_mensagem = 'danger';
+                } else {
+                    $funcao = sanitize($_POST['funcao']);
+                    $data_admissao = !empty($_POST['data_admissao']) ? $_POST['data_admissao'] : null;
+                    $senha = password_hash($_POST['senha'], PASSWORD_DEFAULT);
+                    $setor_id = $_POST['setor_id'] ? intval($_POST['setor_id']) : null;
+                    $superior_id = $_POST['superior_id'] ? intval($_POST['superior_id']) : null;
+                    $is_admin = isset($_POST['is_admin']) ? 1 : 0;
+                    $is_tecnico = isset($_POST['is_tecnico']) ? 1 : 0;
+                    $is_manutencao = isset($_POST['is_manutencao']) ? 1 : 0;
+                    $is_educacao = isset($_POST['is_educacao']) ? 1 : 0;
+                    $is_ceh = isset($_POST['is_ceh']) ? 1 : 0;
+                    
+                    // Upload e Processamento da foto
+                    $foto_nome = null;
+                    if (isset($_FILES['foto']) && $_FILES['foto']['error'] == 0) {
+                        $ext = pathinfo($_FILES['foto']['name'], PATHINFO_EXTENSION);
+                        $foto_nome = time() . '_' . $cpf . '.jpg'; // Convertemos sempre para JPG de alta qualidade
+                        
+                        if (processarFoto3x4($_FILES['foto']['tmp_name'], '../uploads/fotos/' . $foto_nome)) {
+                            // Sucesso
+                        } else {
+                            $foto_nome = null; // Falha no processamento
+                        }
+                    }
+                    
+                    $stmt = $conn->prepare("INSERT INTO usuarios (nome, cpf, email, foto, funcao, data_admissao, senha, setor_id, superior_id, is_admin, is_tecnico, is_manutencao, is_educacao, is_ceh) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->bind_param("sssssssiiiiiii", $nome, $cpf, $email, $foto_nome, $funcao, $data_admissao, $senha, $setor_id, $superior_id, $is_admin, $is_tecnico, $is_manutencao, $is_educacao, $is_ceh);
+                    
+                    if ($stmt->execute()) {
+                        $mensagem = 'Usuário criado com sucesso!';
+                        $tipo_mensagem = 'success';
+                        registrarLog($conn, 'Criou usuário: ' . $nome);
+                    } else {
+                        $mensagem = 'Erro ao criar usuário: ' . $conn->error;
+                        $tipo_mensagem = 'danger';
+                    }
+                    $stmt->close();
+                }
+                $check_cpf->close();
             }
-            $stmt->close();
+            $check_email->close();
         }
         elseif ($acao == 'editar') {
             $id = intval($_POST['id']);
