@@ -149,20 +149,24 @@ $status_options = [
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <?php while ($u = $usuarios->fetch_assoc()): 
                 $ja_enviado = ($u['ultimo_aviso_periodico'] == $ano_atual);
+                $ano_admissao = (int)date('Y', strtotime($u['data_admissao']));
+                $is_novato = ($ano_admissao === $ano_atual);
             ?>
-                <div class="bg-white p-6 rounded-3xl border border-border shadow-sm hover:border-primary/40 transition-all relative flex flex-col h-full">
+                <div class="<?php echo $is_novato ? 'bg-gray-100 opacity-75 grayscale-[0.5]' : 'bg-white'; ?> p-6 rounded-3xl border border-border shadow-sm hover:border-primary/40 transition-all relative flex flex-col h-full">
                     <div class="absolute right-4 top-4 flex flex-col items-center gap-2">
-                        <div class="w-12 h-12 bg-primary/5 text-primary rounded-2xl flex flex-col items-center justify-center border border-primary/10">
+                        <div class="w-12 h-12 <?php echo $is_novato ? 'bg-gray-200 text-gray-500 border-gray-300' : 'bg-primary/5 text-primary border-primary/10'; ?> rounded-2xl flex flex-col items-center justify-center border">
                             <span class="text-sm font-black"><?php echo date('d', strtotime($u['data_admissao'])); ?></span>
                             <span class="text-[7px] font-bold uppercase opacity-50"><?php echo substr($meses[(int)date('m', strtotime($u['data_admissao']))], 0, 3); ?></span>
                         </div>
 
                         <!-- Botão de Envio Direto -->
-                        <button onclick="enviarAvisoDireto(<?php echo $u['id']; ?>)" 
-                                id="btn-aviso-<?php echo $u['id']; ?>"
-                                class="w-8 h-8 shadow-sm border rounded-lg flex items-center justify-center transition-all <?php echo $ja_enviado ? 'bg-emerald-50 border-emerald-200 text-emerald-500' : 'bg-white border-border text-text-secondary hover:text-primary hover:border-primary'; ?>">
-                            <i data-lucide="send" class="w-4 h-4"></i>
-                        </button>
+                        <?php if (!$is_novato): ?>
+                            <button onclick="enviarAvisoDireto(<?php echo $u['id']; ?>)" 
+                                    id="btn-aviso-<?php echo $u['id']; ?>"
+                                    class="w-8 h-8 shadow-sm border rounded-lg flex items-center justify-center transition-all <?php echo $ja_enviado ? 'bg-emerald-50 border-emerald-200 text-emerald-500' : 'bg-white border-border text-text-secondary hover:text-primary hover:border-primary'; ?>">
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                            </button>
+                        <?php endif; ?>
                     </div>
 
                     <div class="flex items-center gap-3 mb-4">
@@ -187,14 +191,21 @@ $status_options = [
                     </div>
 
                     <div class="mt-auto pt-4">
-                        <div class="grid grid-cols-4 gap-1 p-1 bg-gray-50 rounded-2xl border border-border/50">
-                            <?php foreach($status_options as $val => $opt): ?>
-                                <button onclick="updateStatus(<?php echo $u['id']; ?>, '<?php echo $val; ?>')" 
-                                        class="py-1.5 rounded-xl text-[8px] font-black uppercase tracking-tighter transition-all <?php echo ($u['status_seguranca'] ?: 'pendente') === $val ? $opt['bg'] . ' ' . $opt['color'] . ' shadow-sm border border-current/10' : 'text-text-secondary/40 hover:text-text-secondary'; ?>">
-                                    <?php echo $opt['label']; ?>
-                                </button>
-                            <?php endforeach; ?>
-                        </div>
+                        <?php if ($is_novato): ?>
+                            <div class="bg-gray-200/50 border border-gray-300/50 rounded-2xl p-3 flex items-center gap-2">
+                                <i data-lucide="info" class="w-4 h-4 text-gray-500"></i>
+                                <span class="text-[9px] font-bold text-gray-600 uppercase tracking-tight">Realizar Periódico em <?php echo $ano_atual + 1; ?></span>
+                            </div>
+                        <?php else: ?>
+                            <div class="grid grid-cols-4 gap-1 p-1 bg-gray-50 rounded-2xl border border-border/50">
+                                <?php foreach($status_options as $val => $opt): ?>
+                                    <button onclick="updateStatus(<?php echo $u['id']; ?>, '<?php echo $val; ?>')" 
+                                            class="py-1.5 rounded-xl text-[8px] font-black uppercase tracking-tighter transition-all <?php echo ($u['status_seguranca'] ?: 'pendente') === $val ? $opt['bg'] . ' ' . $opt['color'] . ' shadow-sm border border-current/10' : 'text-text-secondary/40 hover:text-text-secondary'; ?>">
+                                        <?php echo $opt['label']; ?>
+                                    </button>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             <?php endwhile; ?>
