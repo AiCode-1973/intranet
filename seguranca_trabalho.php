@@ -29,6 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
 
     if ($_POST['acao'] === 'enviar_aviso') {
         $uid = (int)$_POST['usuario_id'];
+        $ano_atual = (int)date('Y');
         
         // Buscar dados do usuário
         $res = $conn->query("SELECT nome, email FROM usuarios WHERE id = $uid");
@@ -47,11 +48,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
             ";
             
             if (enviarEmail($u['email'], $assunto, $mensagem)) {
+                // Registrar o ano do envio
+                $conn->query("UPDATE usuarios SET ultimo_aviso_periodico = $ano_atual WHERE id = $uid");
+                
                 header('Content-Type: application/json');
                 echo json_encode(['success' => true]);
             } else {
                 header('Content-Type: application/json');
-                echo json_encode(['success' => false, 'error' => 'Falha ao enviar e-mail. Verifique a configuração SMTP.']);
+                echo json_encode(['success' => false, 'error' => 'Falha ao enviar e-mail.']);
             }
         } else {
             header('Content-Type: application/json');
@@ -63,6 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
 
 // Filtro por mês
 $mes_selecionado = isset($_GET['mes']) ? (int)$_GET['mes'] : (int)date('m');
+$ano_atual = (int)date('Y');
 
 // Buscar usuários admitidos no mês selecionado
 $query = "
@@ -143,13 +148,14 @@ $status_options = [
         <!-- Colaboradores Grid -->
         <h3 class="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-6 flex items-center gap-2">
             <i data-lucide="users" class="w-4 h-4"></i>
-            Funcionários com Períodico em <?php echo $meses[$mes_selecionado]; ?>
+            Funcionários com Periódico em <?php echo $meses[$mes_selecionado]; ?>
         </h3>
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <?php if ($usuarios->num_rows > 0): ?>
                 <?php while ($u = $usuarios->fetch_assoc()): 
                     $curr_status = $u['status_seguranca'] ?: 'pendente';
+                    $ja_enviado = ($u['ultimo_aviso_periodico'] == $ano_atual);
                 ?>
                 <div class="bg-white p-6 rounded-3xl border border-border shadow-sm hover:border-primary/40 hover:shadow-xl transition-all group relative flex flex-col h-full">
                         <div class="absolute right-4 top-4 flex flex-col items-center gap-2">
@@ -161,9 +167,9 @@ $status_options = [
 
                             <!-- Botão de Aviso -->
                             <button onclick="enviarAviso(<?php echo $u['id']; ?>)" 
-                                    title="Enviar aviso de documentação"
+                                    title="<?php echo $ja_enviado ? 'Aviso já enviado este ano' : 'Enviar aviso de documentação'; ?>"
                                     id="btn-aviso-<?php echo $u['id']; ?>"
-                                    class="w-8 h-8 bg-white shadow-sm border border-border rounded-lg flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary transition-all group/btn">
+                                    class="w-8 h-8 shadow-sm border rounded-lg flex items-center justify-center transition-all group/btn <?php echo $ja_enviado ? 'bg-emerald-50 border-emerald-200 text-emerald-500' : 'bg-white border-border text-text-secondary hover:text-primary hover:border-primary'; ?>">
                                 <i data-lucide="mail-warning" class="w-4 h-4 group-hover/btn:scale-110 transition-transform"></i>
                             </button>
                         </div>
@@ -241,9 +247,9 @@ $status_options = [
                 const data = await response.json();
                 
                 if (data.success) {
-                    btn.classList.remove('text-text-secondary', 'hover:text-primary', 'hover:border-primary');
+                    btn.classList.remove('bg-white', 'border-border', 'text-text-secondary', 'hover:text-primary', 'hover:border-primary');
                     btn.classList.add('text-emerald-500', 'border-emerald-200', 'bg-emerald-50');
-                    btn.title = 'Aviso enviado';
+                    btn.title = 'Aviso já enviado este ano';
                     alert('E-mail enviado com sucesso!');
                 } else {
                     alert('Erro: ' + data.error);
