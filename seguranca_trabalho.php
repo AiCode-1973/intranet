@@ -162,8 +162,9 @@ $status_options = [
                             <!-- Botão de Aviso -->
                             <button onclick="enviarAviso(<?php echo $u['id']; ?>)" 
                                     title="Enviar aviso de documentação"
-                                    class="w-10 h-10 bg-white shadow-sm border border-border rounded-xl flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary transition-all group/btn">
-                                <i data-lucide="mail-warning" class="w-5 h-5 group-hover/btn:scale-110 transition-transform"></i>
+                                    id="btn-aviso-<?php echo $u['id']; ?>"
+                                    class="w-8 h-8 bg-white shadow-sm border border-border rounded-lg flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary transition-all group/btn">
+                                <i data-lucide="mail-warning" class="w-4 h-4 group-hover/btn:scale-110 transition-transform"></i>
                             </button>
                         </div>
 
@@ -240,6 +241,9 @@ $status_options = [
                 const data = await response.json();
                 
                 if (data.success) {
+                    btn.classList.remove('text-text-secondary', 'hover:text-primary', 'hover:border-primary');
+                    btn.classList.add('text-emerald-500', 'border-emerald-200', 'bg-emerald-50');
+                    btn.title = 'Aviso enviado';
                     alert('E-mail enviado com sucesso!');
                 } else {
                     alert('Erro: ' + data.error);
