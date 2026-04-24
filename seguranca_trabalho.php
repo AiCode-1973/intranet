@@ -92,7 +92,8 @@ $meses = [
 $status_options = [
     'pendente' => ['label' => 'Pendente', 'color' => 'text-amber-500', 'bg' => 'bg-amber-50'],
     'realizado' => ['label' => 'Realizado', 'color' => 'text-emerald-500', 'bg' => 'bg-emerald-50'],
-    'atrasado' => ['label' => 'Atrasado', 'color' => 'text-red-500', 'bg' => 'bg-red-50']
+    'atrasado' => ['label' => 'Atrasado', 'color' => 'text-red-500', 'bg' => 'bg-red-50'],
+    'vencido' => ['label' => 'Vencido', 'color' => 'text-rose-700', 'bg' => 'bg-rose-50']
 ];
 ?>
 <!DOCTYPE html>
@@ -200,7 +201,7 @@ $status_options = [
                     <!-- Status Selector -->
                     <div class="mt-auto">
                         <label class="block text-[8px] font-black text-text-secondary uppercase tracking-widest mb-2 opacity-50 ml-1">Status do Periódico</label>
-                        <div class="grid grid-cols-3 gap-1.5 p-1 bg-gray-50 rounded-2xl border border-border/50">
+                        <div class="grid grid-cols-4 gap-1 p-1 bg-gray-50 rounded-2xl border border-border/50">
                             <?php foreach($status_options as $val => $opt): 
                                 $is_active = ($curr_status === $val);
                             ?>
