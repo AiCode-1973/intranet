@@ -10,20 +10,55 @@ if (!temPermissao($conn, $_SESSION['setor_id'], 'seguranca_trabalho')) {
 }
 
 // Atualizar status via AJAX/POST
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao']) && $_POST['acao'] === 'update_status') {
-    $uid = (int)$_POST['usuario_id'];
-    $new_status = sanitize($_POST['status']);
-    
-    $stmt = $conn->prepare("UPDATE usuarios SET status_seguranca = ? WHERE id = ?");
-    $stmt->bind_param("si", $new_status, $uid);
-    if ($stmt->execute()) {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => true]);
-    } else {
-        header('Content-Type: application/json');
-        echo json_encode(['success' => false, 'error' => $conn->error]);
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
+    if ($_POST['acao'] === 'update_status') {
+        $uid = (int)$_POST['usuario_id'];
+        $new_status = sanitize($_POST['status']);
+        
+        $stmt = $conn->prepare("UPDATE usuarios SET status_seguranca = ? WHERE id = ?");
+        $stmt->bind_param("si", $new_status, $uid);
+        if ($stmt->execute()) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true]);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => $conn->error]);
+        }
+        exit;
     }
-    exit;
+
+    if ($_POST['acao'] === 'enviar_aviso') {
+        $uid = (int)$_POST['usuario_id'];
+        
+        // Buscar dados do usuário
+        $res = $conn->query("SELECT nome, email FROM usuarios WHERE id = $uid");
+        $u = $res->fetch_assoc();
+        
+        if ($u && !empty($u['email'])) {
+            $assunto = "Aviso: Documentação para Exame Periódico";
+            $mensagem = "
+                <div style='font-family: sans-serif; color: #333;'>
+                    <h2 style='color: #0056b3;'>Olá, {$u['nome']}!</h2>
+                    <p>Informamos que está disponível a documentação para a realização do seu <strong>Exame Periódico</strong>.</p>
+                    <p>Por favor, procure o <strong>responsável pela Segurança do Trabalho</strong> no RH para retirar os documentos necessários.</p>
+                    <br>
+                    <p style='font-size: 12px; color: #666;'>Este é um e-mail automático da Intranet APAS.</p>
+                </div>
+            ";
+            
+            if (enviarEmail($u['email'], $assunto, $mensagem)) {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => true]);
+            } else {
+                header('Content-Type: application/json');
+                echo json_encode(['success' => false, 'error' => 'Falha ao enviar e-mail. Verifique a configuração SMTP.']);
+            }
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Usuário não possui e-mail cadastrado.']);
+        }
+        exit;
+    }
 }
 
 // Filtro por mês
@@ -117,11 +152,20 @@ $status_options = [
                     $curr_status = $u['status_seguranca'] ?: 'pendente';
                 ?>
                 <div class="bg-white p-6 rounded-3xl border border-border shadow-sm hover:border-primary/40 hover:shadow-xl transition-all group relative flex flex-col h-full">
-                    <!-- Badge de Dia -->
-                    <div class="absolute right-4 top-4 w-12 h-12 bg-primary/5 text-primary rounded-2xl flex flex-col items-center justify-center border border-primary/10">
-                        <span class="text-sm font-black leading-none"><?php echo date('d', strtotime($u['data_admissao'])); ?></span>
-                        <span class="text-[7px] font-bold uppercase opacity-50"><?php echo substr($meses[(int)date('m', strtotime($u['data_admissao']))], 0, 3); ?></span>
-                    </div>
+                        <div class="absolute right-4 top-4 flex flex-col items-center gap-2">
+                            <!-- Badge de Dia -->
+                            <div class="w-12 h-12 bg-primary/5 text-primary rounded-2xl flex flex-col items-center justify-center border border-primary/10">
+                                <span class="text-sm font-black leading-none"><?php echo date('d', strtotime($u['data_admissao'])); ?></span>
+                                <span class="text-[7px] font-bold uppercase opacity-50"><?php echo substr($meses[(int)date('m', strtotime($u['data_admissao']))], 0, 3); ?></span>
+                            </div>
+
+                            <!-- Botão de Aviso -->
+                            <button onclick="enviarAviso(<?php echo $u['id']; ?>)" 
+                                    title="Enviar aviso de documentação"
+                                    class="w-10 h-10 bg-white shadow-sm border border-border rounded-xl flex items-center justify-center text-text-secondary hover:text-primary hover:border-primary transition-all group/btn">
+                                <i data-lucide="mail-warning" class="w-5 h-5 group-hover/btn:scale-110 transition-transform"></i>
+                            </button>
+                        </div>
 
                     <div class="flex items-center gap-3 mb-4">
                         <div class="w-12 h-12 rounded-2xl bg-gray-50 border-2 border-white shadow-sm flex items-center justify-center text-primary font-black text-lg overflow-hidden shrink-0">
@@ -175,6 +219,41 @@ $status_options = [
     </div>
 
     <script>
+        async function enviarAviso(usuarioId) {
+            if (!confirm('Deseja enviar um e-mail de aviso para este colaborador?')) return;
+
+            const btn = event.currentTarget;
+            const originalContent = btn.innerHTML;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-5 h-5 animate-spin"></i>';
+            lucide.createIcons();
+            btn.disabled = true;
+
+            const formData = new FormData();
+            formData.append('acao', 'enviar_aviso');
+            formData.append('usuario_id', usuarioId);
+
+            try {
+                const response = await fetch('seguranca_trabalho.php', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    alert('E-mail enviado com sucesso!');
+                } else {
+                    alert('Erro: ' + data.error);
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Erro na requisição.');
+            } finally {
+                btn.innerHTML = originalContent;
+                btn.disabled = false;
+                lucide.createIcons();
+            }
+        }
+
         async function updateStatus(usuarioId, newStatus) {
             const formData = new FormData();
             formData.append('acao', 'update_status');
