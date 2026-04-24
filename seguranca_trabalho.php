@@ -185,13 +185,13 @@ $status_options = [
                         </div>
                         <div class="min-w-0 pr-10">
                             <h4 class="text-xs font-bold text-text leading-tight line-clamp-2 mt-0.5 group-hover:text-primary transition-colors"><?php echo $u['nome']; ?></h4>
-                            <div class="flex flex-col gap-0.5 mt-1">
-                                <span class="text-[8px] font-bold text-text-secondary/60 flex items-center gap-1 uppercase tracking-tighter">
-                                    <i data-lucide="briefcase" class="w-2.5 h-2.5"></i>
+                            <div class="flex flex-col gap-1 mt-1.5">
+                                <span class="text-[10px] font-bold text-text-secondary/70 flex items-center gap-1.5 uppercase tracking-tighter">
+                                    <i data-lucide="briefcase" class="w-3.5 h-3.5 text-primary/60"></i>
                                     <?php echo $u['setor_nome'] ?: 'Setor não informado'; ?>
                                 </span>
-                                <span class="text-[8px] font-bold text-primary/40 flex items-center gap-1 uppercase tracking-tighter">
-                                    <i data-lucide="calendar" class="w-2.5 h-2.5"></i>
+                                <span class="text-[10px] font-bold text-primary/60 flex items-center gap-1.5 uppercase tracking-tighter">
+                                    <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
                                     Adm: <?php echo date('d/m/Y', strtotime($u['data_admissao'])); ?>
                                 </span>
                             </div>
