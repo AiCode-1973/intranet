@@ -401,88 +401,98 @@ $prioridade_labels = [
         </div>
     </div>
 
-    <!-- Modal Detalhes do Chamado -->
+    <!-- Modal Detalhes do Chamado (Modo Paisagem) -->
     <div id="modalDetalhes" class="modal">
-        <div class="bg-white w-full max-w-md mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150">
-            <div id="modal_header_bg" class="px-5 py-4 text-white flex justify-between items-center bg-primary">
-                <div>
-                    <h2 class="text-base font-bold flex items-center gap-2">
-                        <span id="detalhe_id" class="bg-white/10 px-1.5 py-0.5 rounded text-[10px] font-mono">#000</span>
-                        Detalhes do Chamado
-                    </h2>
-                    <p id="detalhe_status_label" class="text-white/70 text-[10px] uppercase font-bold tracking-widest mt-0.5">Status: ---</p>
+        <div class="bg-white w-full max-w-4xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150 flex flex-col md:flex-row">
+            <!-- Coluna Esquerda: Informações e Descrição -->
+            <div class="w-full md:w-1/2 flex flex-col border-r border-border">
+                <div id="modal_header_bg" class="px-5 py-4 text-white flex justify-between items-center bg-primary">
+                    <div>
+                        <h2 class="text-base font-bold flex items-center gap-2">
+                            <span id="detalhe_id" class="bg-white/10 px-1.5 py-0.5 rounded text-[10px] font-mono">#000</span>
+                            Detalhes do Chamado
+                        </h2>
+                        <p id="detalhe_status_label" class="text-white/70 text-[10px] uppercase font-bold tracking-widest mt-0.5">Status: ---</p>
+                    </div>
+                    <button class="md:hidden p-1.5 hover:bg-white/10 rounded-lg transition-colors" onclick="fecharModalDetalhes()">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
                 </div>
-                <button class="p-1.5 hover:bg-white/10 rounded-lg transition-colors" onclick="fecharModalDetalhes()">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            
-            <div class="p-5 space-y-4">
-                <div>
-                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Assunto</label>
-                    <p id="detalhe_titulo" class="text-sm font-bold text-text">---</p>
+                
+                <div class="p-5 flex-grow space-y-4 overflow-y-auto pr-2 custom-scrollbar" style="max-height: 70vh;">
+                    <div>
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Assunto</label>
+                        <p id="detalhe_titulo" class="text-sm font-bold text-text">---</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Descrição do Problema</label>
+                        <div id="detalhe_descricao" class="text-xs text-text-secondary leading-relaxed bg-background p-3 rounded-lg border border-border/50 italic">---</div>
+                    </div>
+
+                    <div id="container_anexos" class="hidden">
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Arquivos Anexados</label>
+                        <div id="detalhe_anexos" class="flex flex-wrap gap-2"></div>
+                    </div>
+
+                    <div id="container_resolucao" class="hidden animate-in fade-in slide-in-from-bottom-2">
+                        <label class="block text-[10px] font-black text-emerald-600 mb-1 uppercase tracking-widest flex items-center gap-1">
+                            <i data-lucide="check-circle-2" class="w-3 h-3"></i>
+                            Resolução Técnica
+                        </label>
+                        <div id="detalhe_resolucao" class="text-xs text-emerald-700 leading-relaxed bg-emerald-50 p-3 rounded-lg border border-emerald-100 font-bold whitespace-pre-wrap">---</div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-border">
+                        <div>
+                            <label class="block text-[10px] font-black text-text-secondary mb-0.5 uppercase tracking-widest opacity-50">Técnico Responsável</label>
+                            <p id="detalhe_tecnico" class="text-[11px] font-bold text-text">---</p>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-text-secondary mb-0.5 uppercase tracking-widest opacity-50">Data de Abertura</label>
+                            <p id="detalhe_data" class="text-[11px] font-bold text-text text-right">---</p>
+                        </div>
+                    </div>
                 </div>
 
-                <!-- Histórico de Interações (Comentários) -->
-                <div class="pt-4 border-t border-border">
-                    <label class="block text-[10px] font-black text-text-secondary mb-2 uppercase tracking-widest opacity-50 flex items-center gap-1.5">
-                        <i data-lucide="message-square" class="w-3 h-3"></i>
-                        Interações Técnicas
-                    </label>
-                    
-                    <div id="detalhe_comentarios" class="space-y-3 mb-4 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                <div class="p-4 bg-gray-50 flex justify-between items-center border-t border-border">
+                    <div id="btn_satisfacao_container" class="hidden">
+                        <button onclick="exibirPesquisaSatisfacao()" class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+                            <i data-lucide="star" class="w-3.5 h-3.5"></i>
+                            Avaliar Atendimento
+                        </button>
+                    </div>
+                    <button onclick="fecharModalDetalhes()" class="px-6 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all shadow-sm uppercase tracking-widest">Fechar</button>
+                </div>
+            </div>
+
+            <!-- Coluna Direita: Interações (Chat) -->
+            <div class="w-full md:w-1/2 flex flex-col bg-gray-50/50">
+                <div class="px-5 py-4 border-b border-border flex justify-between items-center bg-white">
+                    <h3 class="text-xs font-black text-text-secondary uppercase tracking-widest flex items-center gap-2">
+                        <i data-lucide="message-square" class="w-4 h-4 text-primary"></i>
+                        Histórico de Interações
+                    </h3>
+                    <button class="hidden md:block p-1.5 hover:bg-gray-100 rounded-lg transition-colors" onclick="fecharModalDetalhes()">
+                        <i data-lucide="x" class="w-5 h-5"></i>
+                    </button>
+                </div>
+
+                <div class="p-5 flex-grow flex flex-col justify-between" style="min-height: 400px;">
+                    <div id="detalhe_comentarios" class="space-y-3 overflow-y-auto pr-2 custom-scrollbar flex-grow mb-4" style="max-height: 50vh;">
                         <!-- JS Populado -->
                     </div>
 
-                    <form method="POST" action="" id="form_comentario_usuario" class="flex gap-2 group border-t border-border/10 pt-3">
+                    <form method="POST" action="" id="form_comentario_usuario" class="flex gap-2 p-3 bg-white border border-border rounded-xl shadow-sm">
                         <input type="hidden" name="acao" value="adicionar_comentario">
                         <input type="hidden" name="chamado_id" id="comentario_chamado_id">
-                        <input type="text" name="comentario" required placeholder="Responder técnico ou adicionar nota..." 
-                               class="flex-grow p-2 bg-background border border-border rounded-lg text-[10px] font-bold focus:outline-none focus:border-primary transition-all">
-                        <button type="submit" class="bg-primary text-white px-3 rounded-lg hover:bg-primary-hover transition-all shadow-md active:scale-95">
-                            <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                        <input type="text" name="comentario" required placeholder="Escreva uma mensagem..." 
+                               class="flex-grow p-2 bg-transparent text-[10px] font-bold focus:outline-none transition-all">
+                        <button type="submit" class="bg-primary text-white p-2 rounded-lg hover:bg-primary-hover transition-all shadow-md active:scale-95 flex items-center justify-center">
+                            <i data-lucide="send" class="w-4 h-4"></i>
                         </button>
                     </form>
                 </div>
-
-                <div>
-                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Descrição do Problema</label>
-                    <div id="detalhe_descricao" class="text-xs text-text-secondary leading-relaxed bg-background p-3 rounded-lg border border-border/50 max-h-32 overflow-y-auto italic">---</div>
-                </div>
-
-                <div id="container_anexos" class="hidden">
-                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Arquivos Anexados</label>
-                    <div id="detalhe_anexos" class="flex flex-wrap gap-2"></div>
-                </div>
-
-                <div id="container_resolucao" class="hidden animate-in fade-in slide-in-from-bottom-2">
-                    <label class="block text-[10px] font-black text-emerald-600 mb-1 uppercase tracking-widest flex items-center gap-1">
-                        <i data-lucide="check-circle-2" class="w-3 h-3"></i>
-                        Resolução Técnica
-                    </label>
-                    <div id="detalhe_resolucao" class="text-xs text-emerald-700 leading-relaxed bg-emerald-50 p-3 rounded-lg border border-emerald-100 font-bold whitespace-pre-wrap">---</div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-4 pt-2 border-t border-border">
-                    <div>
-                        <label class="block text-[10px] font-black text-text-secondary mb-0.5 uppercase tracking-widest opacity-50">Técnico Responsável</label>
-                        <p id="detalhe_tecnico" class="text-[11px] font-bold text-text">---</p>
-                    </div>
-                    <div>
-                        <label class="block text-[10px] font-black text-text-secondary mb-0.5 uppercase tracking-widest opacity-50">Data de Abertura</label>
-                        <p id="detalhe_data" class="text-[11px] font-bold text-text text-right">---</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="p-4 bg-gray-50 flex justify-between items-center">
-                <div id="btn_satisfacao_container" class="hidden">
-                    <button onclick="exibirPesquisaSatisfacao()" class="flex items-center gap-1.5 px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
-                        <i data-lucide="star" class="w-3.5 h-3.5"></i>
-                        Avaliar Atendimento
-                    </button>
-                </div>
-                <button onclick="fecharModalDetalhes()" class="px-6 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all shadow-sm uppercase tracking-widest">Fechar</button>
             </div>
         </div>
     </div>
