@@ -125,8 +125,8 @@ while($row = $res_chamados->fetch_assoc()) {
     $chamados_array[] = $row;
 }
 
-// Buscar lista de técnicos especialistas do setor CEH (Setor 15: Central de Equipamentos)
-$tecnicos = $conn->query("SELECT id, nome FROM usuarios WHERE (setor_id = 15 OR is_admin = 1) AND ativo = 1 ORDER BY nome ASC");
+// Buscar lista de técnicos especialistas do setor CEH ou marcados na ficha de usuário (is_ceh)
+$tecnicos = $conn->query("SELECT id, nome FROM usuarios WHERE (setor_id = 15 OR is_ceh = 1 OR is_admin = 1) AND ativo = 1 ORDER BY nome ASC");
 
 $status_styles = [
     'Aberto' => 'bg-blue-50 text-blue-600 border-blue-100',
