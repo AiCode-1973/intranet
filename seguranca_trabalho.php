@@ -127,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
             $status = strtoupper($p['status_seguranca'] ?: 'pendente');
             $corpo .= "<tr><td>{$p['nome']}</td><td>{$p['setor_nome']}</td><td>" . date('d/m/Y', strtotime($p['data_admissao'])) . "</td><td>$status</td></tr>";
         }
-        $corpo .= "</table><br><p>Por favor, providencie a regularização junto ao SESMT.</p>";";
+        $corpo .= "</table><br><p>Por favor, providencie a regularização junto ao SESMT.</p>";
 
         if (enviarEmail($email_destino, $assunto, $corpo)) {
             header('Content-Type: application/json');
