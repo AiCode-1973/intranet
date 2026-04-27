@@ -115,7 +115,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
             exit;
         }
 
-        $mes_nome = $meses[$mes];
+        $meses_arr = [1 => 'Janeiro', 2 => 'Fevereiro', 3 => 'Março', 4 => 'Abril', 5 => 'Maio', 6 => 'Junho', 7 => 'Julho', 8 => 'Agosto', 9 => 'Setembro', 10 => 'Outubro', 11 => 'Novembro', 12 => 'Dezembro'];
+        $mes_nome = $meses_arr[$mes];
         $assunto = "Relatório de Pendências: Exames Periódicos - $mes_nome";
         
         $corpo = "<h2>Relatório de Pendências: Exames Periódicos - $mes_nome</h2>";
