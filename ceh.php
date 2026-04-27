@@ -8,7 +8,7 @@ $usuario_id = $_SESSION['usuario_id'];
 $mensagem = '';
 $tipo_mensagem = '';
 
-// Processar abertura de chamado CEH
+// Processar abertura de chamado CE
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'abrir_chamado_ceh') {
     $titulo = sanitize($_POST['titulo']);
     $descricao = $_POST['descricao'];
