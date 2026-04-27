@@ -12,60 +12,21 @@ $tipo_mensagem = '';
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'abrir_chamado_ceh') {
     $titulo = sanitize($_POST['titulo']);
     $descricao = $_POST['descricao'];
-    $prioridade = isset($_POST['prioridade']) ? sanitize($_POST['prioridade']) : 'Média';
+    $prioridade = isset($_POST['prioridade']) ? sanitize($_POST['prioridade']) : 'MÃ©dia';
     $categoria = sanitize($_POST['categoria']);
 
     $stmt = $conn->prepare("INSERT INTO ceh_chamados (titulo, descricao, prioridade, categoria, usuario_id) VALUES (?, ?, ?, ?, ?)");
     $stmt->bind_param("ssssi", $titulo, $descricao, $prioridade, $categoria, $usuario_id);
 
     if ($stmt->execute()) {
-        $chamado_id = $stmt->insert_id;
+        $mensagem = "Chamado CEH aberto com sucesso! A equipe tÃ©cnica foi notificada.";
+        $tipo_mensagem = "success";
         registrarLog($conn, "Abriu chamado CEH: " . $titulo);
-        header("Location: ceh.php?msg=aberto");
-        exit;
     } else {
         $mensagem = "Erro ao abrir chamado: " . $conn->error;
         $tipo_mensagem = "danger";
     }
     $stmt->close();
-}
-
-// Processar Novo Comentário do Solicitante
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'adicionar_comentario') {
-    $chamado_id = intval($_POST['chamado_id']);
-    $usuario_id = $_SESSION['usuario_id'];
-    $comentario = sanitize($_POST['comentario']);
-
-    // Segurança: Garantir que o chamado pertence ao usuário ou ele é admin
-    $check = $conn->query("SELECT id FROM ceh_chamados WHERE id = $chamado_id AND (usuario_id = $usuario_id OR 1=" . (isAdmin() ? "1" : "0") . ")");
-    
-    if ($check->num_rows > 0 && !empty($comentario)) {
-        $stmt = $conn->prepare("INSERT INTO ceh_comentarios (chamado_id, usuario_id, comentario, lido_pelo_tecnico, lido_pelo_usuario) VALUES (?, ?, ?, 0, 1)");
-        $stmt->bind_param("iis", $chamado_id, $usuario_id, $comentario);
-        if ($stmt->execute()) {
-            header("Location: ceh.php?msg=comentario_ok&id=$chamado_id");
-            exit;
-        }
-        $stmt->close();
-    }
-}
-
-// Processar Marcação de Leitura (AJAX)
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'marcar_lido') {
-    $chamado_id = intval($_POST['chamado_id']);
-    $conn->query("UPDATE ceh_comentarios SET lido_pelo_usuario = 1 WHERE chamado_id = $chamado_id");
-    exit;
-}
-
-// Mensagens de feedback
-if (isset($_GET['msg'])) {
-    if ($_GET['msg'] == 'aberto') {
-        $mensagem = "Chamado CEH aberto com sucesso! A equipe técnica foi notificada.";
-        $tipo_mensagem = "success";
-    } elseif ($_GET['msg'] == 'comentario_ok') {
-        $mensagem = "Resposta enviada com sucesso!";
-        $tipo_mensagem = "success";
-    }
 }
 
 // Filtros
@@ -91,25 +52,9 @@ $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico
         ORDER BY c.data_abertura DESC";
 $res = $conn->query($sql);
 $chamados = [];
-$stats = ['Aberto' => 0, 'Em Atendimento' => 0, 'Aguardando Peça' => 0, 'Resolvido' => 0, 'Cancelado' => 0];
+$stats = ['Aberto' => 0, 'Em Atendimento' => 0, 'Aguardando PeÃ§a' => 0, 'Resolvido' => 0, 'Cancelado' => 0];
 
 while($row = $res->fetch_assoc()) {
-    $c_id = $row['id'];
-    
-    // Comentários não lidos
-    $unread_res = $conn->query("SELECT COUNT(*) FROM ceh_comentarios WHERE chamado_id = $c_id AND lido_pelo_usuario = 0");
-    $row['tem_novidade'] = ($unread_res->fetch_row()[0] > 0);
-
-    // Buscar comentários
-    $comentarios_res = $conn->query("SELECT cc.*, u.nome as autor FROM ceh_comentarios cc 
-                                     JOIN usuarios u ON cc.usuario_id = u.id 
-                                     WHERE cc.chamado_id = $c_id 
-                                     ORDER BY cc.data_comentario ASC");
-    $row['comentarios'] = [];
-    while($coment = $comentarios_res->fetch_assoc()) {
-        $row['comentarios'][] = $coment;
-    }
-    
     $chamados[] = $row;
     if (isset($stats[$row['status']])) $stats[$row['status']]++;
 }
@@ -117,14 +62,14 @@ while($row = $res->fetch_assoc()) {
 $status_styles = [
     'Aberto' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-600', 'dot' => 'bg-blue-500', 'icon' => 'clock'],
     'Em Atendimento' => ['bg' => 'bg-amber-100', 'text' => 'text-amber-600', 'dot' => 'bg-amber-500', 'icon' => 'play-circle'],
-    'Aguardando Peça' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-600', 'dot' => 'bg-purple-500', 'icon' => 'component'],
+    'Aguardando PeÃ§a' => ['bg' => 'bg-purple-100', 'text' => 'text-purple-600', 'dot' => 'bg-purple-500', 'icon' => 'component'],
     'Resolvido' => ['bg' => 'bg-green-100', 'text' => 'text-green-600', 'dot' => 'bg-green-500', 'icon' => 'check-circle'],
     'Cancelado' => ['bg' => 'bg-red-100', 'text' => 'text-red-600', 'dot' => 'bg-red-500', 'icon' => 'x-circle']
 ];
 
 $prioridade_labels = [
     'Baixa' => ['text' => 'text-gray-400', 'icon' => 'arrow-down'],
-    'Média' => ['text' => 'text-blue-500', 'icon' => 'minus'],
+    'MÃ©dia' => ['text' => 'text-blue-500', 'icon' => 'minus'],
     'Alta' => ['text' => 'text-orange-500', 'icon' => 'arrow-up'],
     'Urgente' => ['text' => 'text-red-600 font-bold', 'icon' => 'alert-circle']
 ];
@@ -152,7 +97,7 @@ $prioridade_labels = [
                     <i data-lucide="stethoscope" class="w-6 h-6"></i>
                     Central de Equipamentos (CEH)
                 </h1>
-                <p class="text-text-secondary text-xs mt-1">Chamados técnicos para equipamentos hospitalares</p>
+                <p class="text-text-secondary text-xs mt-1">Chamados tÃ©cnicos para equipamentos hospitalares</p>
             </div>
 
             <div class="flex items-center gap-2">
@@ -187,7 +132,7 @@ $prioridade_labels = [
                     <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Todos</p>
                 </div>
             </a>
-            <?php foreach(['Aberto', 'Em Atendimento', 'Aguardando Peça', 'Resolvido'] as $st): 
+            <?php foreach(['Aberto', 'Em Atendimento', 'Aguardando PeÃ§a', 'Resolvido'] as $st): 
                 $active = ($filtro_status == $st);
                 $style = $status_styles[$st];
                 $icon = $style['icon'];
@@ -213,7 +158,7 @@ $prioridade_labels = [
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">ID / Equipamento</th>
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Prioridade</th>
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Status</th>
-                            <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Técnico CEH</th>
+                            <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">TÃ©cnico CEH</th>
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Data</th>
                         </tr>
                     </thead>
@@ -226,19 +171,9 @@ $prioridade_labels = [
                             <tr onclick='verDetalhes(<?php echo json_encode($chamado); ?>)' class="hover:bg-background/20 transition-colors group cursor-pointer">
                                 <td class="p-3">
                                     <div class="flex items-center gap-3">
-                                        <div class="relative">
-                                            <span class="text-[9px] font-mono font-bold text-text-secondary opacity-50">#<?php echo str_pad($chamado['id'], 3, '0', STR_PAD_LEFT); ?></span>
-                                            <?php if ($chamado['tem_novidade']): ?>
-                                                <span class="absolute -top-1 -right-1 w-2 h-2 bg-rose-500 rounded-full ring-2 ring-white animate-pulse"></span>
-                                            <?php endif; ?>
-                                        </div>
+                                        <span class="text-[9px] font-mono font-bold text-text-secondary opacity-50">#<?php echo str_pad($chamado['id'], 3, '0', STR_PAD_LEFT); ?></span>
                                         <div class="flex flex-col">
-                                            <div class="flex items-center gap-1.5">
-                                                <span class="font-bold text-text group-hover:text-primary transition-colors"><?php echo $chamado['titulo']; ?></span>
-                                                <?php if ($chamado['tem_novidade']): ?>
-                                                    <span class="bg-rose-50 text-rose-600 text-[8px] px-1 rounded font-black uppercase tracking-tighter border border-rose-100 italic">Novo!</span>
-                                                <?php endif; ?>
-                                            </div>
+                                            <span class="font-bold text-text group-hover:text-primary transition-colors"><?php echo $chamado['titulo']; ?></span>
                                             <span class="text-[9px] text-text-secondary uppercase font-bold tracking-tighter"><?php echo $chamado['categoria']; ?></span>
                                         </div>
                                     </div>
@@ -290,7 +225,7 @@ $prioridade_labels = [
         <div class="bg-white w-full max-w-md mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150">
             <div class="bg-primary px-5 py-4 text-white flex justify-between items-center">
                 <div>
-                    <h2 class="text-base font-bold">Solicitação CEH</h2>
+                    <h2 class="text-base font-bold">SolicitaÃ§Ã£o CEH</h2>
                     <p class="text-white/70 text-[10px] uppercase font-bold tracking-widest">Equipamentos Hospitalares</p>
                 </div>
                 <button class="p-1.5 hover:bg-white/10 rounded-lg transition-colors" onclick="fecharModal()">
@@ -303,26 +238,26 @@ $prioridade_labels = [
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                     <div class="md:col-span-2">
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Identificação do Equipamento</label>
-                        <input type="text" name="titulo" required placeholder="Ex: Monitor Multiparamétrico - Sala 04" 
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">IdentificaÃ§Ã£o do Equipamento</label>
+                        <input type="text" name="titulo" required placeholder="Ex: Monitor MultiparamÃ©trico - Sala 04" 
                                class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Tipo de Serviço</label>
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Tipo de ServiÃ§o</label>
                         <select name="categoria" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all cursor-pointer">
-                            <option value="Manutenção Corretiva">Manutenção Corretiva</option>
-                            <option value="Manutenção Preventiva">Manutenção Preventiva</option>
-                            <option value="Calibração">Calibração</option>
+                            <option value="ManutenÃ§Ã£o Corretiva">ManutenÃ§Ã£o Corretiva</option>
+                            <option value="ManutenÃ§Ã£o Preventiva">ManutenÃ§Ã£o Preventiva</option>
+                            <option value="CalibraÃ§Ã£o">CalibraÃ§Ã£o</option>
                             <option value="Treinamento de Uso">Treinamento de Uso</option>
-                            <option value="Dúvida Técnica">Dúvida Técnica</option>
+                            <option value="DÃºvida TÃ©cnica">DÃºvida TÃ©cnica</option>
                             <option value="Equipamento Geral" selected>Equipamento Geral</option>
                         </select>
                     </div>
 
                     <div class="md:col-span-2">
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Descrição do Defeito / Solicitação</label>
-                        <textarea name="descricao" required rows="4" placeholder="Detalhes do que está acontecendo com o equipamento..."
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">DescriÃ§Ã£o do Defeito / SolicitaÃ§Ã£o</label>
+                        <textarea name="descricao" required rows="4" placeholder="Detalhes do que estÃ¡ acontecendo com o equipamento..."
                                   class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all"></textarea>
                     </div>
                 </div>
@@ -335,163 +270,91 @@ $prioridade_labels = [
         </div>
     </div>
 
-    <!-- Modal Detalhes do Chamado CEH (Modo Paisagem) -->
+    <!-- Modal Detalhes do Chamado CEH -->
     <div id="modalDetalhes" class="modal">
-        <div class="bg-white w-full max-w-4xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150 flex flex-col md:flex-row">
-            <!-- Coluna Esquerda: Informações -->
-            <div class="w-full md:w-1/2 flex flex-col border-r border-border">
-                <div id="modal_header_bg" class="px-5 py-4 text-white flex justify-between items-center bg-primary">
-                    <div>
-                        <h2 class="text-base font-bold flex items-center gap-2">
-                            <span id="detalhe_id" class="bg-white/10 px-1.5 py-0.5 rounded text-[10px] font-mono">#000</span>
-                            Detalhes CEH
-                        </h2>
-                        <p id="detalhe_status_label" class="text-white/70 text-[10px] uppercase font-bold tracking-widest mt-0.5">Status: ---</p>
-                    </div>
-                    <button class="md:hidden p-1.5 hover:bg-white/10 rounded-lg transition-colors" onclick="fecharModalDetalhes()">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
+        <div class="bg-white w-full max-w-md mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150">
+            <div id="modal_header_bg" class="px-5 py-4 text-white flex justify-between items-center bg-primary">
+                <div>
+                    <h2 class="text-base font-bold flex items-center gap-2">
+                        <span id="detalhe_id" class="bg-white/10 px-1.5 py-0.5 rounded text-[10px] font-mono">#000</span>
+                        Detalhes CEH
+                    </h2>
+                    <p id="detalhe_status_label" class="text-white/70 text-[10px] uppercase font-bold tracking-widest mt-0.5">Status: ---</p>
                 </div>
-                
-                <div class="p-5 flex-grow space-y-4 overflow-y-auto pr-2 custom-scrollbar" style="max-height: 70vh;">
-                    <div>
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Equipamento / Problema</label>
-                        <p id="detalhe_titulo" class="text-sm font-bold text-text">---</p>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Descrição Técnica</label>
-                        <div id="detalhe_descricao" class="text-xs text-text-secondary leading-relaxed bg-background p-3 rounded-lg border border-border/50 italic">---</div>
-                    </div>
-
-                    <div id="container_resolucao" class="hidden animate-in fade-in slide-in-from-bottom-2">
-                        <label class="block text-[10px] font-black text-emerald-600 mb-1 uppercase tracking-widest flex items-center gap-1">
-                            <i data-lucide="check-circle-2" class="w-3 h-3"></i>
-                            Resolução Técnica
-                        </label>
-                        <div id="detalhe_resolucao" class="text-xs text-emerald-700 leading-relaxed bg-emerald-50 p-3 rounded-lg border border-emerald-100 font-bold whitespace-pre-wrap">---</div>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 pt-2 border-t border-border">
-                        <div>
-                            <label class="block text-[10px] font-black text-text-secondary mb-0.5 uppercase tracking-widest opacity-50">Técnico Responsável</label>
-                            <p id="detalhe_tecnico" class="text-[11px] font-bold text-text">---</p>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-text-secondary mb-0.5 uppercase tracking-widest opacity-50">Data de Abertura</label>
-                            <p id="detalhe_data" class="text-[11px] font-bold text-text text-right">---</p>
-                        </div>
-                    </div>
+                <button class="p-1.5 hover:bg-white/10 rounded-lg transition-colors" onclick="fecharModalDetalhes()">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div class="p-5 space-y-4">
+                <div>
+                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Equipamento / Problema</label>
+                    <p id="detalhe_titulo" class="text-sm font-bold text-text">---</p>
                 </div>
 
-                <div class="p-4 bg-gray-50 flex justify-end items-center border-t border-border">
-                    <button onclick="fecharModalDetalhes()" class="px-6 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all shadow-sm uppercase tracking-widest">Fechar</button>
+                <div>
+                    <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">DescriÃ§Ã£o TÃ©cnica</label>
+                    <div id="detalhe_descricao" class="text-xs text-text-secondary leading-relaxed bg-background p-3 rounded-lg border border-border/50 max-h-32 overflow-y-auto italic">---</div>
+                </div>
+
+                <div id="container_resolucao" class="hidden animate-in fade-in slide-in-from-bottom-2">
+                    <label class="block text-[10px] font-black text-emerald-600 mb-1 uppercase tracking-widest flex items-center gap-1">
+                        <i data-lucide="check-circle-2" class="w-3 h-3"></i>
+                        Laudo de ResoluÃ§Ã£o
+                    </label>
+                    <div id="detalhe_resolucao" class="text-xs text-emerald-700 leading-relaxed bg-emerald-50 p-3 rounded-lg border border-emerald-100 font-bold whitespace-pre-wrap">---</div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 pt-2 border-t border-border">
+                    <div>
+                        <label class="block text-[10px] font-black text-text-secondary mb-0.5 uppercase tracking-widest opacity-50">ResponsÃ¡vel CEH</label>
+                        <p id="detalhe_tecnico" class="text-[11px] font-bold text-text">---</p>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-text-secondary mb-0.5 uppercase tracking-widest opacity-50">Abertura</label>
+                        <p id="detalhe_data" class="text-[11px] font-bold text-text text-right">---</p>
+                    </div>
                 </div>
             </div>
 
-            <!-- Coluna Direita: Interações (Chat) -->
-            <div class="w-full md:w-1/2 flex flex-col bg-gray-50/50">
-                <div class="px-5 py-4 border-b border-border flex justify-between items-center bg-white">
-                    <h3 class="text-xs font-black text-text-secondary uppercase tracking-widest flex items-center gap-2">
-                        <i data-lucide="message-square" class="w-4 h-4 text-primary"></i>
-                        Histórico de Interações
-                    </h3>
-                    <button class="hidden md:block p-1.5 hover:bg-gray-100 rounded-lg transition-colors" onclick="fecharModalDetalhes()">
-                        <i data-lucide="x" class="w-5 h-5"></i>
-                    </button>
-                </div>
-
-                <div class="p-5 flex-grow flex flex-col justify-between" style="min-height: 400px;">
-                    <div id="detalhe_comentarios" class="space-y-3 overflow-y-auto pr-2 custom-scrollbar flex-grow mb-4" style="max-height: 50vh;">
-                        <!-- JS Populado -->
-                    </div>
-
-                    <form method="POST" action="" id="form_comentario_usuario" class="flex gap-2 p-3 bg-white border border-border rounded-xl shadow-sm">
-                        <input type="hidden" name="acao" value="adicionar_comentario">
-                        <input type="hidden" name="chamado_id" id="comentario_chamado_id">
-                        <input type="text" name="comentario" required placeholder="Escreva uma mensagem..." 
-                               class="flex-grow p-2 bg-transparent text-[10px] font-bold focus:outline-none transition-all">
-                        <button type="submit" class="bg-primary text-white p-2 rounded-lg hover:bg-primary-hover transition-all shadow-md active:scale-95 flex items-center justify-center">
-                            <i data-lucide="send" class="w-4 h-4"></i>
-                        </button>
-                    </form>
-                </div>
+            <div class="p-4 bg-gray-50 flex justify-end">
+                <button onclick="fecharModalDetalhes()" class="px-6 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all shadow-sm uppercase tracking-widest">Fechar</button>
             </div>
         </div>
     </div>
 
     <script>
-        let currentChamado = null;
-
         function abrirModal() { document.getElementById('modalChamado').classList.add('active'); }
         function fecharModal() { document.getElementById('modalChamado').classList.remove('active'); }
 
         function verDetalhes(chamado) {
-            currentChamado = chamado;
             document.getElementById('detalhe_id').textContent = '#' + chamado.id.toString().padStart(3, '0');
             document.getElementById('detalhe_titulo').textContent = chamado.titulo;
             document.getElementById('detalhe_descricao').textContent = chamado.descricao;
             document.getElementById('detalhe_status_label').textContent = 'Status: ' + chamado.status;
-            document.getElementById('detalhe_tecnico').textContent = chamado.tecnico || 'Em Triagem';
+            document.getElementById('detalhe_tecnico').textContent = chamado.tecnico || 'Em AnÃ¡lise';
             document.getElementById('detalhe_data').textContent = chamado.data_abertura;
-            document.getElementById('comentario_chamado_id').value = chamado.id;
-
-            // Marcar lido
-            if (chamado.tem_novidade) {
-                fetch('ceh.php', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                    body: 'acao=marcar_lido&chamado_id=' + chamado.id
-                });
-            }
-
-            const comList = document.getElementById('detalhe_comentarios');
-            comList.innerHTML = '';
-            const formCom = document.getElementById('form_comentario_usuario');
-            
-            if (chamado.status === 'Resolvido' || chamado.status === 'Cancelado') {
-                formCom.classList.add('hidden');
-            } else {
-                formCom.classList.remove('hidden');
-            }
-
-            if (chamado.comentarios && chamado.comentarios.length > 0) {
-                chamado.comentarios.forEach(c => {
-                    const div = document.createElement('div');
-                    div.className = 'bg-white p-2 rounded-lg border border-border/40 shadow-sm';
-                    div.innerHTML = `
-                        <div class="flex justify-between items-center mb-0.5">
-                            <span class="text-[8px] font-black text-primary uppercase">${c.autor}</span>
-                            <span class="text-[7px] text-text-secondary opacity-50">${c.data_comentario}</span>
-                        </div>
-                        <p class="text-[9px] text-text-secondary leading-tight italic">"${c.comentario}"</p>
-                    `;
-                    comList.appendChild(div);
-                });
-            } else {
-                comList.innerHTML = '<p class="text-[9px] text-text-secondary/40 italic text-center py-2">Sem mensagens no momento.</p>';
-            }
 
             const resContainer = document.getElementById('container_resolucao');
             const resText = document.getElementById('detalhe_resolucao');
             const header = document.getElementById('modal_header_bg');
 
-            if (chamado.resolucao) {
-                resContainer.classList.remove('hidden');
-                resText.textContent = chamado.resolucao;
-            } else {
-                resContainer.classList.add('hidden');
-            }
-
+            // Resetar cores do header baseado no status
             header.className = 'px-5 py-4 text-white flex justify-between items-center ';
             if (chamado.status === 'Resolvido') {
-                header.classList.add('bg-emerald-500');
+                header.classList.add('bg-emerald-600');
+                if (chamado.resolucao) {
+                    resContainer.classList.remove('hidden');
+                    resText.textContent = chamado.resolucao;
+                } else {
+                    resContainer.classList.add('hidden');
+                }
             } else if (chamado.status === 'Cancelado') {
                 header.classList.add('bg-gray-500');
-            } else if (chamado.status === 'Em Atendimento') {
-                header.classList.add('bg-amber-500');
+                resContainer.classList.add('hidden');
             } else {
                 header.classList.add('bg-primary');
+                resContainer.classList.add('hidden');
             }
 
             document.getElementById('modalDetalhes').classList.add('active');
