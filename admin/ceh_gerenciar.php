@@ -125,11 +125,8 @@ while($row = $res_chamados->fetch_assoc()) {
     $chamados_array[] = $row;
 }
 
-// Buscar lista de técnicos (Para simplificar, permitiremos todos os admins ou usuários marcados como técnicos se houver o campo)
-// Verificando se existe o campo is_tecnico, caso contrário usa is_admin
-$check_tecnico = $conn->query("SHOW COLUMNS FROM usuarios LIKE 'is_tecnico'");
-$filter_tecnico = ($check_tecnico->num_rows > 0) ? "is_tecnico = 1" : "is_admin = 1";
-$tecnicos = $conn->query("SELECT id, nome FROM usuarios WHERE ($filter_tecnico) AND ativo = 1 ORDER BY nome ASC");
+// Buscar lista de técnicos especialistas do setor CEH (Setor 15: Central de Equipamentos)
+$tecnicos = $conn->query("SELECT id, nome FROM usuarios WHERE (setor_id = 15 OR is_admin = 1) AND ativo = 1 ORDER BY nome ASC");
 
 $status_styles = [
     'Aberto' => 'bg-blue-50 text-blue-600 border-blue-100',
