@@ -118,16 +118,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
         $mes_nome = $meses[$mes];
         $assunto = "Relatório de Pendências: Exames Periódicos - $mes_nome";
         
-        $corpo = "<h2>Pendências de Exames Periódicos - Mês de $mes_nome</h2>";
-        $corpo .= "<p>Os seguintes usuários ainda não realizaram ou estão com exames atrasados:</p>";
+        $corpo = "<h2>Relatório de Pendências: Exames Periódicos - $mes_nome</h2>";
+        $corpo .= "<p>Os seguintes <strong>colaboradores</strong> ainda não realizaram ou estão com exames atrasados referentes ao mês de <strong>$mes_nome</strong>:</p>";
         $corpo .= "<table border='1' cellpadding='8' style='border-collapse: collapse; width: 100%; font-family: sans-serif;'>";
-        $corpo .= "<tr style='background: #f4f4f4;'><th>Usuário</th><th>Setor</th><th>Admissão</th><th>Status</th></tr>";
+        $corpo .= "<tr style='background: #f4f4f4;'><th>Colaborador</th><th>Setor</th><th>Admissão</th><th>Status</th></tr>";
         
         while ($p = $res_pendentes->fetch_assoc()) {
             $status = strtoupper($p['status_seguranca'] ?: 'pendente');
             $corpo .= "<tr><td>{$p['nome']}</td><td>{$p['setor_nome']}</td><td>" . date('d/m/Y', strtotime($p['data_admissao'])) . "</td><td>$status</td></tr>";
         }
-        $corpo .= "</table><br><p>Por favor, providencie a regularização junto ao SESMT.</p>";
+        $corpo .= "</table><br><p>Por favor, providencie a regularização junto ao SESMT.</p>";";
 
         if (enviarEmail($email_destino, $assunto, $corpo)) {
             header('Content-Type: application/json');
@@ -279,7 +279,7 @@ $status_options = [
                 <button onclick="fecharModalRelatorio()"><i data-lucide="x" class="w-6 h-6"></i></button>
             </div>
             <div class="p-6 space-y-4">
-                <p class="text-xs text-text-secondary">O sistema enviará uma tabela com todos os usuários do mês de <strong><?php echo $meses[$mes_selecionado]; ?></strong> que estão com status Pendente, Atrasado ou Vencido.</p>
+                <p class="text-xs text-text-secondary">O sistema enviará uma tabela com todos os <strong>colaboradores</strong> do mês de <strong><?php echo $meses[$mes_selecionado]; ?></strong> que estão com status Pendente, Atrasado ou Vencido.</p>
                 <div>
                     <label class="block text-[10px] font-black text-text-secondary uppercase mb-1">E-mail do Destinatário</label>
                     <input type="email" id="relatorioEmail" class="w-full bg-gray-50 border border-border px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-emerald-500" placeholder="exemplo@apas.com.br">
