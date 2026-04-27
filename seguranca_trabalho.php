@@ -87,6 +87,57 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['acao'])) {
         }
         exit;
     }
+
+    // 4. Enviar Relatório de Pendências por Setor
+    if ($_POST['acao'] === 'enviar_relatorio_setor') {
+        $email_destino = sanitize($_POST['email']);
+        $mes = (int)$_POST['mes'];
+        
+        // Buscar usuários pendentes/atrasados/vencidos do mês
+        $sql = "
+            SELECT u.nome, u.data_admissao, u.status_seguranca, s.nome as setor_nome
+            FROM usuarios u
+            LEFT JOIN setores s ON u.setor_id = s.id
+            WHERE MONTH(u.data_admissao) = ? 
+            AND (u.status_seguranca IN ('pendente', 'atrasado', 'vencido') OR u.status_seguranca IS NULL)
+            AND YEAR(u.data_admissao) < ?
+            ORDER BY s.nome, u.nome
+        ";
+        $ano_atual = (int)date('Y');
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ii", $mes, $ano_atual);
+        $stmt->execute();
+        $res_pendentes = $stmt->get_result();
+        
+        if ($res_pendentes->num_rows === 0) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Não há pendências para este mês.']);
+            exit;
+        }
+
+        $mes_nome = $meses[$mes];
+        $assunto = "Relatório de Pendências: Exames Periódicos - $mes_nome";
+        
+        $corpo = "<h2>Pendências de Exames Periódicos - Mês de $mes_nome</h2>";
+        $corpo .= "<p>Os seguintes usuários ainda não realizaram ou estão com exames atrasados:</p>";
+        $corpo .= "<table border='1' cellpadding='8' style='border-collapse: collapse; width: 100%; font-family: sans-serif;'>";
+        $corpo .= "<tr style='background: #f4f4f4;'><th>Usuário</th><th>Setor</th><th>Admissão</th><th>Status</th></tr>";
+        
+        while ($p = $res_pendentes->fetch_assoc()) {
+            $status = strtoupper($p['status_seguranca'] ?: 'pendente');
+            $corpo .= "<tr><td>{$p['nome']}</td><td>{$p['setor_nome']}</td><td>" . date('d/m/Y', strtotime($p['data_admissao'])) . "</td><td>$status</td></tr>";
+        }
+        $corpo .= "</table><br><p>Por favor, providencie a regularização junto ao SESMT.</p>";
+
+        if (enviarEmail($email_destino, $assunto, $corpo)) {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => true]);
+        } else {
+            header('Content-Type: application/json');
+            echo json_encode(['success' => false, 'error' => 'Falha ao enviar e-mail.']);
+        }
+        exit;
+    }
 }
 
 $mes_selecionado = isset($_GET['mes']) ? (int)$_GET['mes'] : (int)date('m');
@@ -130,6 +181,12 @@ $status_options = [
             </div>
 
             <div class="flex items-center gap-3">
+                <!-- Botão Enviar para Setores/E-mail -->
+                <button onclick="abrirModalRelatorio()" class="p-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 hover:bg-emerald-100 transition-all shadow-sm flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
+                    <i data-lucide="mail-warning" class="w-4 h-4"></i>
+                    Relatório de Pendências
+                </button>
+
                 <!-- Ícone de Configuração Global -->
                 <button onclick="abrirModalConfig()" class="p-2.5 bg-white border border-border rounded-xl text-text-secondary hover:text-primary hover:border-primary transition-all shadow-sm flex items-center gap-2 text-xs font-bold uppercase tracking-wider">
                     <i data-lucide="settings-2" class="w-4 h-4"></i>
@@ -212,6 +269,32 @@ $status_options = [
         </div>
     </div>
 
+    <!-- Modal Relatório de Pendências -->
+    <div id="modalRelatorio" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-3xl shadow-2xl animate-in zoom-in duration-200">
+            <div class="p-6 border-b border-border flex justify-between items-center bg-emerald-50 rounded-t-3xl">
+                <h3 class="text-sm font-black text-emerald-700 uppercase flex items-center gap-2">
+                    <i data-lucide="mail-warning" class="w-5 h-5"></i> Enviar Pendências do Mês
+                </h3>
+                <button onclick="fecharModalRelatorio()"><i data-lucide="x" class="w-6 h-6"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <p class="text-xs text-text-secondary">O sistema enviará uma tabela com todos os usuários do mês de <strong><?php echo $meses[$mes_selecionado]; ?></strong> que estão com status Pendente, Atrasado ou Vencido.</p>
+                <div>
+                    <label class="block text-[10px] font-black text-text-secondary uppercase mb-1">E-mail do Destinatário</label>
+                    <input type="email" id="relatorioEmail" class="w-full bg-gray-50 border border-border px-4 py-3 rounded-xl text-sm focus:outline-none focus:border-emerald-500" placeholder="exemplo@apas.com.br">
+                </div>
+            </div>
+            <div class="p-6 bg-gray-50 border-t border-border rounded-b-3xl flex justify-end gap-3">
+                <button onclick="fecharModalRelatorio()" class="px-6 py-2.5 text-xs font-black uppercase text-text-secondary">Cancelar</button>
+                <button id="btnEnviarRelatorio" onclick="enviarRelatorio()" class="px-8 py-2.5 bg-emerald-600 text-white rounded-xl text-xs font-black uppercase shadow-lg shadow-emerald-200 hover:scale-105 transition-all flex items-center gap-2">
+                    <i data-lucide="send" class="w-4 h-4"></i>
+                    Enviar Relatório
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Configuração Global -->
     <div id="modalConfig" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl animate-in zoom-in duration-200">
@@ -247,6 +330,41 @@ $status_options = [
     </div>
 
     <script>
+        function abrirModalRelatorio() { document.getElementById('modalRelatorio').classList.remove('hidden'); }
+        function fecharModalRelatorio() { document.getElementById('modalRelatorio').classList.add('hidden'); }
+
+        async function enviarRelatorio() {
+            const email = document.getElementById('relatorioEmail').value;
+            if (!email) { alert('Digite um e-mail válido.'); return; }
+
+            const btn = document.getElementById('btnEnviarRelatorio');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Enviando...';
+            lucide.createIcons();
+
+            const formData = new FormData();
+            formData.append('acao', 'enviar_relatorio_setor');
+            formData.append('email', email);
+            formData.append('mes', '<?php echo $mes_selecionado; ?>');
+
+            try {
+                const res = await fetch('seguranca_trabalho.php', { method: 'POST', body: formData });
+                const data = await res.json();
+                if (data.success) {
+                    alert('Relatório de pendências enviado com sucesso!');
+                    fecharModalRelatorio();
+                } else {
+                    alert('Erro: ' + data.error);
+                }
+            } catch (e) {
+                alert('Erro na requisição.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="send" class="w-4 h-4"></i> Enviar Relatório';
+                lucide.createIcons();
+            }
+        }
+
         function abrirModalConfig() { document.getElementById('modalConfig').classList.remove('hidden'); }
         function fecharModalConfig() { document.getElementById('modalConfig').classList.add('hidden'); }
 
