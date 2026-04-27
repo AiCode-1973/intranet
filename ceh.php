@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once 'config.php';
 require_once 'functions.php';
 
@@ -8,15 +8,26 @@ $usuario_id = $_SESSION['usuario_id'];
 $mensagem = '';
 $tipo_mensagem = '';
 
-// Processar abertura de chamado CE
+// Processar abertura de chamado CEH
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'abrir_chamado_ceh') {
     $titulo = sanitize($_POST['titulo']);
     $descricao = $_POST['descricao'];
     $prioridade = isset($_POST['prioridade']) ? sanitize($_POST['prioridade']) : 'Média';
     $categoria = sanitize($_POST['categoria']);
+    $anexo = '';
 
-    $stmt = $conn->prepare("INSERT INTO ceh_chamados (titulo, descricao, prioridade, categoria, usuario_id) VALUES (?, ?, ?, ?, ?)");
-    $stmt->bind_param("ssssi", $titulo, $descricao, $prioridade, $categoria, $usuario_id);
+    // Processar upload de anexo
+    if (isset($_FILES['anexo']) && $_FILES['anexo']['error'] === UPLOAD_ERR_OK) {
+        $ext = pathinfo($_FILES['anexo']['name'], PATHINFO_EXTENSION);
+        $novo_nome = 'ceh_main_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
+        $destino = 'uploads/ceh/' . $novo_nome;
+        if (move_uploaded_file($_FILES['anexo']['tmp_name'], $destino)) {
+            $anexo = $novo_nome;
+        }
+    }
+
+    $stmt = $conn->prepare("INSERT INTO ceh_chamados (titulo, descricao, prioridade, categoria, usuario_id, anexo) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("ssssis", $titulo, $descricao, $prioridade, $categoria, $usuario_id, $anexo);
 
     if ($stmt->execute()) {
         $chamado_id = $stmt->insert_id;
@@ -35,13 +46,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $chamado_id = intval($_POST['chamado_id']);
     $usuario_id = $_SESSION['usuario_id'];
     $comentario = sanitize($_POST['comentario']);
+    $anexo = '';
+
+    // Processar upload de anexo no comentário
+    if (isset($_FILES['anexo_comentario']) && $_FILES['anexo_comentario']['error'] === UPLOAD_ERR_OK) {
+        $ext = pathinfo($_FILES['anexo_comentario']['name'], PATHINFO_EXTENSION);
+        $novo_nome = 'ceh_com_' . time() . '_' . rand(1000, 9999) . '.' . $ext;
+        $destino = 'uploads/ceh/' . $novo_nome;
+        if (move_uploaded_file($_FILES['anexo_comentario']['tmp_name'], $destino)) {
+            $anexo = $novo_nome;
+        }
+    }
 
     // Segurança: Garantir que o chamado pertence ao usuário ou ele é admin
     $check = $conn->query("SELECT id FROM ceh_chamados WHERE id = $chamado_id AND (usuario_id = $usuario_id OR 1=" . (isAdmin() ? "1" : "0") . ")");
     
-    if ($check->num_rows > 0 && !empty($comentario)) {
-        $stmt = $conn->prepare("INSERT INTO ceh_comentarios (chamado_id, usuario_id, comentario, lido_pelo_tecnico, lido_pelo_usuario) VALUES (?, ?, ?, 0, 1)");
-        $stmt->bind_param("iis", $chamado_id, $usuario_id, $comentario);
+    if ($check->num_rows > 0 && (!empty($comentario) || !empty($anexo))) {
+        $stmt = $conn->prepare("INSERT INTO ceh_comentarios (chamado_id, usuario_id, comentario, lido_pelo_tecnico, lido_pelo_usuario, anexo) VALUES (?, ?, ?, 0, 1, ?)");
+        $stmt->bind_param("iiss", $chamado_id, $usuario_id, $comentario, $anexo);
         if ($stmt->execute()) {
             header("Location: ceh.php?msg=comentario_ok&id=$chamado_id");
             exit;
@@ -298,7 +320,7 @@ $prioridade_labels = [
                 </button>
             </div>
             
-            <form method="POST" action="" class="p-5">
+            <form method="POST" action="" class="p-5" enctype="multipart/form-data">
                 <input type="hidden" name="acao" value="abrir_chamado_ceh">
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -324,6 +346,11 @@ $prioridade_labels = [
                         <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Descrição do Defeito / Solicitação</label>
                         <textarea name="descricao" required rows="4" placeholder="Detalhes do que está acontecendo com o equipamento..."
                                   class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all"></textarea>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Anexar Arquivo (Opcional)</label>
+                        <input type="file" name="anexo" class="w-full text-xs text-text-secondary file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-[10px] file:font-black file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-all">
                     </div>
                 </div>
 
@@ -362,6 +389,14 @@ $prioridade_labels = [
                     <div>
                         <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Descrição Técnica</label>
                         <div id="detalhe_descricao" class="text-xs text-text-secondary leading-relaxed bg-background p-3 rounded-lg border border-border/50 italic">---</div>
+                    </div>
+
+                    <div id="container_anexo_principal" class="hidden">
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Anexo do Chamado</label>
+                        <a id="link_anexo_principal" href="#" target="_blank" class="flex items-center gap-2 p-2 bg-primary/5 border border-primary/10 rounded-lg text-primary text-[10px] font-bold hover:bg-primary/10 transition-all">
+                            <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
+                            Ver Anexo Principal
+                        </a>
                     </div>
 
                     <div id="container_resolucao" class="hidden animate-in fade-in slide-in-from-bottom-2">
@@ -406,14 +441,23 @@ $prioridade_labels = [
                         <!-- JS Populado -->
                     </div>
 
-                    <form method="POST" action="" id="form_comentario_usuario" class="flex gap-2 p-3 bg-white border border-border rounded-xl shadow-sm">
+                    <form method="POST" action="" id="form_comentario_usuario" enctype="multipart/form-data" class="flex flex-col gap-2 p-3 bg-white border border-border rounded-xl shadow-sm">
                         <input type="hidden" name="acao" value="adicionar_comentario">
                         <input type="hidden" name="chamado_id" id="comentario_chamado_id">
-                        <input type="text" name="comentario" required placeholder="Escreva uma mensagem..." 
-                               class="flex-grow p-2 bg-transparent text-[10px] font-bold focus:outline-none transition-all">
-                        <button type="submit" class="bg-primary text-white p-2 rounded-lg hover:bg-primary-hover transition-all shadow-md active:scale-95 flex items-center justify-center">
-                            <i data-lucide="send" class="w-4 h-4"></i>
-                        </button>
+                        <div class="flex gap-2">
+                            <input type="text" name="comentario" placeholder="Escreva uma mensagem..." 
+                                   class="flex-grow p-2 bg-transparent text-[10px] font-bold focus:outline-none transition-all">
+                            <button type="submit" class="bg-primary text-white p-2 rounded-lg hover:bg-primary-hover transition-all shadow-md active:scale-95 flex items-center justify-center">
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div class="flex items-center gap-2 px-1">
+                            <label class="cursor-pointer group flex items-center gap-1">
+                                <i data-lucide="paperclip" class="w-3.5 h-3.5 text-text-secondary group-hover:text-primary transition-colors"></i>
+                                <span class="text-[9px] font-bold text-text-secondary group-hover:text-primary transition-colors">Anexar</span>
+                                <input type="file" name="anexo_comentario" class="hidden" onchange="this.previousElementSibling.textContent = this.files[0] ? this.files[0].name : 'Anexar'">
+                            </label>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -435,6 +479,16 @@ $prioridade_labels = [
             document.getElementById('detalhe_tecnico').textContent = chamado.tecnico || 'Em Triagem';
             document.getElementById('detalhe_data').textContent = chamado.data_abertura;
             document.getElementById('comentario_chamado_id').value = chamado.id;
+
+            // Anexo Principal
+            const containerAnexo = document.getElementById('container_anexo_principal');
+            const linkAnexo = document.getElementById('link_anexo_principal');
+            if (chamado.anexo) {
+                containerAnexo.classList.remove('hidden');
+                linkAnexo.href = 'uploads/ceh/' + chamado.anexo;
+            } else {
+                containerAnexo.classList.add('hidden');
+            }
 
             // Marcar lido
             if (chamado.tem_novidade) {
@@ -465,6 +519,14 @@ $prioridade_labels = [
                             <span class="text-[7px] text-text-secondary opacity-50">${c.data_comentario}</span>
                         </div>
                         <p class="text-[9px] text-text-secondary leading-tight italic">"${c.comentario}"</p>
+                        ${c.anexo ? `
+                            <div class="mt-2">
+                                <a href="uploads/ceh/${c.anexo}" target="_blank" class="inline-flex items-center gap-1.5 p-1.5 bg-gray-50 border border-border rounded text-[8px] font-black text-primary uppercase hover:bg-gray-100 transition-all">
+                                    <i data-lucide="paperclip" class="w-2.5 h-2.5"></i>
+                                    Ver Anexo
+                                </a>
+                            </div>
+                        ` : ''}
                     `;
                     comList.appendChild(div);
                 });
