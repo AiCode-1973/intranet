@@ -150,6 +150,9 @@ $meses = [
             <!-- Cabeçalho (Estilo Papel Timbrado) -->
             <div class="flex flex-col md:flex-row justify-between items-start mb-12 pb-8 border-b-2 border-primary/10">
                 <div class="space-y-4">
+                    <div class="mb-2">
+                        <img src="imagens/logo_apas.png" alt="Logo APAS" class="h-12 object-contain">
+                    </div>
                     <div>
                         <span class="text-[9px] font-black uppercase text-text-secondary opacity-50 tracking-[0.2em]">Colaborador</span>
                         <h2 class="text-xl font-bold text-text"><?php echo $o['colaborador_nome']; ?></h2>
