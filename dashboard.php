@@ -469,7 +469,42 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
 
     <!-- Modal de Detalhes da Informação -->
     <div id="modalInfoDetalhes" class="modal-info" onclick="fecharModalInfo(event)">
-        <!-- ... existing content ... -->
+        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden transform transition-all group flex flex-col" onclick="event.stopPropagation()">
+            <!-- Cabeçalho colorido -->
+            <div class="bg-primary p-6 text-white relative overflow-hidden shrink-0">
+                <div class="absolute right-0 top-0 -mr-12 -mt-12 w-48 h-48 bg-white/10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
+                <div class="relative z-10 pr-10">
+                    <div class="flex items-center gap-3 mb-3">
+                        <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                            <i id="infoIcone" data-lucide="info" class="w-5 h-5 text-white"></i>
+                        </div>
+                        <span id="infoTipo" class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80"></span>
+                    </div>
+                    <h2 id="infoTitulo" class="text-xl font-black leading-tight tracking-tight"></h2>
+                </div>
+                <button onclick="fecharModalInfo()" class="absolute top-5 right-5 p-2.5 hover:bg-white/20 rounded-full transition-all active:scale-90 z-20">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Conteúdo -->
+            <div class="p-6 overflow-y-auto flex-grow">
+                <div class="p-5 bg-gray-50 rounded-2xl border-l-4 border-primary/30">
+                    <label class="text-[10px] font-black text-primary uppercase tracking-widest mb-3 block">Detalhes</label>
+                    <div id="infoConteudo" class="text-sm text-text-secondary leading-relaxed font-medium"></div>
+                </div>
+            </div>
+
+            <!-- Rodapé -->
+            <div class="p-6 pt-0 shrink-0">
+                <div class="pt-4 border-t border-border flex justify-between items-center gap-3">
+                    <button onclick="fecharModalInfo()" class="px-6 py-2.5 text-[10px] font-black text-text-secondary hover:text-text transition-all uppercase tracking-widest">Fechar</button>
+                    <a id="infoLinkExterno" href="#" target="_blank" class="hidden bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-2xl text-[10px] font-black shadow-lg shadow-primary/20 transition-all flex items-center gap-2 active:scale-95 uppercase tracking-widest">
+                        Acessar Link <i data-lucide="external-link" class="w-4 h-4"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Modal Visualizar Norma -->
