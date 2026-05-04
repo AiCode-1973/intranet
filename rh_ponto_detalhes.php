@@ -93,7 +93,7 @@ $meses = [
             .shadow-2xl { box-shadow: none !important; }
             .rounded-3xl { border-radius: 0 !important; }
             .border-border { border-color: #000 !important; }
-            header, aside, nav, #sidebar, [class*="sidebar"] { display: none !important; }
+            header, aside, nav, footer, #sidebar, [class*=\"sidebar\"] { display: none !important; }
             body { margin: 0 !important; padding: 0 !important; }
             .ml-64 { margin-left: 0 !important; }
             .p-6 { padding: 0.5rem !important; }
