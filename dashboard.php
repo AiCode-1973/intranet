@@ -468,42 +468,58 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
     <?php include 'footer.php'; ?>
 
     <!-- Modal de Detalhes da Informação -->
-    <div id="modalInfoDetalhes" class="modal-info" onclick="fecharModalInfo(event)">
-        <div class="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg max-h-[90vh] overflow-hidden transform transition-all group flex flex-col" onclick="event.stopPropagation()">
-            <!-- Cabeçalho colorido -->
-            <div class="bg-primary p-6 text-white relative overflow-hidden shrink-0">
-                <div class="absolute right-0 top-0 -mr-12 -mt-12 w-48 h-48 bg-white/10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
-                <div class="relative z-10 pr-10">
-                    <div class="flex items-center gap-3 mb-3">
-                        <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
-                            <i id="infoIcone" data-lucide="info" class="w-5 h-5 text-white"></i>
-                        </div>
-                        <span id="infoTipo" class="text-[10px] font-black uppercase tracking-[0.2em] opacity-80"></span>
+    <div id="modalInfoDetalhes" class="modal-info p-4" onclick="fecharModalInfo(event)">
+        <div class="bg-white rounded-3xl shadow-2xl w-full max-w-3xl max-h-[85vh] overflow-hidden flex transition-all group" onclick="event.stopPropagation()">
+
+            <!-- Coluna Esquerda — Identidade visual -->
+            <div class="bg-primary w-56 shrink-0 relative overflow-hidden flex flex-col justify-between p-7">
+                <!-- Círculos decorativos -->
+                <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full"></div>
+                <div class="absolute -top-6 -right-6 w-28 h-28 bg-white/10 rounded-full group-hover:scale-110 transition-transform duration-700"></div>
+
+                <div class="relative z-10 flex flex-col gap-4">
+                    <div class="w-12 h-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                        <i id="infoIcone" data-lucide="info" class="w-6 h-6 text-white"></i>
                     </div>
-                    <h2 id="infoTitulo" class="text-xl font-black leading-tight tracking-tight"></h2>
+                    <div>
+                        <span id="infoTipo" class="text-[9px] font-black uppercase tracking-[0.2em] text-white/60 block mb-1"></span>
+                        <h2 id="infoTitulo" class="text-lg font-black text-white leading-snug tracking-tight"></h2>
+                    </div>
                 </div>
-                <button onclick="fecharModalInfo()" class="absolute top-5 right-5 p-2.5 hover:bg-white/20 rounded-full transition-all active:scale-90 z-20">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
 
-            <!-- Conteúdo -->
-            <div class="p-6 overflow-y-auto flex-grow">
-                <div class="p-5 bg-gray-50 rounded-2xl border-l-4 border-primary/30">
-                    <label class="text-[10px] font-black text-primary uppercase tracking-widest mb-3 block">Detalhes</label>
-                    <div id="infoConteudo" class="text-sm text-text-secondary leading-relaxed font-medium"></div>
-                </div>
-            </div>
-
-            <!-- Rodapé -->
-            <div class="p-6 pt-0 shrink-0">
-                <div class="pt-4 border-t border-border flex justify-between items-center gap-3">
-                    <button onclick="fecharModalInfo()" class="px-6 py-2.5 text-[10px] font-black text-text-secondary hover:text-text transition-all uppercase tracking-widest">Fechar</button>
-                    <a id="infoLinkExterno" href="#" target="_blank" class="hidden bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-2xl text-[10px] font-black shadow-lg shadow-primary/20 transition-all flex items-center gap-2 active:scale-95 uppercase tracking-widest">
-                        Acessar Link <i data-lucide="external-link" class="w-4 h-4"></i>
+                <div class="relative z-10">
+                    <a id="infoLinkExterno" href="#" target="_blank" class="hidden mt-4 w-full bg-white/20 hover:bg-white/30 text-white px-4 py-2.5 rounded-xl text-[10px] font-black flex items-center justify-center gap-2 transition-all active:scale-95 uppercase tracking-widest">
+                        <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Acessar Link
                     </a>
                 </div>
             </div>
+
+            <!-- Coluna Direita — Conteúdo -->
+            <div class="flex flex-col flex-grow min-w-0">
+                <!-- Barra superior -->
+                <div class="flex items-center justify-between px-7 pt-6 pb-4 border-b border-border shrink-0">
+                    <span class="text-[10px] font-black text-text-secondary uppercase tracking-widest flex items-center gap-1.5">
+                        <i data-lucide="file-text" class="w-3.5 h-3.5 text-primary"></i>
+                        Informativo
+                    </span>
+                    <button onclick="fecharModalInfo()" class="p-2 hover:bg-gray-100 rounded-full transition-all active:scale-90 text-text-secondary">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <!-- Área de conteúdo scrollável -->
+                <div class="flex-grow overflow-y-auto px-7 py-6">
+                    <div id="infoConteudo" class="text-sm text-text leading-relaxed"></div>
+                </div>
+
+                <!-- Rodapé -->
+                <div class="px-7 py-4 border-t border-border shrink-0 flex justify-end">
+                    <button onclick="fecharModalInfo()" class="px-6 py-2 text-[10px] font-black text-text-secondary hover:text-text border border-border rounded-xl transition-all uppercase tracking-widest">
+                        Fechar
+                    </button>
+                </div>
+            </div>
+
         </div>
     </div>
 
