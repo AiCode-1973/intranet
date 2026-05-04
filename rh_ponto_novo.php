@@ -37,14 +37,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
     $tipo = $_POST['tipo'];
     $mes = intval($_POST['mes']);
     $ano = intval($_POST['ano']);
+    $observacao = sanitize($_POST['observacao'] ?? '');
     $id_atual = intval($_POST['id_atual'] ?? 0);
     
     $conn->begin_transaction();
     try {
         if ($id_atual > 0) {
             // Atualizar Ocorrência Existente
-            $stmt = $conn->prepare("UPDATE rh_ponto_ocorrencias SET supervisor_id = ?, tipo = ?, mes = ?, ano = ?, status = ? WHERE id = ? AND usuario_id = ?");
-            $stmt->bind_param("issisii", $supervisor_id, $tipo, $mes, $ano, $status, $id_atual, $usuario_id);
+            $stmt = $conn->prepare("UPDATE rh_ponto_ocorrencias SET supervisor_id = ?, tipo = ?, mes = ?, ano = ?, status = ?, observacao = ? WHERE id = ? AND usuario_id = ?");
+            $stmt->bind_param("ississ" . "ii", $supervisor_id, $tipo, $mes, $ano, $status, $observacao, $id_atual, $usuario_id);
             $stmt->execute();
             $ocorrencia_id = $id_atual;
             
@@ -52,8 +53,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
             $conn->query("DELETE FROM rh_ponto_itens WHERE ocorrencia_id = $ocorrencia_id");
         } else {
             // Inserir Nova
-            $stmt = $conn->prepare("INSERT INTO rh_ponto_ocorrencias (usuario_id, supervisor_id, tipo, mes, ano, status) VALUES (?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("iissis", $usuario_id, $supervisor_id, $tipo, $mes, $ano, $status);
+            $stmt = $conn->prepare("INSERT INTO rh_ponto_ocorrencias (usuario_id, supervisor_id, tipo, mes, ano, status, observacao) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("iississ", $usuario_id, $supervisor_id, $tipo, $mes, $ano, $status, $observacao);
             $stmt->execute();
             $ocorrencia_id = $conn->insert_id;
         }
@@ -238,6 +239,12 @@ $meses = [
                         <i data-lucide="plus" class="w-4 h-4"></i> Adicionar Outra Data
                     </button>
                     <p class="text-[9px] text-text-secondary font-bold italic">Este documento tem validade para ocorrências do dia 01 até o dia 30 do mês.</p>
+                </div>
+
+                <!-- Observação Geral -->
+                <div class="mt-6 pt-6 border-t border-dashed border-border">
+                    <label class="label-slim">Observação Geral (Opcional)</label>
+                    <textarea name="observacao" rows="3" placeholder="Descreva informações adicionais, justificativas ou qualquer observação relevante para esta ocorrência..." class="w-full p-3 bg-background border border-border rounded-xl text-xs outline-none focus:ring-1 focus:ring-primary transition-all resize-none"><?php echo htmlspecialchars($edit_data['observacao'] ?? ''); ?></textarea>
                 </div>
             </div>
 

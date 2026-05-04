@@ -183,6 +183,14 @@ $meses = [
             </div>
 
             <!-- Assinaturas e Observações -->
+            <?php if (!empty($o['observacao'])): ?>
+            <div class="mt-8 p-5 bg-gray-50 border border-border rounded-2xl">
+                <p class="text-[10px] font-black uppercase text-text-secondary tracking-wider mb-2">Observação Geral do Colaborador</p>
+                <p class="text-sm text-text italic"><?php echo nl2br(htmlspecialchars($o['observacao'])); ?></p>
+            </div>
+            <?php endif; ?>
+
+            <!-- Assinaturas e Observações -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
                 <div class="space-y-6">
                     <div class="border-t border-text-secondary/20 pt-4">
