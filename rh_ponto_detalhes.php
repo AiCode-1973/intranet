@@ -87,17 +87,28 @@ $meses = [
     <?php include 'tailwind_setup.php'; ?>
     <style>
         @media print {
+            @page { size: A4 portrait; margin: 12mm 10mm; }
             .no-print { display: none !important; }
             .bg-pattern { background: none !important; }
-            .shadow-xl { box-shadow: none !important; }
-            .shadow-2xl { box-shadow: none !important; }
-            .rounded-3xl { border-radius: 0 !important; }
-            .border-border { border-color: #000 !important; }
-            header, aside, nav, footer, #sidebar, [class*=\"sidebar\"] { display: none !important; }
-            body { margin: 0 !important; padding: 0 !important; }
+            .shadow-xl, .shadow-2xl { box-shadow: none !important; }
+            .rounded-3xl, .rounded-2xl { border-radius: 4px !important; }
+            .border-border { border-color: #ccc !important; }
+            header, aside, nav, footer, #sidebar, [class*="sidebar"] { display: none !important; }
+            body { margin: 0 !important; padding: 0 !important; font-size: 10px !important; }
             .ml-64 { margin-left: 0 !important; }
-            .p-6 { padding: 0.5rem !important; }
+            .p-6 { padding: 0 !important; }
+            .p-8, .md\:p-12 { padding: 8px !important; }
             .max-w-5xl { max-width: 100% !important; }
+            .mb-12 { margin-bottom: 8px !important; }
+            .mb-8 { margin-bottom: 6px !important; }
+            .mt-16 { margin-top: 12px !important; }
+            .mt-8 { margin-top: 8px !important; }
+            .gap-16 { gap: 20px !important; }
+            table { font-size: 9px !important; width: 100% !important; }
+            th, td { padding: 3px 5px !important; font-size: 9px !important; }
+            h2 { font-size: 13px !important; }
+            .text-6xl { font-size: 36px !important; }
+            .space-y-4 > * + * { margin-top: 4px !important; }
         }
     </style>
 </head>
@@ -161,27 +172,27 @@ $meses = [
             </div>
 
             <!-- Tabela de Dados -->
-            <div class="overflow-x-auto mb-12">
-                <table class="w-full text-left border-collapse">
+            <div class="overflow-x-auto mb-6">
+                <table class="w-full text-left border-collapse text-xs">
                     <thead>
                         <tr class="bg-gray-50 border border-border">
-                            <th class="p-3 text-[10px] font-black text-text-secondary uppercase border-r border-border w-32 text-center">Data</th>
-                            <th class="p-3 text-[10px] font-black text-text-secondary uppercase border-r border-border w-24 text-center">Entrada</th>
-                            <th class="p-3 text-[10px] font-black text-text-secondary uppercase border-r border-border w-24 text-center">Almoço</th>
-                            <th class="p-3 text-[10px] font-black text-text-secondary uppercase border-r border-border w-24 text-center">Retorno</th>
-                            <th class="p-3 text-[10px] font-black text-text-secondary uppercase border-r border-border w-24 text-center">Saída</th>
-                            <th class="p-3 text-[10px] font-black text-text-secondary uppercase">Descrição Justificativa</th>
+                            <th class="p-2 text-[10px] font-black text-text-secondary uppercase border-r border-border w-28 text-center">Data</th>
+                            <th class="p-2 text-[10px] font-black text-text-secondary uppercase border-r border-border w-20 text-center">Entrada</th>
+                            <th class="p-2 text-[10px] font-black text-text-secondary uppercase border-r border-border w-20 text-center">S. Almoço</th>
+                            <th class="p-2 text-[10px] font-black text-text-secondary uppercase border-r border-border w-20 text-center">V. Almoço</th>
+                            <th class="p-2 text-[10px] font-black text-text-secondary uppercase border-r border-border w-20 text-center">Saída</th>
+                            <th class="p-2 text-[10px] font-black text-text-secondary uppercase">Descrição / Justificativa</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php while($i = $itens->fetch_assoc()): ?>
-                        <tr class="border border-border">
-                            <td class="p-3 text-sm font-bold border-r border-border text-center"><?php echo date('d/m/Y', strtotime($i['data_ponto'])); ?></td>
-                            <td class="p-3 text-sm border-r border-border text-center"><?php echo $i['entrada']; ?></td>
-                            <td class="p-3 text-sm border-r border-border text-center"><?php echo $i['saida_almoco']; ?></td>
-                            <td class="p-3 text-sm border-r border-border text-center"><?php echo $i['volta_almoco']; ?></td>
-                            <td class="p-3 text-sm border-r border-border text-center"><?php echo $i['saida']; ?></td>
-                            <td class="p-3 text-sm italic"><?php echo $i['descricao']; ?></td>
+                        <tr class="border border-border hover:bg-gray-50/50">
+                            <td class="p-2 text-xs font-bold border-r border-border text-center"><?php echo date('d/m/Y', strtotime($i['data_ponto'])); ?></td>
+                            <td class="p-2 text-xs border-r border-border text-center"><?php echo $i['entrada'] ?: '-'; ?></td>
+                            <td class="p-2 text-xs border-r border-border text-center"><?php echo $i['saida_almoco'] ?: '-'; ?></td>
+                            <td class="p-2 text-xs border-r border-border text-center"><?php echo $i['volta_almoco'] ?: '-'; ?></td>
+                            <td class="p-2 text-xs border-r border-border text-center"><?php echo $i['saida'] ?: '-'; ?></td>
+                            <td class="p-2 text-xs italic text-text-secondary"><?php echo $i['descricao']; ?></td>
                         </tr>
                         <?php endwhile; ?>
                     </tbody>
