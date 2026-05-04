@@ -89,9 +89,15 @@ $meses = [
         @media print {
             .no-print { display: none !important; }
             .bg-pattern { background: none !important; }
-            .shadow-xl { shadow: none !important; }
+            .shadow-xl { box-shadow: none !important; }
+            .shadow-2xl { box-shadow: none !important; }
             .rounded-3xl { border-radius: 0 !important; }
             .border-border { border-color: #000 !important; }
+            header, aside, nav, #sidebar, [class*="sidebar"] { display: none !important; }
+            body { margin: 0 !important; padding: 0 !important; }
+            .ml-64 { margin-left: 0 !important; }
+            .p-6 { padding: 0.5rem !important; }
+            .max-w-5xl { max-width: 100% !important; }
         }
     </style>
 </head>
@@ -190,23 +196,20 @@ $meses = [
             </div>
             <?php endif; ?>
 
-            <!-- Assinaturas e Observações -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-12 mt-16">
-                <div class="space-y-6">
-                    <div class="border-t border-text-secondary/20 pt-4">
-                        <p class="text-[10px] font-black uppercase text-text-secondary text-center">Assinatura do Supervisor</p>
+            <!-- Assinaturas -->
+            <div class="grid grid-cols-2 gap-16 mt-16">
+                <div>
+                    <div class="border-t-2 border-gray-400 pt-4">
+                        <p class="text-[10px] font-black uppercase text-text-secondary text-center tracking-widest">Assinatura do Colaborador</p>
+                        <p class="text-xs font-bold text-center mt-1"><?php echo $o['colaborador_nome']; ?></p>
+                    </div>
+                </div>
+                <div>
+                    <div class="border-t-2 border-gray-400 pt-4">
+                        <p class="text-[10px] font-black uppercase text-text-secondary text-center tracking-widest">Assinatura do Supervisor</p>
                         <p class="text-xs font-bold text-center mt-1"><?php echo $o['supervisor_nome']; ?></p>
                         <?php if($o['observacao_supervisor']): ?>
                             <p class="mt-4 p-3 bg-gray-50 rounded-xl text-xs italic border border-border">"<?php echo $o['observacao_supervisor']; ?>"</p>
-                        <?php endif; ?>
-                    </div>
-                </div>
-                <div class="space-y-6">
-                    <div class="border-t border-text-secondary/20 pt-4">
-                        <p class="text-[10px] font-black uppercase text-text-secondary text-center">Assinatura do RH / Gerente</p>
-                        <p class="text-xs font-bold text-center mt-1"><?php echo $o['status'] == 'APROVADO' ? 'Validado Digitalmente' : '-'; ?></p>
-                        <?php if($o['observacao_rh']): ?>
-                            <p class="mt-4 p-3 bg-gray-50 rounded-xl text-xs italic border border-border">"<?php echo $o['observacao_rh']; ?>"</p>
                         <?php endif; ?>
                     </div>
                 </div>
