@@ -315,6 +315,17 @@ $total_normas = $conn->query("SELECT COUNT(*) as total FROM normas_procedimentos
                     <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-teal-600 transition-all"></i>
                 </div>
             </a>
+
+            <a href="banners_gerenciar.php" class="bg-white p-5 rounded-xl shadow-sm border border-border group hover:border-pink-500 transition-all">
+                <div class="w-10 h-10 rounded-xl bg-pink-500/10 flex items-center justify-center text-pink-500 mb-4 group-hover:bg-pink-500 group-hover:text-white transition-all duration-300">
+                    <i data-lucide="image" class="w-5 h-5"></i>
+                </div>
+                <h3 class="text-base font-bold text-text mb-1 tracking-tight">Banners</h3>
+                <p class="text-xs text-text-secondary leading-relaxed">Imagens exibidas no painel principal.</p>
+                <div class="mt-4 flex justify-end">
+                    <i data-lucide="arrow-right" class="w-4 h-4 text-border group-hover:text-pink-500 transition-all"></i>
+                </div>
+            </a>
             <?php endif; ?>
 
             <?php if (isAdmin() || isRHAdmin()): ?>

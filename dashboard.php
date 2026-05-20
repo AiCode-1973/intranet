@@ -45,6 +45,13 @@ $percentual_global = ($total_aulas_lms > 0) ? round(($concluidas_lms / $total_au
 // Total holerites/docs novos para o usuário
 $total_rh_novos = $conn->query("SELECT COUNT(*) as total FROM rh_documentos WHERE usuario_id = $user_id")->fetch_assoc()['total'];
 
+// Banner do Dashboard
+$banner_ativo = null;
+$res_banner = $conn->query("SELECT * FROM banners WHERE ativo = 1 ORDER BY created_at DESC LIMIT 1");
+if ($res_banner && $res_banner->num_rows > 0) {
+    $banner_ativo = $res_banner->fetch_assoc();
+}
+
 // Saudação
 $hour = date('H');
 $greeting = $hour < 12 ? 'Bom dia' : ($hour < 18 ? 'Boa tarde' : 'Boa noite');
@@ -404,6 +411,33 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                         </a>
                     </div>
                 </div>
+            <?php endif; ?>
+
+            <!-- Banner do Dashboard -->
+            <?php if ($banner_ativo): ?>
+            <?php if (!empty($banner_ativo['link_url'])): ?>
+            <a href="<?php echo htmlspecialchars($banner_ativo['link_url']); ?>" target="_blank" rel="noopener noreferrer"
+               class="rounded-xl border border-border shadow-sm overflow-hidden group hover:border-primary hover:shadow-md transition-all block">
+            <?php else: ?>
+            <div class="rounded-xl border border-border shadow-sm overflow-hidden group hover:border-primary hover:shadow-md transition-all">
+            <?php endif; ?>
+                <div class="relative h-full min-h-[160px] bg-gray-100">
+                    <img src="uploads/banners/<?php echo htmlspecialchars($banner_ativo['imagem']); ?>"
+                         alt="<?php echo htmlspecialchars($banner_ativo['titulo']); ?>"
+                         class="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-500">
+                    <?php if (!empty($banner_ativo['link_url'])): ?>
+                    <div class="absolute bottom-3 right-3">
+                        <span class="flex items-center gap-1 px-2 py-1 bg-black/50 backdrop-blur-sm text-white rounded-lg text-[9px] font-black uppercase tracking-widest">
+                            <i data-lucide="external-link" class="w-3 h-3"></i> Ver mais
+                        </span>
+                    </div>
+                    <?php endif; ?>
+                </div>
+            <?php if (!empty($banner_ativo['link_url'])): ?>
+            </a>
+            <?php else: ?>
+            </div>
+            <?php endif; ?>
             <?php endif; ?>
         </div>
 
