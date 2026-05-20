@@ -4,6 +4,22 @@ require_once '../functions.php';
 
 requireCEH();
 
+// ── Endpoint de polling (AJAX) ─────────────────────────────────────────────
+if (isset($_GET['action']) && $_GET['action'] === 'poll') {
+    header('Content-Type: application/json');
+    $rows = $conn->query("
+        SELECT c.id, c.status, c.prioridade, c.data_abertura,
+               (SELECT COUNT(*) FROM ceh_comentarios cc WHERE cc.chamado_id = c.id AND cc.lido_pelo_tecnico = 0) as nao_lidos
+        FROM ceh_chamados c
+        ORDER BY c.data_abertura DESC
+    ");
+    $result = [];
+    while ($r = $rows->fetch_assoc()) $result[] = $r;
+    echo json_encode(['chamados' => $result, 'ts' => time()]);
+    exit;
+}
+// ───────────────────────────────────────────────────────────────────────────
+
 $mensagem = '';
 $tipo_mensagem = '';
 
@@ -194,6 +210,10 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
                     <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
                     Painel Central
                 </a>
+                <div class="flex items-center gap-1.5 px-2.5 py-1.5 bg-white border border-border rounded-lg shadow-sm" title="Monitoramento automático ativo (30s)">
+                    <span id="ceh-poll-status" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest">Ao Vivo</span>
+                </div>
             </div>
         </div>
 
@@ -258,10 +278,10 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Ação</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-border text-xs">
+                    <tbody id="ceh-tbody" class="divide-y divide-border text-xs">
                         <?php if (!empty($chamados_array)): ?>
                             <?php foreach ($chamados_array as $chamado): ?>
-                            <tr class="hover:bg-background/30 transition-colors group <?php echo in_array($chamado['status'], ['Resolvido', 'Cancelado']) ? 'opacity-40' : ''; ?>">
+                            <tr data-id="<?php echo $chamado['id']; ?>" data-unread="<?php echo $chamado['tem_novidade'] ? '1' : '0'; ?>" class="hover:bg-background/30 transition-colors group <?php echo in_array($chamado['status'], ['Resolvido', 'Cancelado']) ? 'opacity-40' : ''; ?>">
                                 <td class="p-3">
                                     <div class="flex items-center gap-2">
                                         <div class="relative">
@@ -573,6 +593,70 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
                 form.submit();
             }
         }
+
+        // ── Auto-refresh da tabela ──────────────────────────────────────────
+        (function () {
+            const INTERVAL   = 30000; // 30 segundos
+            const STATUS_EL  = document.getElementById('ceh-poll-status');
+
+            // Snapshot inicial dos IDs presentes na tabela
+            let knownIds = new Set(
+                [...document.querySelectorAll('#ceh-tbody tr[data-id]')]
+                    .map(tr => tr.dataset.id)
+            );
+            let knownUnread = 0;
+            document.querySelectorAll('#ceh-tbody tr[data-unread="1"]')
+                .forEach(() => knownUnread++);
+
+            function showToast(msg) {
+                const t = document.createElement('div');
+                t.className = 'fixed top-4 right-4 z-[9999] flex items-center gap-3 bg-primary text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-bold uppercase tracking-widest cursor-pointer animate-in slide-in-from-top-3 duration-300';
+                t.innerHTML = `<i data-lucide="bell" class="w-4 h-4"></i><span>${msg}</span><span class="opacity-60 text-[9px]">Clique para atualizar</span>`;
+                t.onclick = () => location.reload();
+                document.body.appendChild(t);
+                lucide.createIcons({ nodes: [t] });
+                setTimeout(() => t.remove(), 12000);
+            }
+
+            function pulse(ok) {
+                if (!STATUS_EL) return;
+                STATUS_EL.className = ok
+                    ? 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse'
+                    : 'w-2 h-2 rounded-full bg-rose-400';
+            }
+
+            async function poll() {
+                try {
+                    const res  = await fetch('ceh_gerenciar.php?action=poll', { cache: 'no-store' });
+                    const data = await res.json();
+                    pulse(true);
+
+                    const newIds    = new Set(data.chamados.map(c => String(c.id)));
+                    const added     = [...newIds].filter(id => !knownIds.has(id));
+                    let   newUnread = data.chamados.reduce((s, c) => s + parseInt(c.nao_lidos), 0);
+
+                    if (added.length > 0) {
+                        showToast(`${added.length} novo(s) chamado(s) recebido(s)`);
+                        knownIds = newIds;
+                        knownUnread = newUnread;
+                        // Recarrega apenas se o modal estiver fechado
+                        if (!document.getElementById('modalAtender').classList.contains('active')) {
+                            location.reload();
+                        }
+                    } else if (newUnread > knownUnread) {
+                        showToast('Nova mensagem em chamado aberto');
+                        knownUnread = newUnread;
+                    } else {
+                        knownUnread = newUnread;
+                    }
+                } catch (e) {
+                    pulse(false);
+                }
+            }
+
+            setInterval(poll, INTERVAL);
+        })();
+        // ───────────────────────────────────────────────────────────────────
     </script>
     <?php include '../footer.php'; ?>
 </body>
