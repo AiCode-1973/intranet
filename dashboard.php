@@ -421,26 +421,27 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                 <!-- Slides -->
                 <?php foreach ($banners_ativos as $idx => $banner): ?>
                 <div class="banner-slide absolute inset-0 transition-opacity duration-700 <?php echo $idx === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'; ?>" style="will-change:opacity;backface-visibility:hidden">
-                    <?php if (!empty($banner['link_url'])): ?>
-                    <a href="<?php echo htmlspecialchars($banner['link_url']); ?>" target="_blank" rel="noopener noreferrer" class="block relative w-full h-full">
-                    <?php endif; ?>
+                    <!-- Área clicável para lightbox (cobre toda a imagem) -->
+                    <button type="button"
+                            onclick="bannerLightbox('uploads/banners/<?php echo htmlspecialchars($banner['imagem']); ?>', '<?php echo htmlspecialchars(addslashes($banner['titulo'])); ?>')"
+                            class="absolute inset-0 w-full h-full cursor-zoom-in focus:outline-none"
+                            aria-label="Ampliar imagem"></button>
                         <img src="uploads/banners/<?php echo htmlspecialchars($banner['imagem']); ?>"
                              alt="<?php echo htmlspecialchars($banner['titulo']); ?>"
-                             class="absolute inset-0 w-full h-full object-contain"
+                             class="absolute inset-0 w-full h-full object-contain pointer-events-none"
                              style="image-rendering:high-quality"
                              <?php echo $idx === 0 ? 'loading="eager"' : 'loading="lazy"'; ?>>
                         <?php if (!empty($banner['link_url'])): ?>
-                        <div class="absolute bottom-3 right-3 z-10">
+                        <div class="absolute bottom-3 right-3 z-10 pointer-events-none">
                             <span class="flex items-center gap-1 px-2 py-1 bg-black/50 backdrop-blur-sm text-white rounded-lg text-[9px] font-black uppercase tracking-widest">
                                 <i data-lucide="external-link" class="w-3 h-3"></i> Ver mais
                             </span>
                         </div>
+                        <a href="<?php echo htmlspecialchars($banner['link_url']); ?>" target="_blank" rel="noopener noreferrer"
+                           class="absolute bottom-3 right-3 z-20 flex items-center gap-1 px-2 py-1 bg-black/50 backdrop-blur-sm text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-black/70 transition-colors">
+                            <i data-lucide="external-link" class="w-3 h-3"></i> Ver mais
+                        </a>
                         <?php endif; ?>
-                    <?php if (!empty($banner['link_url'])): ?>
-                    </a>
-                    <?php else: ?>
-                    <div class="block relative w-full h-full"></div>
-                    <?php endif; ?>
                 </div>
                 <?php endforeach; ?>
 
@@ -460,6 +461,17 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                 </div>
                 <?php endif; ?>
             </div>
+
+            <!-- Lightbox -->
+            <div id="banner-lightbox" class="fixed inset-0 z-[999] flex items-center justify-center bg-black/80 backdrop-blur-sm opacity-0 pointer-events-none transition-opacity duration-300" onclick="bannerLightboxClose()">
+                <div class="relative max-w-5xl w-full mx-4" onclick="event.stopPropagation()">
+                    <button onclick="bannerLightboxClose()" class="absolute -top-10 right-0 text-white/80 hover:text-white flex items-center gap-1.5 text-xs font-bold uppercase tracking-widest transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i> Fechar
+                    </button>
+                    <img id="banner-lightbox-img" src="" alt="" class="w-full max-h-[85vh] object-contain rounded-xl shadow-2xl">
+                </div>
+            </div>
+
             <script>
             (function() {
                 const slides = document.querySelectorAll('#banner-carousel .banner-slide');
@@ -486,6 +498,28 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                 window.bannerNext  = function() { next(); resetTimer(); };
                 window.bannerPrev  = function() { prev(); resetTimer(); };
                 window.bannerGoTo  = function(n) { goTo(n); resetTimer(); };
+
+                window.bannerLightbox = function(src, alt) {
+                    const lb  = document.getElementById('banner-lightbox');
+                    const img = document.getElementById('banner-lightbox-img');
+                    img.src = src;
+                    img.alt = alt;
+                    lb.classList.remove('opacity-0', 'pointer-events-none');
+                    lb.classList.add('opacity-100');
+                    document.body.style.overflow = 'hidden';
+                };
+
+                window.bannerLightboxClose = function() {
+                    const lb = document.getElementById('banner-lightbox');
+                    lb.classList.remove('opacity-100');
+                    lb.classList.add('opacity-0', 'pointer-events-none');
+                    document.body.style.overflow = '';
+                };
+
+                // Fechar com ESC
+                document.addEventListener('keydown', function(e) {
+                    if (e.key === 'Escape') window.bannerLightboxClose();
+                });
 
                 startTimer();
             })();
