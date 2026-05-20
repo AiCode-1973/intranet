@@ -46,10 +46,12 @@ $percentual_global = ($total_aulas_lms > 0) ? round(($concluidas_lms / $total_au
 $total_rh_novos = $conn->query("SELECT COUNT(*) as total FROM rh_documentos WHERE usuario_id = $user_id")->fetch_assoc()['total'];
 
 // Banner do Dashboard
-$banner_ativo = null;
-$res_banner = $conn->query("SELECT * FROM banners WHERE ativo = 1 ORDER BY created_at DESC LIMIT 1");
+$banners_ativos = [];
+$res_banner = $conn->query("SELECT * FROM banners WHERE ativo = 1 ORDER BY created_at DESC");
 if ($res_banner && $res_banner->num_rows > 0) {
-    $banner_ativo = $res_banner->fetch_assoc();
+    while ($row = $res_banner->fetch_assoc()) {
+        $banners_ativos[] = $row;
+    }
 }
 
 // Saudação
@@ -413,31 +415,77 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                 </div>
             <?php endif; ?>
 
-            <!-- Banner do Dashboard -->
-            <?php if ($banner_ativo): ?>
-            <?php if (!empty($banner_ativo['link_url'])): ?>
-            <a href="<?php echo htmlspecialchars($banner_ativo['link_url']); ?>" target="_blank" rel="noopener noreferrer"
-               class="rounded-xl border border-border shadow-sm overflow-hidden group hover:border-primary hover:shadow-md transition-all block">
-            <?php else: ?>
-            <div class="rounded-xl border border-border shadow-sm overflow-hidden group hover:border-primary hover:shadow-md transition-all">
-            <?php endif; ?>
-                <div class="relative h-full min-h-[160px] bg-gray-100">
-                    <img src="uploads/banners/<?php echo htmlspecialchars($banner_ativo['imagem']); ?>"
-                         alt="<?php echo htmlspecialchars($banner_ativo['titulo']); ?>"
-                         class="w-full h-full object-cover absolute inset-0 group-hover:scale-105 transition-transform duration-500">
-                    <?php if (!empty($banner_ativo['link_url'])): ?>
-                    <div class="absolute bottom-3 right-3">
-                        <span class="flex items-center gap-1 px-2 py-1 bg-black/50 backdrop-blur-sm text-white rounded-lg text-[9px] font-black uppercase tracking-widest">
-                            <i data-lucide="external-link" class="w-3 h-3"></i> Ver mais
-                        </span>
-                    </div>
+            <!-- Banner do Dashboard (Carrossel) -->
+            <?php if (!empty($banners_ativos)): ?>
+            <div id="banner-carousel" class="rounded-xl border border-border shadow-sm overflow-hidden relative min-h-[160px] bg-gray-100 group">
+                <!-- Slides -->
+                <?php foreach ($banners_ativos as $idx => $banner): ?>
+                <div class="banner-slide absolute inset-0 transition-opacity duration-700 <?php echo $idx === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'; ?>">
+                    <?php if (!empty($banner['link_url'])): ?>
+                    <a href="<?php echo htmlspecialchars($banner['link_url']); ?>" target="_blank" rel="noopener noreferrer" class="block w-full h-full">
+                    <?php endif; ?>
+                        <img src="uploads/banners/<?php echo htmlspecialchars($banner['imagem']); ?>"
+                             alt="<?php echo htmlspecialchars($banner['titulo']); ?>"
+                             class="w-full h-full object-cover">
+                        <?php if (!empty($banner['link_url'])): ?>
+                        <div class="absolute bottom-3 right-3">
+                            <span class="flex items-center gap-1 px-2 py-1 bg-black/50 backdrop-blur-sm text-white rounded-lg text-[9px] font-black uppercase tracking-widest">
+                                <i data-lucide="external-link" class="w-3 h-3"></i> Ver mais
+                            </span>
+                        </div>
+                        <?php endif; ?>
+                    <?php if (!empty($banner['link_url'])): ?>
+                    </a>
                     <?php endif; ?>
                 </div>
-            <?php if (!empty($banner_ativo['link_url'])): ?>
-            </a>
-            <?php else: ?>
+                <?php endforeach; ?>
+
+                <?php if (count($banners_ativos) > 1): ?>
+                <!-- Setas de navegação -->
+                <button onclick="bannerPrev()" class="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+                <button onclick="bannerNext()" class="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 bg-black/40 hover:bg-black/60 text-white rounded-full flex items-center justify-center transition-all opacity-0 group-hover:opacity-100">
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+                <!-- Indicadores (bolinhas) -->
+                <div class="absolute bottom-2 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+                    <?php foreach ($banners_ativos as $idx => $banner): ?>
+                    <button onclick="bannerGoTo(<?php echo $idx; ?>)" class="banner-dot w-2 h-2 rounded-full transition-all <?php echo $idx === 0 ? 'bg-white scale-125' : 'bg-white/50'; ?>"></button>
+                    <?php endforeach; ?>
+                </div>
+                <?php endif; ?>
             </div>
-            <?php endif; ?>
+            <script>
+            (function() {
+                const slides = document.querySelectorAll('#banner-carousel .banner-slide');
+                const dots   = document.querySelectorAll('#banner-carousel .banner-dot');
+                let current  = 0;
+                let timer    = null;
+
+                function goTo(n) {
+                    slides[current].classList.replace('opacity-100', 'opacity-0');
+                    slides[current].classList.replace('z-10', 'z-0');
+                    if (dots[current]) { dots[current].classList.remove('bg-white', 'scale-125'); dots[current].classList.add('bg-white/50'); }
+                    current = (n + slides.length) % slides.length;
+                    slides[current].classList.replace('opacity-0', 'opacity-100');
+                    slides[current].classList.replace('z-0', 'z-10');
+                    if (dots[current]) { dots[current].classList.remove('bg-white/50'); dots[current].classList.add('bg-white', 'scale-125'); }
+                }
+
+                function next() { goTo(current + 1); }
+                function prev() { goTo(current - 1); }
+
+                function startTimer() { if (slides.length > 1) timer = setInterval(next, 5000); }
+                function resetTimer()  { clearInterval(timer); startTimer(); }
+
+                window.bannerNext  = function() { next(); resetTimer(); };
+                window.bannerPrev  = function() { prev(); resetTimer(); };
+                window.bannerGoTo  = function(n) { goTo(n); resetTimer(); };
+
+                startTimer();
+            })();
+            </script>
             <?php endif; ?>
         </div>
 
