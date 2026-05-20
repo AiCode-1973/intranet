@@ -258,10 +258,16 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
         </div>
 
         <?php if ($mensagem): ?>
-            <div class="p-3 rounded-lg border mb-4 flex items-center gap-2 bg-green-50 border-green-100 text-green-700 animate-in slide-in-from-top-2">
+            <div id="ceh-msg" class="p-3 rounded-lg border mb-4 flex items-center gap-2 bg-green-50 border-green-100 text-green-700 transition-opacity duration-500">
                 <i data-lucide="check-circle" class="w-4 h-4"></i>
                 <span class="text-xs font-bold uppercase tracking-tighter"><?php echo $mensagem; ?></span>
             </div>
+            <script>
+                setTimeout(function() {
+                    var m = document.getElementById('ceh-msg');
+                    if (m) { m.style.opacity = '0'; setTimeout(function() { m.remove(); }, 500); }
+                }, 4000);
+            </script>
         <?php endif; ?>
 
         <!-- Table -->
@@ -281,7 +287,7 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
                     <tbody id="ceh-tbody" class="divide-y divide-border text-xs">
                         <?php if (!empty($chamados_array)): ?>
                             <?php foreach ($chamados_array as $chamado): ?>
-                            <tr data-id="<?php echo $chamado['id']; ?>" data-unread="<?php echo $chamado['tem_novidade'] ? '1' : '0'; ?>" class="hover:bg-background/30 transition-colors group <?php echo in_array($chamado['status'], ['Resolvido', 'Cancelado']) ? 'opacity-40' : ''; ?>">
+                            <tr data-id="<?php echo $chamado['id']; ?>" data-status="<?php echo htmlspecialchars($chamado['status']); ?>" data-unread="<?php echo $chamado['tem_novidade'] ? '1' : '0'; ?>" class="hover:bg-background/30 transition-colors group <?php echo in_array($chamado['status'], ['Resolvido', 'Cancelado']) ? 'opacity-40' : ''; ?>">
                                 <td class="p-3">
                                     <div class="flex items-center gap-2">
                                         <div class="relative">
@@ -596,26 +602,39 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
 
         // ── Auto-refresh da tabela ──────────────────────────────────────────
         (function () {
-            const INTERVAL   = 30000; // 30 segundos
-            const STATUS_EL  = document.getElementById('ceh-poll-status');
+            const INTERVAL  = 30000; // 30 segundos
+            const STATUS_EL = document.getElementById('ceh-poll-status');
 
-            // Snapshot inicial dos IDs presentes na tabela
-            let knownIds = new Set(
+            // Gera "hash" do estado atual para detectar QUALQUER mudança
+            // (novo chamado, mudança de status, nova mensagem não lida)
+            function stateHash(list) {
+                return list.map(c => c.id + ':' + c.status + ':' + c.nao_lidos).sort().join('|');
+            }
+
+            // Estado inicial extraído da tabela já renderizada
+            let lastHash = stateHash(
                 [...document.querySelectorAll('#ceh-tbody tr[data-id]')]
-                    .map(tr => tr.dataset.id)
+                    .map(tr => ({
+                        id:        tr.dataset.id,
+                        status:    tr.dataset.status  || '',
+                        nao_lidos: tr.dataset.unread   || '0'
+                    }))
             );
-            let knownUnread = 0;
-            document.querySelectorAll('#ceh-tbody tr[data-unread="1"]')
-                .forEach(() => knownUnread++);
 
-            function showToast(msg) {
+            function showToast(msg, autoReload) {
+                const old = document.getElementById('ceh-toast');
+                if (old) old.remove();
                 const t = document.createElement('div');
-                t.className = 'fixed top-4 right-4 z-[9999] flex items-center gap-3 bg-primary text-white px-4 py-3 rounded-xl shadow-2xl text-xs font-bold uppercase tracking-widest cursor-pointer animate-in slide-in-from-top-3 duration-300';
-                t.innerHTML = `<i data-lucide="bell" class="w-4 h-4"></i><span>${msg}</span><span class="opacity-60 text-[9px]">Clique para atualizar</span>`;
+                t.id = 'ceh-toast';
+                t.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;display:flex;align-items:center;gap:10px;background:#2563eb;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.3);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;';
+                t.innerHTML = '&#128276; ' + msg;
                 t.onclick = () => location.reload();
                 document.body.appendChild(t);
-                lucide.createIcons({ nodes: [t] });
-                setTimeout(() => t.remove(), 12000);
+                if (autoReload) {
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    setTimeout(() => { if (t.parentNode) t.remove(); }, 8000);
+                }
             }
 
             function pulse(ok) {
@@ -627,33 +646,35 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
 
             async function poll() {
                 try {
-                    const res  = await fetch('ceh_gerenciar.php?action=poll', { cache: 'no-store' });
+                    const res = await fetch('ceh_gerenciar.php?action=poll', { cache: 'no-store' });
+                    if (!res.ok) { pulse(false); return; }
                     const data = await res.json();
                     pulse(true);
 
-                    const newIds    = new Set(data.chamados.map(c => String(c.id)));
-                    const added     = [...newIds].filter(id => !knownIds.has(id));
-                    let   newUnread = data.chamados.reduce((s, c) => s + parseInt(c.nao_lidos), 0);
+                    const currentHash = stateHash(
+                        data.chamados.map(c => ({
+                            id:        String(c.id),
+                            status:    c.status,
+                            nao_lidos: String(c.nao_lidos)
+                        }))
+                    );
 
-                    if (added.length > 0) {
-                        showToast(`${added.length} novo(s) chamado(s) recebido(s)`);
-                        knownIds = newIds;
-                        knownUnread = newUnread;
-                        // Recarrega apenas se o modal estiver fechado
-                        if (!document.getElementById('modalAtender').classList.contains('active')) {
-                            location.reload();
+                    if (currentHash !== lastHash) {
+                        lastHash = currentHash;
+                        const modalOpen = document.getElementById('modalAtender').classList.contains('active');
+                        if (modalOpen) {
+                            showToast('Chamados atualizados — feche o modal para ver', false);
+                        } else {
+                            showToast('Atualizando...', true);
                         }
-                    } else if (newUnread > knownUnread) {
-                        showToast('Nova mensagem em chamado aberto');
-                        knownUnread = newUnread;
-                    } else {
-                        knownUnread = newUnread;
                     }
                 } catch (e) {
                     pulse(false);
                 }
             }
 
+            // Primeira verificação imediata, depois a cada 30s
+            poll();
             setInterval(poll, INTERVAL);
         })();
         // ───────────────────────────────────────────────────────────────────
