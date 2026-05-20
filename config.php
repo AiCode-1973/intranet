@@ -1,5 +1,5 @@
 <?php
-define('DB_HOST', '186.209.113.107');
+define('DB_HOST', '69.49.241.25');
 define('DB_USER', 'apassa73_intranet');
 define('DB_PASS', 'Dema@1973');
 define('DB_NAME', 'apassa73_intranet');
