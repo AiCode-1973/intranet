@@ -426,7 +426,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     <?php endif; ?>
                         <img src="uploads/banners/<?php echo htmlspecialchars($banner['imagem']); ?>"
                              alt="<?php echo htmlspecialchars($banner['titulo']); ?>"
-                             class="absolute inset-0 w-full h-full object-cover"
+                             class="absolute inset-0 w-full h-full object-contain"
                              style="image-rendering:high-quality"
                              <?php echo $idx === 0 ? 'loading="eager"' : 'loading="lazy"'; ?>>
                         <?php if (!empty($banner['link_url'])): ?>
