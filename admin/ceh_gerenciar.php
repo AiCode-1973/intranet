@@ -124,6 +124,8 @@ while($row = $res_chamados->fetch_assoc()) {
             : '-';
         $row['comentarios'][] = $coment;
     }
+    $comentarios_res->free();
+    $unread_res->free();
     $row['data_abertura_fmt'] = $row['data_abertura']
         ? date('d/m/Y H:i', strtotime($row['data_abertura']))
         : '-';
@@ -302,7 +304,7 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
                                 </td>
                                 <td class="p-3 text-right">
                                     <div class="flex items-center justify-end gap-2">
-                                        <button onclick='abrirAtendimento(<?php echo json_encode($chamado); ?>)' class="px-3 py-1 bg-primary text-white rounded-lg font-black uppercase tracking-widest text-[9px] transition-all hover:bg-primary-hover shadow-md shadow-primary/10 active:scale-95">
+                                        <button onclick='abrirAtendimento(<?php echo htmlspecialchars(json_encode($chamado, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE), ENT_QUOTES); ?>)' class="px-3 py-1 bg-primary text-white rounded-lg font-black uppercase tracking-widest text-[9px] transition-all hover:bg-primary-hover shadow-md shadow-primary/10 active:scale-95">
                                             Gerenciar
                                         </button>
                                         <?php if (isAdmin()): ?>

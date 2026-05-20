@@ -134,6 +134,8 @@ while($row = $res->fetch_assoc()) {
             : '-';
         $row['comentarios'][] = $coment;
     }
+    $comentarios_res->free();
+    $unread_res->free();
     $row['data_abertura_fmt'] = $row['data_abertura']
         ? date('d/m/Y H:i', strtotime($row['data_abertura']))
         : '-';
@@ -251,7 +253,7 @@ $prioridade_labels = [
                                 $style = $status_styles[$chamado['status']];
                                 $prio = $prioridade_labels[$chamado['prioridade']];
                             ?>
-                            <tr onclick='verDetalhes(<?php echo json_encode($chamado); ?>)' class="hover:bg-background/20 transition-colors group cursor-pointer">
+                            <tr onclick='verDetalhes(<?php echo htmlspecialchars(json_encode($chamado, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE), ENT_QUOTES); ?>)' class="hover:bg-background/20 transition-colors group cursor-pointer">
                                 <td class="p-3">
                                     <div class="flex items-center gap-3">
                                         <div class="relative">
