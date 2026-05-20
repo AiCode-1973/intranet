@@ -417,18 +417,20 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
 
             <!-- Banner do Dashboard (Carrossel) -->
             <?php if (!empty($banners_ativos)): ?>
-            <div id="banner-carousel" class="rounded-xl border border-border shadow-sm overflow-hidden relative min-h-[160px] bg-gray-100 group">
+            <div id="banner-carousel" class="rounded-xl border border-border shadow-sm overflow-hidden relative bg-gray-100 group" style="height:260px">
                 <!-- Slides -->
                 <?php foreach ($banners_ativos as $idx => $banner): ?>
-                <div class="banner-slide absolute inset-0 transition-opacity duration-700 <?php echo $idx === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'; ?>">
+                <div class="banner-slide absolute inset-0 transition-opacity duration-700 <?php echo $idx === 0 ? 'opacity-100 z-10' : 'opacity-0 z-0'; ?>" style="will-change:opacity;backface-visibility:hidden">
                     <?php if (!empty($banner['link_url'])): ?>
-                    <a href="<?php echo htmlspecialchars($banner['link_url']); ?>" target="_blank" rel="noopener noreferrer" class="block w-full h-full">
+                    <a href="<?php echo htmlspecialchars($banner['link_url']); ?>" target="_blank" rel="noopener noreferrer" class="block relative w-full h-full">
                     <?php endif; ?>
                         <img src="uploads/banners/<?php echo htmlspecialchars($banner['imagem']); ?>"
                              alt="<?php echo htmlspecialchars($banner['titulo']); ?>"
-                             class="w-full h-full object-cover">
+                             class="absolute inset-0 w-full h-full object-cover"
+                             style="image-rendering:high-quality"
+                             <?php echo $idx === 0 ? 'loading="eager"' : 'loading="lazy"'; ?>>
                         <?php if (!empty($banner['link_url'])): ?>
-                        <div class="absolute bottom-3 right-3">
+                        <div class="absolute bottom-3 right-3 z-10">
                             <span class="flex items-center gap-1 px-2 py-1 bg-black/50 backdrop-blur-sm text-white rounded-lg text-[9px] font-black uppercase tracking-widest">
                                 <i data-lucide="external-link" class="w-3 h-3"></i> Ver mais
                             </span>
@@ -436,6 +438,8 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                         <?php endif; ?>
                     <?php if (!empty($banner['link_url'])): ?>
                     </a>
+                    <?php else: ?>
+                    <div class="block relative w-full h-full"></div>
                     <?php endif; ?>
                 </div>
                 <?php endforeach; ?>
