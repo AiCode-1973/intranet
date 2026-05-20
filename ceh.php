@@ -200,10 +200,16 @@ $prioridade_labels = [
         </div>
 
         <?php if ($mensagem): ?>
-            <div class="p-3 rounded-lg border mb-6 flex items-center gap-2 bg-green-50 border-green-100 text-green-700 animate-in slide-in-from-top-2">
+            <div id="ceh-msg" class="p-3 rounded-lg border mb-6 flex items-center gap-2 bg-green-50 border-green-100 text-green-700 transition-opacity duration-500">
                 <i data-lucide="check-circle" class="w-4 h-4"></i>
                 <span class="text-[10px] font-bold uppercase tracking-widest"><?php echo $mensagem; ?></span>
             </div>
+            <script>
+                setTimeout(function() {
+                    var m = document.getElementById('ceh-msg');
+                    if (m) { m.style.opacity = '0'; setTimeout(function() { m.remove(); }, 500); }
+                }, 4000);
+            </script>
         <?php endif; ?>
 
         <!-- Stats Grid -->
