@@ -129,8 +129,14 @@ while($row = $res->fetch_assoc()) {
                                      ORDER BY cc.data_comentario ASC");
     $row['comentarios'] = [];
     while($coment = $comentarios_res->fetch_assoc()) {
+        $coment['data_comentario_fmt'] = $coment['data_comentario']
+            ? date('d/m/Y H:i', strtotime($coment['data_comentario']))
+            : '-';
         $row['comentarios'][] = $coment;
     }
+    $row['data_abertura_fmt'] = $row['data_abertura']
+        ? date('d/m/Y H:i', strtotime($row['data_abertura']))
+        : '-';
     
     $chamados[] = $row;
     if (isset($stats[$row['status']])) $stats[$row['status']]++;
@@ -477,7 +483,7 @@ $prioridade_labels = [
             document.getElementById('detalhe_descricao').textContent = chamado.descricao;
             document.getElementById('detalhe_status_label').textContent = 'Status: ' + chamado.status;
             document.getElementById('detalhe_tecnico').textContent = chamado.tecnico || 'Em Triagem';
-            document.getElementById('detalhe_data').textContent = chamado.data_abertura;
+            document.getElementById('detalhe_data').textContent = chamado.data_abertura_fmt;
             document.getElementById('comentario_chamado_id').value = chamado.id;
 
             // Anexo Principal
@@ -516,7 +522,7 @@ $prioridade_labels = [
                     div.innerHTML = `
                         <div class="flex justify-between items-center mb-0.5">
                             <span class="text-[8px] font-black text-primary uppercase">${c.autor}</span>
-                            <span class="text-[7px] text-text-secondary opacity-50">${c.data_comentario}</span>
+                            <span class="text-[7px] text-text-secondary opacity-50">${c.data_comentario_fmt}</span>
                         </div>
                         <p class="text-[9px] text-text-secondary leading-tight italic">"${c.comentario}"</p>
                         ${c.anexo ? `

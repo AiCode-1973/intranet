@@ -119,8 +119,14 @@ while($row = $res_chamados->fetch_assoc()) {
                                      ORDER BY cc.data_comentario ASC");
     $row['comentarios'] = [];
     while($coment = $comentarios_res->fetch_assoc()) {
+        $coment['data_comentario_fmt'] = $coment['data_comentario']
+            ? date('d/m/Y H:i', strtotime($coment['data_comentario']))
+            : '-';
         $row['comentarios'][] = $coment;
     }
+    $row['data_abertura_fmt'] = $row['data_abertura']
+        ? date('d/m/Y H:i', strtotime($row['data_abertura']))
+        : '-';
     
     $chamados_array[] = $row;
 }
@@ -496,7 +502,7 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
             if (chamado.comentarios && chamado.comentarios.length > 0) {
                 chamado.comentarios.forEach(coment => {
                     const isMe = coment.usuario_id == USUARIO_ATUAL_ID;
-                    const date = new Date(coment.data_comentario).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    const date = coment.data_comentario_fmt;
                     
                     let anexoHtml = '';
                     if (coment.anexo) {
