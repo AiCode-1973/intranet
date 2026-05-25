@@ -413,106 +413,150 @@ $prioridade_labels = [
 
     <!-- Modal Detalhes Modo Paisagem (2 Colunas) -->
     <div id="modalDetalhes" class="modal">
-        <div class="bg-white w-full max-w-5xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col md:flex-row animate-in zoom-in duration-150 h-[85vh]">
-            <!-- Coluna Esquerda: Informações -->
-            <div class="w-full md:w-1/2 flex flex-col border-r border-border bg-gray-50/50">
-                <div id="modal_header_bg" class="px-5 py-4 text-white flex justify-between items-center bg-orange-600">
-                    <div>
-                        <h2 class="text-base font-bold flex items-center gap-2">
-                            <span id="detalhe_id" class="bg-white/10 px-1.5 py-0.5 rounded text-[10px] font-mono">#000</span>
-                            Detalhes da O.S.
-                        </h2>
-                        <p id="detalhe_status_label" class="text-white/70 text-[10px] uppercase font-bold tracking-widest mt-0.5">Status: ---</p>
+        <div class="bg-white w-full max-w-5xl mx-4 rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col md:flex-row" style="max-height:90vh">
+
+            <!-- ── Coluna Esquerda: Informações ─────────────────────────────── -->
+            <div class="w-full md:w-[45%] flex flex-col border-r border-border">
+
+                <!-- Cabeçalho colorido -->
+                <div id="modal_header_bg" class="px-5 py-4 bg-orange-600 flex justify-between items-start flex-shrink-0">
+                    <div class="space-y-1.5">
+                        <div class="flex items-center gap-2">
+                            <span id="detalhe_id" class="bg-white/20 text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded">#000</span>
+                            <span class="text-white font-bold text-sm">Ordem de Serviço</span>
+                        </div>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <span id="detalhe_status_badge" class="bg-white/20 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/30">---</span>
+                            <span id="detalhe_prioridade_badge" class="bg-white/10 text-white/80 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/20">---</span>
+                        </div>
                     </div>
-                    <button class="md:hidden p-1.5 hover:bg-white/10 rounded-lg transition-colors" onclick="fecharModalDetalhes()">
+                    <button class="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white flex-shrink-0" onclick="fecharModalDetalhes()">
                         <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
                 </div>
 
-                <div class="p-6 flex-grow overflow-y-auto space-y-6">
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Assunto</label>
-                            <p id="detalhe_titulo" class="text-sm font-bold text-text">---</p>
+                <!-- Corpo -->
+                <div class="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50/40">
+
+                    <!-- Título -->
+                    <div class="bg-white rounded-xl border border-border p-4 shadow-sm">
+                        <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                            <i data-lucide="file-text" class="w-3 h-3"></i> Assunto
+                        </p>
+                        <p id="detalhe_titulo" class="text-sm font-bold text-text leading-snug">---</p>
+                    </div>
+
+                    <!-- Descrição -->
+                    <div class="bg-white rounded-xl border border-border p-4 shadow-sm">
+                        <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-2 flex items-center gap-1">
+                            <i data-lucide="align-left" class="w-3 h-3"></i> Descrição Original
+                        </p>
+                        <p id="detalhe_descricao" class="text-xs text-text-secondary leading-relaxed italic">---</p>
+                    </div>
+
+                    <!-- Grid de info -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-white rounded-xl border border-border p-3 shadow-sm">
+                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                                <i data-lucide="tag" class="w-3 h-3"></i> Categoria
+                            </p>
+                            <p id="detalhe_categoria" class="text-[11px] font-bold text-orange-600 uppercase tracking-tight">---</p>
                         </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Categoria / Local</label>
-                            <p id="detalhe_categoria_local" class="text-xs font-bold text-orange-600 uppercase">---</p>
+                        <div class="bg-white rounded-xl border border-border p-3 shadow-sm">
+                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                                <i data-lucide="map-pin" class="w-3 h-3"></i> Local
+                            </p>
+                            <p id="detalhe_local" class="text-[11px] font-bold text-text">---</p>
                         </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Descrição Original</label>
-                        <div id="detalhe_descricao" class="text-xs text-text-secondary leading-relaxed bg-white p-4 rounded-xl border border-border/60 italic shadow-sm">---</div>
-                    </div>
-
-                    <div id="detalhe_anexo_container" class="hidden">
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Anexo Original</label>
-                        <a id="detalhe_anexo_link" href="#" target="_blank" class="flex items-center gap-3 p-3 bg-white border border-border rounded-xl hover:border-orange-600 transition-all group">
-                            <div class="w-10 h-10 bg-orange-50 rounded-lg flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all">
-                                <i data-lucide="file-text" class="w-5 h-5"></i>
-                            </div>
-                            <div class="flex flex-col">
-                                <span class="text-[11px] font-bold text-text">Ver Arquivo Anexo</span>
-                                <span class="text-[9px] text-text-secondary uppercase font-bold tracking-tighter">Clique para abrir</span>
-                            </div>
-                        </a>
-                    </div>
-
-                    <div class="grid grid-cols-2 gap-4 pt-4 border-t border-border">
-                        <div>
-                            <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Solicitante</label>
+                        <div class="bg-white rounded-xl border border-border p-3 shadow-sm">
+                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                                <i data-lucide="user" class="w-3 h-3"></i> Solicitante
+                            </p>
                             <p id="detalhe_solicitante" class="text-[11px] font-bold text-text">---</p>
                         </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest opacity-50">Técnico Responsável</label>
+                        <div class="bg-white rounded-xl border border-border p-3 shadow-sm">
+                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                                <i data-lucide="user-check" class="w-3 h-3"></i> Técnico
+                            </p>
                             <p id="detalhe_tecnico" class="text-[11px] font-bold text-text">---</p>
                         </div>
+                    </div>
+
+                    <!-- Data de abertura -->
+                    <div class="flex items-center gap-2 text-[10px] text-text-secondary px-1">
+                        <i data-lucide="clock" class="w-3.5 h-3.5 opacity-50"></i>
+                        <span class="font-bold uppercase tracking-widest opacity-50">Aberto em:</span>
+                        <span id="detalhe_data" class="font-bold text-text">---</span>
+                    </div>
+
+                    <!-- Resolução (condicional) -->
+                    <div id="detalhe_resolucao_container" class="hidden bg-green-50 rounded-xl border border-green-200 p-4">
+                        <p class="text-[9px] font-black text-green-700 uppercase tracking-widest mb-2 flex items-center gap-1">
+                            <i data-lucide="check-circle" class="w-3 h-3"></i> Resolução Técnica
+                        </p>
+                        <p id="detalhe_resolucao" class="text-xs text-green-800 leading-relaxed font-medium">---</p>
+                    </div>
+
+                    <!-- Anexo (condicional) -->
+                    <div id="detalhe_anexo_container" class="hidden">
+                        <a id="detalhe_anexo_link" href="#" target="_blank" class="flex items-center gap-3 p-3 bg-white border border-border rounded-xl hover:border-orange-600 transition-all group shadow-sm">
+                            <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all flex-shrink-0">
+                                <i data-lucide="paperclip" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-[11px] font-bold text-text">Arquivo Anexo</p>
+                                <p class="text-[9px] text-text-secondary uppercase font-bold tracking-tighter">Clique para abrir</p>
+                            </div>
+                        </a>
                     </div>
                 </div>
             </div>
 
-            <!-- Coluna Direita: Chat/Histórico -->
-            <div class="w-full md:w-1/2 flex flex-col bg-white">
-                <div class="px-5 py-4 border-b border-border flex justify-between items-center bg-white sticky top-0 z-10">
+            <!-- ── Coluna Direita: Chat/Histórico ───────────────────────────── -->
+            <div class="w-full md:w-[55%] flex flex-col bg-white">
+                <!-- Header chat -->
+                <div class="px-5 py-3.5 border-b border-border flex justify-between items-center bg-white flex-shrink-0">
                     <div class="flex items-center gap-2">
-                        <i data-lucide="message-square" class="w-4 h-4 text-orange-600"></i>
-                        <h3 class="text-xs font-black text-text uppercase tracking-widest">Histórico & Chat</h3>
+                        <div class="w-7 h-7 bg-orange-50 rounded-lg flex items-center justify-center">
+                            <i data-lucide="message-square" class="w-4 h-4 text-orange-600"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-black text-text uppercase tracking-widest">Histórico & Chat</h3>
+                            <p class="text-[9px] text-text-secondary font-bold">Comunicação com a equipe técnica</p>
+                        </div>
                     </div>
-                    <button class="hidden md:block p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-text-secondary" onclick="fecharModalDetalhes()">
+                    <button class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-text-secondary" onclick="fecharModalDetalhes()">
                         <i data-lucide="x" class="w-5 h-5"></i>
                     </button>
                 </div>
 
-                <!-- Lista de Mensagens -->
-                <div id="chat_mensagens" class="flex-grow overflow-y-auto p-5 space-y-4 bg-gray-50/30 chat-container">
+                <!-- Mensagens -->
+                <div id="chat_mensagens" class="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50/30 chat-container">
                     <!-- Mensagens via JS -->
                 </div>
 
                 <!-- Input de Mensagem -->
-                <div class="p-4 border-t border-border bg-white">
-                    <form id="formComentario" method="POST" enctype="multipart/form-data" class="space-y-3">
+                <div class="p-4 border-t border-border bg-white flex-shrink-0">
+                    <form id="formComentario" method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="acao" value="adicionar_comentario">
                         <input type="hidden" name="manutencao_id" id="comentario_manutencao_id">
-                        
-                        <div class="relative group">
+
+                        <div class="relative">
                             <input type="file" name="anexo_comentario" id="anexo_com_input" class="hidden" accept="image/*,.pdf">
-                            <div id="status_anexo_com" class="hidden absolute -top-8 left-0 right-0 bg-orange-600 text-white text-[9px] font-bold px-2 py-1 rounded-t-lg flex items-center justify-between">
-                                <span class="flex items-center gap-1"><i data-lucide="paperclip" class="w-3 h-3"></i> Arquivo pronto para envio</span>
+                            <div id="status_anexo_com" class="hidden absolute -top-7 left-0 right-0 bg-orange-600 text-white text-[9px] font-bold px-2 py-1 rounded-t-lg flex items-center justify-between">
+                                <span class="flex items-center gap-1"><i data-lucide="paperclip" class="w-3 h-3"></i> Arquivo selecionado</span>
                                 <button type="button" onclick="resetAnexoCom()"><i data-lucide="x" class="w-3 h-3"></i></button>
                             </div>
-                            <textarea name="comentario" id="chat_textarea" rows="2" required placeholder="Digite sua mensagem aqui..."
-                                      class="w-full p-3 bg-background border border-border rounded-xl text-xs font-medium focus:outline-none focus:border-orange-600 transition-all resize-none"></textarea>
+                            <textarea name="comentario" id="chat_textarea" rows="2" required placeholder="Digite sua mensagem..."
+                                class="w-full px-3 py-2.5 bg-gray-50 border border-border rounded-xl text-xs font-medium focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/10 transition-all resize-none"></textarea>
                         </div>
 
-                        <div class="flex justify-between items-center gap-2">
-                            <label for="anexo_com_input" class="p-2 text-text-secondary hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors cursor-pointer flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest">
-                                <i data-lucide="paperclip" class="w-4 h-4"></i>
-                                Anexar Foto
+                        <div class="flex justify-between items-center mt-2">
+                            <label for="anexo_com_input" class="flex items-center gap-1.5 text-[10px] font-bold text-text-secondary hover:text-orange-600 cursor-pointer transition-colors px-2 py-1.5 rounded-lg hover:bg-orange-50">
+                                <i data-lucide="paperclip" class="w-3.5 h-3.5"></i> Anexar Foto
                             </label>
-                            <button type="submit" class="bg-orange-600 hover:bg-orange-700 text-white px-5 py-2 rounded-lg text-[10px] font-bold shadow-md transition-all flex items-center gap-2 uppercase tracking-widest active:scale-95">
-                                <span>Enviar</span>
-                                <i data-lucide="send" class="w-3.5 h-3.5"></i>
+                            <button type="submit" class="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 active:scale-95 text-white px-5 py-2 rounded-lg text-[10px] font-black shadow transition-all uppercase tracking-widest">
+                                <i data-lucide="send" class="w-3.5 h-3.5"></i> Enviar
                             </button>
                         </div>
                     </form>
@@ -542,14 +586,51 @@ $prioridade_labels = [
         }
 
         function verDetalhes(chamado) {
+            const statusColors = {
+                'Aberto':          'bg-blue-500/30 text-white border-blue-300/40',
+                'Em Atendimento':  'bg-amber-500/30 text-white border-amber-300/40',
+                'Aguardando Peça': 'bg-purple-500/30 text-white border-purple-300/40',
+                'Resolvido':       'bg-green-500/30 text-white border-green-300/40',
+                'Cancelado':       'bg-red-500/30 text-white border-red-300/40'
+            };
+            const prioColors = {
+                'Baixa':   '🟢',
+                'Média':   '🟡',
+                'Alta':    '🟠',
+                'Urgente': '🔴'
+            };
+
             document.getElementById('detalhe_id').innerText = '#' + chamado.id.toString().padStart(3, '0');
             document.getElementById('detalhe_titulo').innerText = chamado.titulo;
-            document.getElementById('detalhe_categoria_local').innerText = chamado.categoria + ' | ' + chamado.local;
             document.getElementById('detalhe_descricao').innerText = chamado.descricao;
-            document.getElementById('detalhe_status_label').innerText = 'STATUS: ' + chamado.status;
+            document.getElementById('detalhe_categoria').innerText = chamado.categoria;
+            document.getElementById('detalhe_local').innerText = chamado.local;
             document.getElementById('detalhe_solicitante').innerText = chamado.solicitante;
             document.getElementById('detalhe_tecnico').innerText = chamado.tecnico || 'Pendente';
             document.getElementById('comentario_manutencao_id').value = chamado.id;
+
+            // Status badge
+            const statusBadge = document.getElementById('detalhe_status_badge');
+            statusBadge.innerText = chamado.status;
+            statusBadge.className = 'text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border ' + (statusColors[chamado.status] || 'bg-white/20 text-white border-white/30');
+
+            // Prioridade badge
+            const prioBadge = document.getElementById('detalhe_prioridade_badge');
+            prioBadge.innerText = (prioColors[chamado.prioridade] || '') + ' ' + (chamado.prioridade || '');
+
+            // Data abertura
+            if (chamado.data_abertura) {
+                document.getElementById('detalhe_data').innerText = new Date(chamado.data_abertura.replace(' ', 'T')).toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+            }
+
+            // Resolução
+            const resContainer = document.getElementById('detalhe_resolucao_container');
+            if (chamado.resolucao) {
+                resContainer.classList.remove('hidden');
+                document.getElementById('detalhe_resolucao').innerText = chamado.resolucao;
+            } else {
+                resContainer.classList.add('hidden');
+            }
 
             // Anexo
             const anexoContainer = document.getElementById('detalhe_anexo_container');
