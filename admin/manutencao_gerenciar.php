@@ -53,7 +53,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         $man_id = intval($_POST['manutencao_id'] ?? 0);
         $comentario = trim($_POST['comentario'] ?? '');
         if ($man_id && $comentario) {
-            $uid = $_SESSION['user_id'];
+            $uid = $_SESSION['usuario_id'];
             $stmt = $conn->prepare("INSERT INTO manutencao_comentarios (manutencao_id, usuario_id, comentario, lido_pelo_tecnico, lido_pelo_usuario) VALUES (?, ?, ?, 1, 0)");
             $stmt->bind_param("iis", $man_id, $uid, $comentario);
             $stmt->execute();
@@ -356,7 +356,7 @@ $status_styles = [
         function renderChat(comentarios) {
             const box = document.getElementById('man-chat-msgs');
             box.innerHTML = '';
-            const meId = <?php echo intval($_SESSION['user_id'] ?? 0); ?>;
+            const meId = <?php echo intval($_SESSION['usuario_id'] ?? 0); ?>;
 
             if (!comentarios || comentarios.length === 0) {
                 box.innerHTML = '<div class="flex flex-col items-center justify-center opacity-20 py-10"><i data-lucide="message-circle" class="w-10 h-10 mb-2"></i><p class="text-[10px] font-black uppercase tracking-widest text-center">Nenhuma mensagem<br>nesta O.S.</p></div>';
@@ -481,9 +481,10 @@ $status_styles = [
                     if (currentHash !== lastHash) {
                         lastHash = currentHash;
                         const modalOpen = document.getElementById('modalEditar').classList.contains('active');
-                        if (modalOpen) {
-                            showToast('Ordens atualizadas — feche o modal para ver', false);
-                        } else {
+                        if (modalOpen && modalChamadoId) {
+                            // Atualiza o chat em tempo real sem fechar o modal
+                            carregarChat(modalChamadoId);
+                        } else if (!modalOpen) {
                             showToast('Atualizando...', true);
                         }
                     }
