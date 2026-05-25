@@ -4,7 +4,11 @@ require_once 'functions.php';
 
 requireLogin();
 
-// Dados para os cards superiores
+// Verifica se o usuário já aceitou os termos de uso
+$uid = $_SESSION['usuario_id'];
+$termos_row = $conn->query("SELECT aceite_termos FROM usuarios WHERE id = $uid")->fetch_assoc();
+$precisa_aceitar = empty($termos_row['aceite_termos']);
+
 $total_avisos = $conn->query("SELECT COUNT(*) as total FROM mural WHERE ativo = 1 AND (data_expiracao IS NULL OR data_expiracao >= CURDATE())")->fetch_assoc()['total'];
 $ultimo_aviso = $conn->query("SELECT titulo FROM mural WHERE ativo = 1 ORDER BY created_at DESC LIMIT 1")->fetch_assoc();
 
@@ -16,7 +20,6 @@ $total_niver_hoje = $conn->query("SELECT COUNT(*) as total FROM usuarios WHERE d
 $mes_atual = date('m');
 $total_niver_mes = $conn->query("SELECT COUNT(*) as total FROM usuarios WHERE MONTH(data_nascimento) = '$mes_atual' AND ativo = 1")->fetch_assoc()['total'];
 
-$uid = $_SESSION['usuario_id'];
 if (isAdmin()) {
     $total_chamados_pendentes = $conn->query("SELECT COUNT(*) as total FROM chamados WHERE status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
 } else {
@@ -745,6 +748,39 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             document.getElementById('modalInfoDetalhes').classList.remove('active');
         }
 
+        <?php if ($precisa_aceitar): ?>
+        // Abre o modal de termos automaticamente
+        window.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('modalTermos').style.display = 'flex';
+        });
+        <?php endif; ?>
+
+        function aceitarTermos() {
+            const btn = document.getElementById('btnAceitarTermos');
+            btn.disabled = true;
+            btn.textContent = 'Registrando...';
+            fetch('aceitar_termos.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'acao=aceitar'
+            })
+            .then(r => r.json())
+            .then(data => {
+                if (data.ok) {
+                    document.getElementById('modalTermos').style.display = 'none';
+                } else {
+                    btn.disabled = false;
+                    btn.textContent = 'Li e Aceito os Termos';
+                    alert('Erro ao registrar aceite. Tente novamente.');
+                }
+            })
+            .catch(() => {
+                btn.disabled = false;
+                btn.textContent = 'Li e Aceito os Termos';
+                alert('Erro de conexão. Tente novamente.');
+            });
+        }
+
         function toggleSidebar() {
             const sidebar = document.getElementById('mainSidebar');
             if (sidebar.classList.contains('-translate-x-full')) {
@@ -754,5 +790,70 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             }
         }
     </script>
+
+    <!-- ── Modal Termos de Uso ───────────────────────────────────────────── -->
+    <div id="modalTermos" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px;">
+        <div style="background:#fff;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.35);width:100%;max-width:680px;overflow:hidden;display:flex;flex-direction:column;max-height:92vh;">
+            <!-- Cabeçalho -->
+            <div style="background:linear-gradient(135deg,#0d9488,#0f766e);padding:24px 28px;color:#fff;flex-shrink:0;">
+                <div style="display:flex;align-items:center;gap:14px;">
+                    <div style="background:rgba(255,255,255,.15);padding:10px;border-radius:12px;">
+                        <i data-lucide="file-check-2" style="width:28px;height:28px;"></i>
+                    </div>
+                    <div>
+                        <h2 style="font-size:18px;font-weight:800;letter-spacing:-.3px;line-height:1.2;">Política de Uso da Intranet</h2>
+                        <p style="font-size:11px;opacity:.8;font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px;">Leia com atenção antes de continuar</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Corpo -->
+            <div style="padding:24px 28px;flex-grow:1;overflow-y:auto;">
+                <p style="font-size:12px;color:#64748b;line-height:1.7;margin-bottom:16px;">
+                    Para utilizar a Intranet APAS você deve ler e aceitar a <strong style="color:#0d9488;">Política de Uso</strong>
+                    disponibilizada abaixo. O aceite é obrigatório e registrado com data/hora.
+                </p>
+                <!-- Visualizador de PDF -->
+                <div style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;height:340px;background:#f8fafc;">
+                    <iframe src="politica_uso_intranet_colaborador_apas.pdf"
+                            style="width:100%;height:100%;border:none;"
+                            title="Política de Uso da Intranet APAS">
+                        <p style="padding:16px;font-size:12px;color:#64748b;">
+                            Seu navegador não suporta visualização de PDF.
+                            <a href="politica_uso_intranet_colaborador_apas.pdf" target="_blank" style="color:#0d9488;font-weight:700;">Clique aqui para abrir</a>.
+                        </p>
+                    </iframe>
+                </div>
+                <a href="politica_uso_intranet_colaborador_apas.pdf" target="_blank"
+                   style="display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:11px;font-weight:700;color:#0d9488;text-decoration:none;letter-spacing:.03em;">
+                    <i data-lucide="external-link" style="width:13px;height:13px;"></i>
+                    Abrir em nova aba
+                </a>
+
+                <!-- Checkbox de confirmação -->
+                <label style="display:flex;align-items:flex-start;gap:10px;margin-top:18px;padding:14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;cursor:pointer;">
+                    <input type="checkbox" id="chkTermos" onchange="var b=document.getElementById('btnAceitarTermos');b.disabled=!this.checked;b.style.opacity=this.checked?'1':'.5';"
+                           style="width:16px;height:16px;margin-top:2px;accent-color:#0d9488;flex-shrink:0;">
+                    <span style="font-size:12px;color:#166534;font-weight:600;line-height:1.5;">
+                        Declaro que li e concordo com a <strong>Política de Uso da Intranet APAS Baixada Santista</strong> e me comprometo a cumprir todas as diretrizes nela estabelecidas.
+                    </span>
+                </label>
+            </div>
+
+            <!-- Rodapé -->
+            <div style="padding:16px 28px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;background:#f8fafc;flex-shrink:0;">
+                <button id="btnAceitarTermos" disabled onclick="aceitarTermos()"
+                        style="background:#0d9488;color:#fff;border:none;padding:10px 28px;border-radius:10px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;opacity:.5;transition:opacity .2s;"
+                        onmouseover="if(!this.disabled)this.style.background='#0f766e'"
+                        onmouseout="this.style.background='#0d9488'"
+                        onfocus="this.style.opacity=this.disabled?'.5':'1'"
+                        >
+                    Li e Aceito os Termos
+                </button>
+            </div>
+        </div>
+    </div>
+    <!-- ─────────────────────────────────────────────────────────────────── -->
+
 </body>
 </html>
