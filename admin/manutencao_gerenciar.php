@@ -18,7 +18,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         $data_fechamento = ($status == 'Resolvido' || $status == 'Cancelado') ? date('Y-m-d H:i:s') : null;
 
         // Estado anterior para comparação
-        $anterior = $conn->query("SELECT status, resolucao, tecnico_id FROM manutencao WHERE id = $id")->fetch_assoc();
+        $ant_res = $conn->query("SELECT status, resolucao, tecnico_id FROM manutencao WHERE id = $id");
+        $anterior = ($ant_res && $ant_res->num_rows > 0) ? $ant_res->fetch_assoc() : null;
 
         $stmt = $conn->prepare("UPDATE manutencao SET status = ?, tecnico_id = ?, resolucao = ?, data_fechamento = ? WHERE id = ?");
         $stmt->bind_param("sissi", $status, $tecnico_id, $resolucao, $data_fechamento, $id);
@@ -120,15 +121,18 @@ $filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $where_sql = $filtro_status ? "WHERE m.status = '$filtro_status'" : "";
 
 // Buscar chamados
-$sql = "SELECT m.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante,
+$sql = "SELECT m.*, COALESCE(u.nome, '(usuário removido)') as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante,
         (SELECT COUNT(*) FROM manutencao_comentarios mc WHERE mc.manutencao_id = m.id AND mc.lido_pelo_tecnico = 0) as nao_lidos
         FROM manutencao m 
-        JOIN usuarios u ON m.usuario_id = u.id 
+        LEFT JOIN usuarios u ON m.usuario_id = u.id 
         LEFT JOIN usuarios t ON m.tecnico_id = t.id 
         LEFT JOIN setores s ON u.setor_id = s.id
         $where_sql
         ORDER BY m.data_abertura DESC";
 $res = $conn->query($sql);
+if (!$res) {
+    die('<div style="font-family:monospace;color:red;padding:20px">Erro na consulta: ' . htmlspecialchars($conn->error) . '</div>');
+}
 $chamados = [];
 while($row = $res->fetch_assoc()) $chamados[] = $row;
 
@@ -206,8 +210,11 @@ $status_styles = [
                         </tr>
                     </thead>
                     <tbody id="man-tbody" class="divide-y divide-border text-xs">
+                        <?php if (empty($chamados)): ?>
+                        <tr><td colspan="6" class="p-8 text-center text-xs text-text-secondary opacity-50">Nenhuma ordem de serviço encontrada.</td></tr>
+                        <?php endif; ?>
                         <?php foreach ($chamados as $c): 
-                            $style = $status_styles[$c['status']];
+                            $style = $status_styles[$c['status']] ?? ['bg' => 'bg-gray-100', 'text' => 'text-gray-500'];
                         ?>
                         <tr data-id="<?php echo $c['id']; ?>" data-status="<?php echo htmlspecialchars($c['status']); ?>" data-unread="<?php echo intval($c['nao_lidos']); ?>" class="hover:bg-background/20 transition-colors group<?php echo $c['nao_lidos'] > 0 ? ' bg-amber-50/40' : ''; ?>">
                             <td class="p-3">
@@ -400,7 +407,7 @@ $status_styles = [
                 const dt = new Date(c.data_comentario.replace(' ', 'T')).toLocaleString('pt-BR');
                 div.innerHTML = '<div class="max-w-[90%] ' + bubbleClass + ' p-3 shadow-sm">'
                     + '<p class="text-[10px] font-black uppercase tracking-tighter mb-1 opacity-70">' + (c.autor || 'Sistema') + '</p>'
-                    + '<p class="text-xs leading-relaxed font-medium">' + c.comentario.replace(/\n/g, '<br>') + '</p>'
+                    + '<p class="text-xs leading-relaxed font-medium">' + (c.comentario || '').replace(/\n/g, '<br>') + '</p>'
                     + '<p class="text-[8px] mt-1 opacity-50 font-bold text-right">' + dt + '</p>'
                     + '</div>';
                 box.appendChild(div);
