@@ -149,9 +149,9 @@ if ($filtro_status) {
 $where_sql = count($where_clauses) > 0 ? "WHERE " . implode(" AND ", $where_clauses) : "";
 
 // Buscar chamados
-$sql = "SELECT c.*, COALESCE(u.nome, 'Via E-mail') as solicitante, t.nome as tecnico 
+$sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico 
         FROM chamados c 
-        LEFT JOIN usuarios u ON c.usuario_id = u.id 
+        JOIN usuarios u ON c.usuario_id = u.id 
         LEFT JOIN usuarios t ON c.tecnico_id = t.id 
         $where_sql
         ORDER BY c.data_abertura DESC";

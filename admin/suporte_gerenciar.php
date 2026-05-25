@@ -95,10 +95,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
 }
 
 // Buscar todos os chamados com detalhes
-$sql = "SELECT c.*, COALESCE(u.nome, '📧 Via E-mail') as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante,
+$sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante,
                c.satisfacao_nota, c.satisfacao_comentario
         FROM chamados c 
-        LEFT JOIN usuarios u ON c.usuario_id = u.id 
+        JOIN usuarios u ON c.usuario_id = u.id 
         LEFT JOIN setores s ON u.setor_id = s.id
         LEFT JOIN usuarios t ON c.tecnico_id = t.id 
         ORDER BY 
