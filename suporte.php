@@ -549,7 +549,6 @@ $prioridade_labels = [
                     <div class="flex justify-between items-center px-1 text-[9px] font-bold uppercase tracking-tighter text-text-secondary/50 border-t border-border/40 pt-2">
                         <span class="flex items-center gap-1"><i data-lucide="frown" class="w-3 h-3 text-rose-400"></i> Ruim</span>
                         <span class="text-text-secondary/30 italic">Regular</span>
-            document.getElementById('comentario_chamado_id').value = chamado.id;
                         <span class="flex items-center gap-1 text-right">Excelente <i data-lucide="smile" class="w-3 h-3 text-emerald-400"></i></span>
                     </div>
                 </div>
