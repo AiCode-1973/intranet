@@ -99,7 +99,8 @@ $filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $where_sql = $filtro_status ? "WHERE m.status = '$filtro_status'" : "";
 
 // Buscar chamados
-$sql = "SELECT m.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante
+$sql = "SELECT m.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante,
+        (SELECT COUNT(*) FROM manutencao_comentarios mc WHERE mc.manutencao_id = m.id AND mc.lido_pelo_tecnico = 0) as nao_lidos
         FROM manutencao m 
         JOIN usuarios u ON m.usuario_id = u.id 
         LEFT JOIN usuarios t ON m.tecnico_id = t.id 
@@ -187,11 +188,16 @@ $status_styles = [
                         <?php foreach ($chamados as $c): 
                             $style = $status_styles[$c['status']];
                         ?>
-                        <tr data-id="<?php echo $c['id']; ?>" data-status="<?php echo htmlspecialchars($c['status']); ?>" data-unread="0" class="hover:bg-background/20 transition-colors group">
+                        <tr data-id="<?php echo $c['id']; ?>" data-status="<?php echo htmlspecialchars($c['status']); ?>" data-unread="<?php echo intval($c['nao_lidos']); ?>" class="hover:bg-background/20 transition-colors group<?php echo $c['nao_lidos'] > 0 ? ' bg-amber-50/40' : ''; ?>">
                             <td class="p-3">
-                                <div class="flex flex-col">
-                                    <span class="font-bold text-text">#<?php echo str_pad($c['id'], 3, '0', STR_PAD_LEFT); ?></span>
-                                    <span class="text-[11px] text-text-secondary truncate max-w-[200px]"><?php echo $c['titulo']; ?></span>
+                                <div class="flex items-center gap-2">
+                                    <div class="relative flex-shrink-0">
+                                        <span class="font-bold text-text">#<?php echo str_pad($c['id'], 3, '0', STR_PAD_LEFT); ?></span>
+                                        <?php if ($c['nao_lidos'] > 0): ?>
+                                            <span class="absolute -top-1.5 -right-3 w-4 h-4 bg-rose-500 text-white text-[8px] font-black rounded-full flex items-center justify-center ring-2 ring-white"><?php echo $c['nao_lidos']; ?></span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <span class="text-[11px] text-text-secondary truncate max-w-[180px]"><?php echo $c['titulo']; ?></span>
                                 </div>
                             </td>
                             <td class="p-3">
