@@ -413,85 +413,77 @@ $prioridade_labels = [
 
     <!-- Modal Detalhes Modo Paisagem (2 Colunas) -->
     <div id="modalDetalhes" class="modal">
-        <div class="bg-white w-full max-w-5xl mx-4 rounded-2xl shadow-2xl border border-border overflow-hidden flex flex-col md:flex-row" style="max-height:90vh">
+        <div class="bg-white w-full max-w-4xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col md:flex-row" style="max-height:85vh">
 
             <!-- ── Coluna Esquerda: Informações ─────────────────────────────── -->
-            <div class="w-full md:w-[45%] flex flex-col border-r border-border">
+            <div class="w-full md:w-[42%] flex flex-col border-r border-border">
 
                 <!-- Cabeçalho colorido -->
-                <div id="modal_header_bg" class="px-5 py-4 bg-orange-600 flex justify-between items-start flex-shrink-0">
-                    <div class="space-y-1.5">
-                        <div class="flex items-center gap-2">
-                            <span id="detalhe_id" class="bg-white/20 text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded">#000</span>
-                            <span class="text-white font-bold text-sm">Ordem de Serviço</span>
-                        </div>
-                        <div class="flex items-center gap-2 flex-wrap">
-                            <span id="detalhe_status_badge" class="bg-white/20 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/30">---</span>
-                            <span id="detalhe_prioridade_badge" class="bg-white/10 text-white/80 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/20">---</span>
-                        </div>
+                <div id="modal_header_bg" class="px-4 py-3 bg-orange-600 flex justify-between items-center flex-shrink-0">
+                    <div class="flex items-center gap-3 flex-wrap">
+                        <span id="detalhe_id" class="bg-white/20 text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded">#000</span>
+                        <span id="detalhe_status_badge" class="bg-white/20 text-white text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/30">---</span>
+                        <span id="detalhe_prioridade_badge" class="bg-white/10 text-white/80 text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full border border-white/20">---</span>
                     </div>
-                    <button class="p-1.5 hover:bg-white/10 rounded-lg transition-colors text-white flex-shrink-0" onclick="fecharModalDetalhes()">
-                        <i data-lucide="x" class="w-5 h-5"></i>
+                    <button class="p-1 hover:bg-white/10 rounded-lg transition-colors text-white flex-shrink-0 ml-2" onclick="fecharModalDetalhes()">
+                        <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
 
                 <!-- Corpo -->
-                <div class="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50/40">
+                <div class="flex-1 overflow-y-auto p-3 space-y-2.5 bg-gray-50/40">
 
-                    <!-- Título -->
-                    <div class="bg-white rounded-xl border border-border p-4 shadow-sm">
+                    <!-- Título + Descrição unificados -->
+                    <div class="bg-white rounded-lg border border-border p-3 shadow-sm">
                         <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
                             <i data-lucide="file-text" class="w-3 h-3"></i> Assunto
                         </p>
-                        <p id="detalhe_titulo" class="text-sm font-bold text-text leading-snug">---</p>
-                    </div>
-
-                    <!-- Descrição -->
-                    <div class="bg-white rounded-xl border border-border p-4 shadow-sm">
-                        <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-2 flex items-center gap-1">
-                            <i data-lucide="align-left" class="w-3 h-3"></i> Descrição Original
+                        <p id="detalhe_titulo" class="text-sm font-bold text-text leading-snug mb-2">---</p>
+                        <hr class="border-border mb-2">
+                        <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                            <i data-lucide="align-left" class="w-3 h-3"></i> Descrição
                         </p>
                         <p id="detalhe_descricao" class="text-xs text-text-secondary leading-relaxed italic">---</p>
                     </div>
 
                     <!-- Grid de info -->
-                    <div class="grid grid-cols-2 gap-3">
-                        <div class="bg-white rounded-xl border border-border p-3 shadow-sm">
-                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                    <div class="grid grid-cols-2 gap-2">
+                        <div class="bg-white rounded-lg border border-border p-2.5 shadow-sm">
+                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-0.5 flex items-center gap-1">
                                 <i data-lucide="tag" class="w-3 h-3"></i> Categoria
                             </p>
-                            <p id="detalhe_categoria" class="text-[11px] font-bold text-orange-600 uppercase tracking-tight">---</p>
+                            <p id="detalhe_categoria" class="text-[10px] font-bold text-orange-600 uppercase tracking-tight">---</p>
                         </div>
-                        <div class="bg-white rounded-xl border border-border p-3 shadow-sm">
-                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                        <div class="bg-white rounded-lg border border-border p-2.5 shadow-sm">
+                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-0.5 flex items-center gap-1">
                                 <i data-lucide="map-pin" class="w-3 h-3"></i> Local
                             </p>
-                            <p id="detalhe_local" class="text-[11px] font-bold text-text">---</p>
+                            <p id="detalhe_local" class="text-[10px] font-bold text-text">---</p>
                         </div>
-                        <div class="bg-white rounded-xl border border-border p-3 shadow-sm">
-                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                        <div class="bg-white rounded-lg border border-border p-2.5 shadow-sm">
+                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-0.5 flex items-center gap-1">
                                 <i data-lucide="user" class="w-3 h-3"></i> Solicitante
                             </p>
-                            <p id="detalhe_solicitante" class="text-[11px] font-bold text-text">---</p>
+                            <p id="detalhe_solicitante" class="text-[10px] font-bold text-text">---</p>
                         </div>
-                        <div class="bg-white rounded-xl border border-border p-3 shadow-sm">
-                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1 flex items-center gap-1">
+                        <div class="bg-white rounded-lg border border-border p-2.5 shadow-sm">
+                            <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-0.5 flex items-center gap-1">
                                 <i data-lucide="user-check" class="w-3 h-3"></i> Técnico
                             </p>
-                            <p id="detalhe_tecnico" class="text-[11px] font-bold text-text">---</p>
+                            <p id="detalhe_tecnico" class="text-[10px] font-bold text-text">---</p>
                         </div>
                     </div>
 
                     <!-- Data de abertura -->
-                    <div class="flex items-center gap-2 text-[10px] text-text-secondary px-1">
-                        <i data-lucide="clock" class="w-3.5 h-3.5 opacity-50"></i>
+                    <div class="flex items-center gap-1.5 text-[10px] text-text-secondary px-1">
+                        <i data-lucide="clock" class="w-3 h-3 opacity-50"></i>
                         <span class="font-bold uppercase tracking-widest opacity-50">Aberto em:</span>
                         <span id="detalhe_data" class="font-bold text-text">---</span>
                     </div>
 
                     <!-- Resolução (condicional) -->
-                    <div id="detalhe_resolucao_container" class="hidden bg-green-50 rounded-xl border border-green-200 p-4">
-                        <p class="text-[9px] font-black text-green-700 uppercase tracking-widest mb-2 flex items-center gap-1">
+                    <div id="detalhe_resolucao_container" class="hidden bg-green-50 rounded-lg border border-green-200 p-3">
+                        <p class="text-[9px] font-black text-green-700 uppercase tracking-widest mb-1 flex items-center gap-1">
                             <i data-lucide="check-circle" class="w-3 h-3"></i> Resolução Técnica
                         </p>
                         <p id="detalhe_resolucao" class="text-xs text-green-800 leading-relaxed font-medium">---</p>
@@ -499,12 +491,12 @@ $prioridade_labels = [
 
                     <!-- Anexo (condicional) -->
                     <div id="detalhe_anexo_container" class="hidden">
-                        <a id="detalhe_anexo_link" href="#" target="_blank" class="flex items-center gap-3 p-3 bg-white border border-border rounded-xl hover:border-orange-600 transition-all group shadow-sm">
-                            <div class="w-9 h-9 bg-orange-50 rounded-lg flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all flex-shrink-0">
-                                <i data-lucide="paperclip" class="w-4 h-4"></i>
+                        <a id="detalhe_anexo_link" href="#" target="_blank" class="flex items-center gap-2 p-2.5 bg-white border border-border rounded-lg hover:border-orange-600 transition-all group shadow-sm">
+                            <div class="w-7 h-7 bg-orange-50 rounded-md flex items-center justify-center text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all flex-shrink-0">
+                                <i data-lucide="paperclip" class="w-3.5 h-3.5"></i>
                             </div>
                             <div>
-                                <p class="text-[11px] font-bold text-text">Arquivo Anexo</p>
+                                <p class="text-[10px] font-bold text-text">Arquivo Anexo</p>
                                 <p class="text-[9px] text-text-secondary uppercase font-bold tracking-tighter">Clique para abrir</p>
                             </div>
                         </a>
@@ -513,49 +505,44 @@ $prioridade_labels = [
             </div>
 
             <!-- ── Coluna Direita: Chat/Histórico ───────────────────────────── -->
-            <div class="w-full md:w-[55%] flex flex-col bg-white">
+            <div class="w-full md:w-[58%] flex flex-col bg-white">
                 <!-- Header chat -->
-                <div class="px-5 py-3.5 border-b border-border flex justify-between items-center bg-white flex-shrink-0">
+                <div class="px-4 py-2.5 border-b border-border flex justify-between items-center bg-white flex-shrink-0">
                     <div class="flex items-center gap-2">
-                        <div class="w-7 h-7 bg-orange-50 rounded-lg flex items-center justify-center">
-                            <i data-lucide="message-square" class="w-4 h-4 text-orange-600"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-xs font-black text-text uppercase tracking-widest">Histórico & Chat</h3>
-                            <p class="text-[9px] text-text-secondary font-bold">Comunicação com a equipe técnica</p>
-                        </div>
+                        <i data-lucide="message-square" class="w-4 h-4 text-orange-600"></i>
+                        <h3 class="text-xs font-black text-text uppercase tracking-widest">Histórico & Chat</h3>
                     </div>
-                    <button class="p-1.5 hover:bg-gray-100 rounded-lg transition-colors text-text-secondary" onclick="fecharModalDetalhes()">
-                        <i data-lucide="x" class="w-5 h-5"></i>
+                    <button class="p-1 hover:bg-gray-100 rounded-lg transition-colors text-text-secondary" onclick="fecharModalDetalhes()">
+                        <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
 
                 <!-- Mensagens -->
-                <div id="chat_mensagens" class="flex-1 overflow-y-auto p-5 space-y-4 bg-gray-50/30 chat-container">
+                <div id="chat_mensagens" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/30 chat-container">
                     <!-- Mensagens via JS -->
                 </div>
 
                 <!-- Input de Mensagem -->
-                <div class="p-4 border-t border-border bg-white flex-shrink-0">
+                <div class="p-3 border-t border-border bg-white flex-shrink-0">
                     <form id="formComentario" method="POST" enctype="multipart/form-data">
                         <input type="hidden" name="acao" value="adicionar_comentario">
                         <input type="hidden" name="manutencao_id" id="comentario_manutencao_id">
 
                         <div class="relative">
                             <input type="file" name="anexo_comentario" id="anexo_com_input" class="hidden" accept="image/*,.pdf">
-                            <div id="status_anexo_com" class="hidden absolute -top-7 left-0 right-0 bg-orange-600 text-white text-[9px] font-bold px-2 py-1 rounded-t-lg flex items-center justify-between">
+                            <div id="status_anexo_com" class="hidden absolute -top-6 left-0 right-0 bg-orange-600 text-white text-[9px] font-bold px-2 py-0.5 rounded-t-lg flex items-center justify-between">
                                 <span class="flex items-center gap-1"><i data-lucide="paperclip" class="w-3 h-3"></i> Arquivo selecionado</span>
                                 <button type="button" onclick="resetAnexoCom()"><i data-lucide="x" class="w-3 h-3"></i></button>
                             </div>
                             <textarea name="comentario" id="chat_textarea" rows="2" required placeholder="Digite sua mensagem..."
-                                class="w-full px-3 py-2.5 bg-gray-50 border border-border rounded-xl text-xs font-medium focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/10 transition-all resize-none"></textarea>
+                                class="w-full px-3 py-2 bg-gray-50 border border-border rounded-lg text-xs font-medium focus:outline-none focus:border-orange-500 focus:bg-white focus:ring-2 focus:ring-orange-500/10 transition-all resize-none"></textarea>
                         </div>
 
-                        <div class="flex justify-between items-center mt-2">
-                            <label for="anexo_com_input" class="flex items-center gap-1.5 text-[10px] font-bold text-text-secondary hover:text-orange-600 cursor-pointer transition-colors px-2 py-1.5 rounded-lg hover:bg-orange-50">
-                                <i data-lucide="paperclip" class="w-3.5 h-3.5"></i> Anexar Foto
+                        <div class="flex justify-between items-center mt-1.5">
+                            <label for="anexo_com_input" class="flex items-center gap-1.5 text-[10px] font-bold text-text-secondary hover:text-orange-600 cursor-pointer transition-colors px-2 py-1 rounded-lg hover:bg-orange-50">
+                                <i data-lucide="paperclip" class="w-3.5 h-3.5"></i> Anexar
                             </label>
-                            <button type="submit" class="flex items-center gap-2 bg-orange-600 hover:bg-orange-700 active:scale-95 text-white px-5 py-2 rounded-lg text-[10px] font-black shadow transition-all uppercase tracking-widest">
+                            <button type="submit" class="flex items-center gap-1.5 bg-orange-600 hover:bg-orange-700 active:scale-95 text-white px-4 py-1.5 rounded-lg text-[10px] font-black shadow transition-all uppercase tracking-widest">
                                 <i data-lucide="send" class="w-3.5 h-3.5"></i> Enviar
                             </button>
                         </div>
