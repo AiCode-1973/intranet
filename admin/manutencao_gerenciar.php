@@ -50,6 +50,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
     }
 }
 
+// Poll endpoint para auto-refresh
+if (isset($_GET['action']) && $_GET['action'] === 'poll') {
+    header('Content-Type: application/json');
+    $rows = $conn->query("SELECT m.id, m.status,
+        (SELECT COUNT(*) FROM manutencao_comentarios mc WHERE mc.manutencao_id = m.id AND mc.lido_pelo_tecnico = 0) as nao_lidos
+        FROM manutencao m ORDER BY m.data_abertura DESC");
+    $result = [];
+    while ($r = $rows->fetch_assoc()) $result[] = $r;
+    echo json_encode(['chamados' => $result]);
+    exit;
+}
+
 // Filtros
 $filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $where_sql = $filtro_status ? "WHERE m.status = '$filtro_status'" : "";
@@ -105,16 +117,24 @@ $status_styles = [
                 <p class="text-text-secondary text-xs mt-1">Painel administrativo para controle de ordens de serviço</p>
             </div>
             
-            <a href="../manutencao.php" class="text-[11px] font-bold text-text-secondary hover:text-primary transition-colors flex items-center gap-1">
-                <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar à lista
-            </a>
+            <div class="flex items-center gap-2">
+                <!-- Indicador Ao Vivo -->
+                <div class="flex items-center gap-1.5 px-2 py-1 bg-white border border-border rounded-lg shadow-sm">
+                    <span id="man-poll-status" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest">Ao Vivo</span>
+                </div>
+                <a href="../manutencao.php" class="text-[11px] font-bold text-text-secondary hover:text-primary transition-colors flex items-center gap-1">
+                    <i data-lucide="arrow-left" class="w-4 h-4"></i> Voltar à lista
+                </a>
+            </div>
         </div>
 
         <?php if ($mensagem): ?>
-            <div class="p-3 rounded-lg border mb-6 flex items-center gap-2 bg-green-50 border-green-100 text-green-700">
+            <div id="man-msg" class="p-3 rounded-lg border mb-6 flex items-center gap-2 bg-green-50 border-green-100 text-green-700 transition-opacity duration-500">
                 <i data-lucide="check-circle" class="w-4 h-4"></i>
                 <span class="text-[10px] font-bold uppercase tracking-widest"><?php echo $mensagem; ?></span>
             </div>
+            <script>setTimeout(function(){var m=document.getElementById('man-msg');if(m){m.style.opacity='0';setTimeout(function(){m.remove();},500);}},4000);</script>
         <?php endif; ?>
 
         <!-- Table -->
@@ -131,11 +151,11 @@ $status_styles = [
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Ações</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-border text-xs">
+                    <tbody id="man-tbody" class="divide-y divide-border text-xs">
                         <?php foreach ($chamados as $c): 
                             $style = $status_styles[$c['status']];
                         ?>
-                        <tr class="hover:bg-background/20 transition-colors group">
+                        <tr data-id="<?php echo $c['id']; ?>" data-status="<?php echo htmlspecialchars($c['status']); ?>" data-unread="0" class="hover:bg-background/20 transition-colors group">
                             <td class="p-3">
                                 <div class="flex flex-col">
                                     <span class="font-bold text-text">#<?php echo str_pad($c['id'], 3, '0', STR_PAD_LEFT); ?></span>
@@ -265,6 +285,81 @@ $status_styles = [
                 form.submit();
             }
         }
+
+        // ── Auto-refresh: detecta qualquer mudança nas ordens de serviço ─────────────
+        (function () {
+            const INTERVAL  = 30000;
+            const STATUS_EL = document.getElementById('man-poll-status');
+
+            function stateHash(list) {
+                return list.map(c => c.id + ':' + c.status + ':' + c.nao_lidos).sort().join('|');
+            }
+
+            let lastHash = stateHash(
+                [...document.querySelectorAll('#man-tbody tr[data-id]')]
+                    .map(tr => ({
+                        id:        tr.dataset.id,
+                        status:    tr.dataset.status  || '',
+                        nao_lidos: tr.dataset.unread   || '0'
+                    }))
+            );
+
+            function showToast(msg, autoReload) {
+                const old = document.getElementById('man-toast');
+                if (old) old.remove();
+                const t = document.createElement('div');
+                t.id = 'man-toast';
+                t.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;display:flex;align-items:center;gap:10px;background:#ea580c;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.3);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;';
+                t.innerHTML = '&#128276; ' + msg;
+                t.onclick = () => location.reload();
+                document.body.appendChild(t);
+                if (autoReload) {
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    setTimeout(() => { if (t.parentNode) t.remove(); }, 8000);
+                }
+            }
+
+            function pulse(ok) {
+                if (!STATUS_EL) return;
+                STATUS_EL.className = ok
+                    ? 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse'
+                    : 'w-2 h-2 rounded-full bg-rose-400';
+            }
+
+            async function poll() {
+                try {
+                    const res = await fetch('manutencao_gerenciar.php?action=poll', { cache: 'no-store' });
+                    if (!res.ok) { pulse(false); return; }
+                    const data = await res.json();
+                    pulse(true);
+
+                    const currentHash = stateHash(
+                        data.chamados.map(c => ({
+                            id:        String(c.id),
+                            status:    c.status,
+                            nao_lidos: String(c.nao_lidos)
+                        }))
+                    );
+
+                    if (currentHash !== lastHash) {
+                        lastHash = currentHash;
+                        const modalOpen = document.getElementById('modalEditar').classList.contains('active');
+                        if (modalOpen) {
+                            showToast('Ordens atualizadas — feche o modal para ver', false);
+                        } else {
+                            showToast('Atualizando...', true);
+                        }
+                    }
+                } catch (e) {
+                    pulse(false);
+                }
+            }
+
+            poll();
+            setInterval(poll, INTERVAL);
+        })();
+        // ────────────────────────────────────────────────────────────────────
     </script>
     <?php include '../footer.php'; ?>
 </body>

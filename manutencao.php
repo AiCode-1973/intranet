@@ -87,6 +87,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     exit;
 }
 
+// Poll endpoint para auto-refresh
+if (isset($_GET['action']) && $_GET['action'] === 'poll') {
+    header('Content-Type: application/json');
+    $cond = isAdmin() ? '' : 'WHERE m.usuario_id = ' . intval($usuario_id);
+    $rows = $conn->query("SELECT m.id, m.status,
+        (SELECT COUNT(*) FROM manutencao_comentarios mc WHERE mc.manutencao_id = m.id AND mc.lido_pelo_usuario = 0) as nao_lidos
+        FROM manutencao m $cond ORDER BY m.data_abertura DESC");
+    $result = [];
+    while ($r = $rows->fetch_assoc()) $result[] = $r;
+    echo json_encode(['chamados' => $result]);
+    exit;
+}
+
 // Mensagens de feedback
 if (isset($_GET['msg'])) {
     if ($_GET['msg'] == 'aberto') {
@@ -187,6 +200,11 @@ $prioridade_labels = [
             </div>
 
             <div class="flex items-center gap-2">
+                <!-- Indicador Ao Vivo -->
+                <div class="flex items-center gap-1.5 px-2 py-1 bg-white border border-border rounded-lg shadow-sm">
+                    <span id="man-poll-status" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                    <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest">Ao Vivo</span>
+                </div>
                 <?php if (isAdmin()): ?>
                 <a href="admin/manutencao_gerenciar.php" class="bg-white hover:bg-gray-50 text-text p-2 rounded-lg border border-border shadow-sm transition-all flex items-center gap-2 text-[11px] font-bold">
                     <i data-lucide="settings" class="w-4 h-4"></i>
@@ -201,10 +219,11 @@ $prioridade_labels = [
         </div>
 
         <?php if ($mensagem): ?>
-            <div class="p-3 rounded-lg border mb-6 flex items-center gap-2 <?php echo $tipo_mensagem == 'success' ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'; ?> animate-in slide-in-from-top-2">
+            <div id="man-msg" class="p-3 rounded-lg border mb-6 flex items-center gap-2 <?php echo $tipo_mensagem == 'success' ? 'bg-green-50 border-green-100 text-green-700' : 'bg-red-50 border-red-100 text-red-700'; ?> transition-opacity duration-500">
                 <i data-lucide="<?php echo $tipo_mensagem == 'success' ? 'check-circle' : 'alert-circle'; ?>" class="w-4 h-4"></i>
                 <span class="text-[10px] font-bold uppercase tracking-widest"><?php echo $mensagem; ?></span>
             </div>
+            <script>setTimeout(function(){var m=document.getElementById('man-msg');if(m){m.style.opacity='0';setTimeout(function(){m.remove();},500);}},4000);</script>
         <?php endif; ?>
 
         <!-- Stats Grid -->
@@ -247,13 +266,13 @@ $prioridade_labels = [
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Data</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-border text-xs">
+                    <tbody id="man-tbody" class="divide-y divide-border text-xs">
                         <?php if (count($chamados) > 0): ?>
                             <?php foreach ($chamados as $chamado): 
                                 $style = $status_styles[$chamado['status']];
                                 $prio = $prioridade_labels[$chamado['prioridade']];
                             ?>
-                            <tr onclick='verDetalhes(<?php echo json_encode($chamado); ?>)' class="hover:bg-background/20 transition-colors group cursor-pointer">
+                            <tr data-id="<?php echo $chamado['id']; ?>" data-status="<?php echo htmlspecialchars($chamado['status']); ?>" data-unread="<?php echo $chamado['tem_novidade'] ? '1' : '0'; ?>" onclick='verDetalhes(<?php echo htmlspecialchars(json_encode($chamado, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE), ENT_QUOTES); ?>)' class="hover:bg-background/20 transition-colors group cursor-pointer">
                                 <td class="p-3">
                                     <div class="flex items-center gap-3">
                                         <div class="relative">
@@ -598,6 +617,81 @@ $prioridade_labels = [
             document.getElementById('anexo_com_input').value = '';
             document.getElementById('status_anexo_com').classList.add('hidden');
         }
+
+        // ── Auto-refresh: detecta qualquer mudança nas ordens de serviço ─────────────
+        (function () {
+            const INTERVAL  = 30000;
+            const STATUS_EL = document.getElementById('man-poll-status');
+
+            function stateHash(list) {
+                return list.map(c => c.id + ':' + c.status + ':' + c.nao_lidos).sort().join('|');
+            }
+
+            let lastHash = stateHash(
+                [...document.querySelectorAll('#man-tbody tr[data-id]')]
+                    .map(tr => ({
+                        id:        tr.dataset.id,
+                        status:    tr.dataset.status  || '',
+                        nao_lidos: tr.dataset.unread   || '0'
+                    }))
+            );
+
+            function showToast(msg, autoReload) {
+                const old = document.getElementById('man-toast');
+                if (old) old.remove();
+                const t = document.createElement('div');
+                t.id = 'man-toast';
+                t.style.cssText = 'position:fixed;top:16px;right:16px;z-index:9999;display:flex;align-items:center;gap:10px;background:#ea580c;color:#fff;padding:12px 18px;border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.3);font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;';
+                t.innerHTML = '&#128276; ' + msg;
+                t.onclick = () => location.reload();
+                document.body.appendChild(t);
+                if (autoReload) {
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    setTimeout(() => { if (t.parentNode) t.remove(); }, 8000);
+                }
+            }
+
+            function pulse(ok) {
+                if (!STATUS_EL) return;
+                STATUS_EL.className = ok
+                    ? 'w-2 h-2 rounded-full bg-emerald-400 animate-pulse'
+                    : 'w-2 h-2 rounded-full bg-rose-400';
+            }
+
+            async function poll() {
+                try {
+                    const res = await fetch('manutencao.php?action=poll', { cache: 'no-store' });
+                    if (!res.ok) { pulse(false); return; }
+                    const data = await res.json();
+                    pulse(true);
+
+                    const currentHash = stateHash(
+                        data.chamados.map(c => ({
+                            id:        String(c.id),
+                            status:    c.status,
+                            nao_lidos: String(c.nao_lidos)
+                        }))
+                    );
+
+                    if (currentHash !== lastHash) {
+                        lastHash = currentHash;
+                        const modalOpen = document.getElementById('modalDetalhes').classList.contains('active');
+                        if (modalOpen) {
+                            showToast('Ordens atualizadas — feche o modal para ver', false);
+                        } else {
+                            showToast('Atualizando...', true);
+                        }
+                    }
+                } catch (e) {
+                    pulse(false);
+                }
+            }
+
+            poll();
+            setInterval(poll, INTERVAL);
+        })();
+        // ────────────────────────────────────────────────────────────────────
     </script>
 </body>
 </html>
