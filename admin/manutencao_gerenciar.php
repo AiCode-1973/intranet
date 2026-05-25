@@ -48,6 +48,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         }
         $stmt->close();
     }
+
+    if ($_POST['acao'] == 'adicionar_comentario') {
+        $man_id = intval($_POST['manutencao_id'] ?? 0);
+        $comentario = trim($_POST['comentario'] ?? '');
+        if ($man_id && $comentario) {
+            $uid = $_SESSION['user_id'];
+            $stmt = $conn->prepare("INSERT INTO manutencao_comentarios (manutencao_id, usuario_id, comentario, lido_pelo_tecnico, lido_pelo_usuario) VALUES (?, ?, ?, 1, 0)");
+            $stmt->bind_param("iis", $man_id, $uid, $comentario);
+            $stmt->execute();
+            $stmt->close();
+            $conn->query("UPDATE manutencao_comentarios SET lido_pelo_tecnico = 1 WHERE manutencao_id = $man_id");
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => true]);
+        exit;
+    }
 }
 
 // Poll endpoint para auto-refresh
@@ -59,6 +75,22 @@ if (isset($_GET['action']) && $_GET['action'] === 'poll') {
     $result = [];
     while ($r = $rows->fetch_assoc()) $result[] = $r;
     echo json_encode(['chamados' => $result]);
+    exit;
+}
+
+// Endpoint: buscar comentários de um chamado
+if (isset($_GET['action']) && $_GET['action'] === 'get_comments') {
+    header('Content-Type: application/json');
+    $man_id = intval($_GET['id'] ?? 0);
+    if (!$man_id) { echo json_encode(['comentarios' => []]); exit; }
+    $conn->query("UPDATE manutencao_comentarios SET lido_pelo_tecnico = 1 WHERE manutencao_id = $man_id");
+    $res = $conn->query("SELECT mc.*, u.nome as autor FROM manutencao_comentarios mc
+        LEFT JOIN usuarios u ON mc.usuario_id = u.id
+        WHERE mc.manutencao_id = $man_id
+        ORDER BY mc.data_comentario ASC");
+    $comentarios = [];
+    while ($r = $res->fetch_assoc()) $comentarios[] = $r;
+    echo json_encode(['comentarios' => $comentarios]);
     exit;
 }
 
@@ -207,60 +239,91 @@ $status_styles = [
 
     <!-- Modal Editar -->
     <div id="modalEditar" class="modal">
-        <div class="bg-white w-full max-w-lg mx-4 rounded-xl shadow-2xl border border-border overflow-hidden">
-            <div class="bg-primary px-5 py-4 text-white flex justify-between items-center">
+        <div class="bg-white w-full max-w-3xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col" style="max-height:90vh">
+            <!-- Cabeçalho -->
+            <div class="bg-primary px-5 py-4 text-white flex justify-between items-center flex-shrink-0">
                 <h2 class="text-base font-bold">Gestão da Ordem #<span id="modal-id-display"></span></h2>
                 <button class="p-1.5 hover:bg-white/10 rounded-lg transition-colors" onclick="fecharModal()">
                     <i data-lucide="x" class="w-5 h-5"></i>
                 </button>
             </div>
-            
-            <form method="POST" action="" class="p-5">
-                <input type="hidden" name="acao" value="atualizar_chamado">
-                <input type="hidden" name="id" id="modal-id">
-                
-                <div class="mb-4 p-3 bg-background rounded-lg border border-border">
-                    <p class="text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1">Solicitação Original</p>
-                    <p id="modal-titulo" class="text-sm font-bold text-text mb-1"></p>
-                    <p id="modal-descricao" class="text-xs text-text-secondary italic"></p>
-                </div>
 
-                <div class="grid grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Status</label>
-                        <select name="status" id="modal-status" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold">
-                            <?php foreach($status_styles as $status => $st): ?>
-                                <option value="<?php echo $status; ?>"><?php echo $status; ?></option>
-                            <?php endforeach; ?>
-                        </select>
+            <div class="flex flex-1 overflow-hidden">
+                <!-- Coluna esquerda: Formulário -->
+                <div class="w-1/2 p-5 overflow-y-auto border-r border-border">
+                    <div class="mb-4 p-3 bg-background rounded-lg border border-border">
+                        <p class="text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1">Solicitação Original</p>
+                        <p id="modal-titulo" class="text-sm font-bold text-text mb-1"></p>
+                        <p id="modal-descricao" class="text-xs text-text-secondary italic"></p>
                     </div>
 
-                    <div>
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Técnico Responsável</label>
-                        <select name="tecnico_id" id="modal-tecnico" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold">
-                            <option value="">Selecione...</option>
-                            <?php foreach($tecnicos as $t): ?>
-                                <option value="<?php echo $t['id']; ?>"><?php echo $t['nome']; ?></option>
-                            <?php endforeach; ?>
-                        </select>
-                    </div>
+                    <form method="POST" action="">
+                        <input type="hidden" name="acao" value="atualizar_chamado">
+                        <input type="hidden" name="id" id="modal-id">
 
-                    <div class="col-span-2">
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Resolução / Observações Técnicas</label>
-                        <textarea name="resolucao" id="modal-resolucao" rows="3" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold"></textarea>
-                    </div>
+                        <div class="space-y-3">
+                            <div>
+                                <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Status</label>
+                                <select name="status" id="modal-status" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold">
+                                    <?php foreach($status_styles as $status => $st): ?>
+                                        <option value="<?php echo $status; ?>"><?php echo $status; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Técnico Responsável</label>
+                                <select name="tecnico_id" id="modal-tecnico" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold">
+                                    <option value="">Selecione...</option>
+                                    <?php foreach($tecnicos as $t): ?>
+                                        <option value="<?php echo $t['id']; ?>"><?php echo $t['nome']; ?></option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Resolução / Observações Técnicas</label>
+                                <textarea name="resolucao" id="modal-resolucao" rows="4" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold"></textarea>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-end gap-2 mt-4">
+                            <button type="button" onclick="fecharModal()" class="px-4 py-1.5 text-xs font-bold text-text-secondary hover:text-text transition-colors">Cancelar</button>
+                            <button type="submit" class="bg-primary hover:bg-primary-hover text-white px-6 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all">Salvar Alterações</button>
+                        </div>
+                    </form>
                 </div>
 
-                <div class="flex justify-end gap-2 mt-6">
-                    <button type="button" onclick="fecharModal()" class="px-4 py-1.5 text-xs font-bold text-text-secondary hover:text-text transition-colors">Cancelar</button>
-                    <button type="submit" class="bg-primary hover:bg-primary-hover text-white px-6 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all">Salvar Alterações</button>
+                <!-- Coluna direita: Chat/Histórico -->
+                <div class="w-1/2 flex flex-col overflow-hidden">
+                    <div class="px-4 py-3 border-b border-border bg-background/50 flex-shrink-0">
+                        <h3 class="text-xs font-black text-text uppercase tracking-widest flex items-center gap-1.5">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-primary"></i>
+                            Histórico &amp; Chat
+                        </h3>
+                    </div>
+                    <div id="man-chat-msgs" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/30" style="min-height:200px">
+                        <div class="flex flex-col items-center justify-center h-full opacity-20 py-10">
+                            <i data-lucide="loader" class="w-8 h-8 mb-2"></i>
+                            <p class="text-[10px] font-black uppercase tracking-widest">Carregando...</p>
+                        </div>
+                    </div>
+                    <div class="p-3 border-t border-border bg-white flex-shrink-0">
+                        <div class="flex gap-2">
+                            <textarea id="man-chat-input" rows="2" placeholder="Escreva uma atualização técnica... (Ctrl+Enter para enviar)" class="flex-grow p-2 bg-background border border-border rounded-lg text-xs resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"></textarea>
+                            <button onclick="enviarComentario()" class="bg-primary hover:bg-primary-hover text-white px-3 rounded-lg transition-all flex items-center">
+                                <i data-lucide="send" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
     <script>
+        let modalChamadoId = null;
+
         function abrirModal(dados) {
+            modalChamadoId = dados.id;
             document.getElementById('modal-id').value = dados.id;
             document.getElementById('modal-id-display').innerText = dados.id.toString().padStart(3, '0');
             document.getElementById('modal-titulo').innerText = dados.titulo;
@@ -268,10 +331,85 @@ $status_styles = [
             document.getElementById('modal-status').value = dados.status;
             document.getElementById('modal-tecnico').value = dados.tecnico_id || "";
             document.getElementById('modal-resolucao').value = dados.resolucao || "";
-            
+            document.getElementById('man-chat-input').value = '';
+
             document.getElementById('modalEditar').classList.add('active');
+            lucide.createIcons();
+            carregarChat(dados.id);
         }
-        function fecharModal() { document.getElementById('modalEditar').classList.remove('active'); }
+
+        function fecharModal() {
+            document.getElementById('modalEditar').classList.remove('active');
+            modalChamadoId = null;
+        }
+
+        function carregarChat(id) {
+            const box = document.getElementById('man-chat-msgs');
+            box.innerHTML = '<div class="flex items-center justify-center py-10 opacity-30"><i data-lucide="loader" class="w-6 h-6"></i></div>';
+            lucide.createIcons();
+            fetch('manutencao_gerenciar.php?action=get_comments&id=' + id, { cache: 'no-store' })
+                .then(r => r.json())
+                .then(data => renderChat(data.comentarios))
+                .catch(() => { box.innerHTML = '<p class="text-xs text-center opacity-40 py-8">Erro ao carregar mensagens.</p>'; });
+        }
+
+        function renderChat(comentarios) {
+            const box = document.getElementById('man-chat-msgs');
+            box.innerHTML = '';
+            const meId = <?php echo intval($_SESSION['user_id'] ?? 0); ?>;
+
+            if (!comentarios || comentarios.length === 0) {
+                box.innerHTML = '<div class="flex flex-col items-center justify-center opacity-20 py-10"><i data-lucide="message-circle" class="w-10 h-10 mb-2"></i><p class="text-[10px] font-black uppercase tracking-widest text-center">Nenhuma mensagem<br>nesta O.S.</p></div>';
+                lucide.createIcons();
+                return;
+            }
+
+            comentarios.forEach(function(c) {
+                const isMe = (parseInt(c.usuario_id) === meId);
+                const div = document.createElement('div');
+                div.className = 'flex flex-col ' + (isMe ? 'items-end' : 'items-start');
+                const bubbleClass = isMe
+                    ? 'bg-orange-600 text-white rounded-l-2xl rounded-tr-2xl'
+                    : 'bg-white border border-border text-text rounded-r-2xl rounded-tl-2xl';
+                const dt = new Date(c.data_comentario.replace(' ', 'T')).toLocaleString('pt-BR');
+                div.innerHTML = '<div class="max-w-[90%] ' + bubbleClass + ' p-3 shadow-sm">'
+                    + '<p class="text-[10px] font-black uppercase tracking-tighter mb-1 opacity-70">' + (c.autor || 'Sistema') + '</p>'
+                    + '<p class="text-xs leading-relaxed font-medium">' + c.comentario.replace(/\n/g, '<br>') + '</p>'
+                    + '<p class="text-[8px] mt-1 opacity-50 font-bold text-right">' + dt + '</p>'
+                    + '</div>';
+                box.appendChild(div);
+            });
+            box.scrollTop = box.scrollHeight;
+        }
+
+        function enviarComentario() {
+            const input = document.getElementById('man-chat-input');
+            const texto = input.value.trim();
+            if (!texto || !modalChamadoId) return;
+
+            input.disabled = true;
+            const id = modalChamadoId;
+            fetch('manutencao_gerenciar.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'acao=adicionar_comentario&manutencao_id=' + id + '&comentario=' + encodeURIComponent(texto)
+            })
+            .then(r => r.json())
+            .then(function(data) {
+                input.disabled = false;
+                input.value = '';
+                if (data.ok) carregarChat(id);
+            })
+            .catch(function() { input.disabled = false; });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') fecharModal();
+        });
+
+        document.getElementById('man-chat-input') && document.getElementById('man-chat-input').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); enviarComentario(); }
+        });
 
         function excluirChamado(id) {
             if (confirm('Tem certeza que deseja excluir permanentemente esta ordem de serviço? Esta ação não pode ser desfeita.')) {
