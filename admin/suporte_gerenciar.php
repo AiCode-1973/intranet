@@ -213,6 +213,10 @@ $stats['Total'] = $res_total ? $res_total->fetch_row()[0] : 0;
                     <span id="suporte-poll-status" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest">Ao Vivo</span>
                 </div>
+                <a href="email_chamados.php" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="mail" class="w-3.5 h-3.5 text-blue-500"></i>
+                    E-mail → Chamado
+                </a>
                 <a href="../suporte.php" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
                     Visão Usuário
