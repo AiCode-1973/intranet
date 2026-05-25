@@ -352,13 +352,7 @@ $prioridade_labels = [
                     </div>
 
                     <div class="md:col-span-1">
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Prioridade</label>
-                        <select name="prioridade" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-orange-600 transition-all cursor-pointer">
-                            <option value="Baixa">Baixa</option>
-                            <option value="Média" selected>Média</option>
-                            <option value="Alta">Alta</option>
-                            <option value="Urgente">Urgente</option>
-                        </select>
+                        <input type="hidden" name="prioridade" value="Média">
                     </div>
 
                     <div class="md:col-span-2">
