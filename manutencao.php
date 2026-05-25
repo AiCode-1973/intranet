@@ -263,6 +263,7 @@ $prioridade_labels = [
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Local</th>
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Prioridade</th>
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-center">Status</th>
+                            <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest">Técnico</th>
                             <th class="p-3 text-[10px] font-black text-text-secondary uppercase tracking-widest text-right">Data</th>
                         </tr>
                     </thead>
@@ -309,6 +310,16 @@ $prioridade_labels = [
                                         <?php echo $chamado['status']; ?>
                                     </span>
                                 </td>
+                                <td class="p-3">
+                                    <?php if (!empty($chamado['tecnico'])): ?>
+                                        <div class="flex items-center gap-1.5 text-text-secondary">
+                                            <i data-lucide="user-check" class="w-3.5 h-3.5 opacity-50"></i>
+                                            <span class="font-bold text-[10px]"><?php echo htmlspecialchars($chamado['tecnico']); ?></span>
+                                        </div>
+                                    <?php else: ?>
+                                        <span class="text-[10px] text-text-secondary opacity-40 italic">Pendente</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="p-3 text-right font-mono text-text-secondary opacity-60 text-[10px]">
                                     <?php echo date('d/m H:i', strtotime($chamado['data_abertura'])); ?>
                                 </td>
@@ -316,7 +327,7 @@ $prioridade_labels = [
                             <?php endforeach; ?>
                         <?php else: ?>
                             <tr>
-                                <td colspan="5" class="p-16 text-center">
+                                <td colspan="6" class="p-16 text-center">
                                     <i data-lucide="hard-hat" class="w-10 h-10 mx-auto mb-3 text-text-secondary opacity-20"></i>
                                     <p class="text-xs font-bold text-text-secondary">Nenhuma ordem de serviço encontrada.</p>
                                 </td>
