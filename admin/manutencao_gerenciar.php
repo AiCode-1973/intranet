@@ -295,14 +295,7 @@ $status_styles = [
                 return list.map(c => c.id + ':' + c.status + ':' + c.nao_lidos).sort().join('|');
             }
 
-            let lastHash = stateHash(
-                [...document.querySelectorAll('#man-tbody tr[data-id]')]
-                    .map(tr => ({
-                        id:        tr.dataset.id,
-                        status:    tr.dataset.status  || '',
-                        nao_lidos: tr.dataset.unread   || '0'
-                    }))
-            );
+            let lastHash = null; // definido no primeiro poll para evitar reload imediato
 
             function showToast(msg, autoReload) {
                 const old = document.getElementById('man-toast');
@@ -341,6 +334,11 @@ $status_styles = [
                             nao_lidos: String(c.nao_lidos)
                         }))
                     );
+
+                    if (lastHash === null) {
+                        lastHash = currentHash; // primeiro poll: só define baseline
+                        return;
+                    }
 
                     if (currentHash !== lastHash) {
                         lastHash = currentHash;
