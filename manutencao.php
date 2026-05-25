@@ -145,7 +145,7 @@ while($row = $res->fetch_assoc()) {
 
     // Buscar comentários
     $comentarios_res = $conn->query("SELECT mc.*, u.nome as autor FROM manutencao_comentarios mc 
-                                     JOIN usuarios u ON mc.usuario_id = u.id 
+                                     LEFT JOIN usuarios u ON mc.usuario_id = u.id 
                                      WHERE mc.manutencao_id = $c_id 
                                      ORDER BY mc.data_comentario ASC");
     $row['comentarios'] = [];
@@ -581,8 +581,8 @@ $prioridade_labels = [
 
                     div.innerHTML = `
                         <div class="max-w-[85%] ${isMe ? 'bg-orange-600 text-white rounded-l-2xl rounded-tr-2xl' : 'bg-white border border-border text-text rounded-r-2xl rounded-tl-2xl'} p-3 shadow-sm relative group">
-                            <p class="text-[10px] font-black uppercase tracking-tighter mb-1 opacity-70">${c.autor}</p>
-                            <p class="text-xs leading-relaxed font-medium">${c.comentario}</p>
+                            <p class="text-[10px] font-black uppercase tracking-tighter mb-1 opacity-70">${c.autor || 'Técnico'}</p>
+                            <p class="text-xs leading-relaxed font-medium">${(c.comentario || '').replace(/\n/g, '<br>')}</p>
                             ${anexoHtml}
                             <p class="text-[8px] mt-1 opacity-50 font-bold text-right">${new Date(c.data_comentario).toLocaleString('pt-BR')}</p>
                         </div>
