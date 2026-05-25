@@ -245,76 +245,75 @@ $status_styles = [
 
     <!-- Modal Editar -->
     <div id="modalEditar" class="modal">
-        <div class="bg-white w-full max-w-3xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col" style="max-height:90vh">
+        <div class="bg-white w-full max-w-4xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col" style="height:72vh;max-height:72vh">
             <!-- Cabeçalho -->
-            <div class="bg-primary px-5 py-4 text-white flex justify-between items-center flex-shrink-0">
-                <h2 class="text-base font-bold">Gestão da Ordem #<span id="modal-id-display"></span></h2>
-                <button class="p-1.5 hover:bg-white/10 rounded-lg transition-colors" onclick="fecharModal()">
-                    <i data-lucide="x" class="w-5 h-5"></i>
+            <div class="bg-primary px-4 py-2.5 text-white flex justify-between items-center flex-shrink-0">
+                <div class="flex items-center gap-2">
+                    <span class="bg-white/20 text-white text-[10px] font-mono font-bold px-2 py-0.5 rounded">#<span id="modal-id-display"></span></span>
+                    <h2 class="text-xs font-black uppercase tracking-widest">Gestão da Ordem de Serviço</h2>
+                </div>
+                <button class="p-1 hover:bg-white/10 rounded-lg transition-colors" onclick="fecharModal()">
+                    <i data-lucide="x" class="w-4 h-4"></i>
                 </button>
             </div>
 
             <div class="flex flex-1 overflow-hidden">
                 <!-- Coluna esquerda: Formulário -->
-                <div class="w-1/2 p-5 overflow-y-auto border-r border-border">
-                    <div class="mb-4 p-3 bg-background rounded-lg border border-border">
-                        <p class="text-[10px] font-black text-text-secondary uppercase tracking-widest mb-1">Solicitação Original</p>
-                        <p id="modal-titulo" class="text-sm font-bold text-text mb-1"></p>
-                        <p id="modal-descricao" class="text-xs text-text-secondary italic"></p>
+                <div class="w-[42%] p-3 overflow-y-auto border-r border-border flex flex-col gap-2.5">
+                    <div class="p-2.5 bg-background rounded-lg border border-border">
+                        <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1">Solicitação</p>
+                        <p id="modal-titulo" class="text-sm font-bold text-text mb-1 leading-snug"></p>
+                        <p id="modal-descricao" class="text-xs text-text-secondary italic leading-relaxed"></p>
                     </div>
 
-                    <form method="POST" action="">
+                    <form method="POST" action="" class="flex flex-col gap-2">
                         <input type="hidden" name="acao" value="atualizar_chamado">
                         <input type="hidden" name="id" id="modal-id">
 
-                        <div class="space-y-3">
-                            <div>
-                                <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Status</label>
-                                <select name="status" id="modal-status" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold">
-                                    <?php foreach($status_styles as $status => $st): ?>
-                                        <option value="<?php echo $status; ?>"><?php echo $status; ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Técnico Responsável</label>
-                                <select name="tecnico_id" id="modal-tecnico" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold">
-                                    <option value="">Selecione...</option>
-                                    <?php foreach($tecnicos as $t): ?>
-                                        <option value="<?php echo $t['id']; ?>"><?php echo $t['nome']; ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Resolução / Observações Técnicas</label>
-                                <textarea name="resolucao" id="modal-resolucao" rows="4" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold"></textarea>
-                            </div>
+                        <div>
+                            <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Status</label>
+                            <select name="status" id="modal-status" class="w-full px-2 py-1.5 bg-background border border-border rounded-lg text-xs font-bold">
+                                <?php foreach($status_styles as $status => $st): ?>
+                                    <option value="<?php echo $status; ?>"><?php echo $status; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Técnico Responsável</label>
+                            <select name="tecnico_id" id="modal-tecnico" class="w-full px-2 py-1.5 bg-background border border-border rounded-lg text-xs font-bold">
+                                <option value="">Selecione...</option>
+                                <?php foreach($tecnicos as $t): ?>
+                                    <option value="<?php echo $t['id']; ?>"><?php echo $t['nome']; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Resolução / Observações</label>
+                            <textarea name="resolucao" id="modal-resolucao" rows="3" class="w-full px-2 py-1.5 bg-background border border-border rounded-lg text-xs font-bold resize-none"></textarea>
                         </div>
 
-                        <div class="flex justify-end gap-2 mt-4">
-                            <button type="button" onclick="fecharModal()" class="px-4 py-1.5 text-xs font-bold text-text-secondary hover:text-text transition-colors">Cancelar</button>
-                            <button type="submit" class="bg-primary hover:bg-primary-hover text-white px-6 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all">Salvar Alterações</button>
+                        <div class="flex justify-end gap-2 mt-1">
+                            <button type="button" onclick="fecharModal()" class="px-3 py-1.5 text-xs font-bold text-text-secondary hover:text-text transition-colors">Cancelar</button>
+                            <button type="submit" class="bg-primary hover:bg-primary-hover text-white px-5 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all">Salvar</button>
                         </div>
                     </form>
                 </div>
 
                 <!-- Coluna direita: Chat/Histórico -->
-                <div class="w-1/2 flex flex-col overflow-hidden">
-                    <div class="px-4 py-3 border-b border-border bg-background/50 flex-shrink-0">
-                        <h3 class="text-xs font-black text-text uppercase tracking-widest flex items-center gap-1.5">
-                            <i data-lucide="message-circle" class="w-4 h-4 text-primary"></i>
-                            Histórico &amp; Chat
-                        </h3>
+                <div class="w-[58%] flex flex-col overflow-hidden">
+                    <div class="px-4 py-2.5 border-b border-border bg-background/50 flex-shrink-0 flex items-center gap-1.5">
+                        <i data-lucide="message-circle" class="w-4 h-4 text-primary"></i>
+                        <h3 class="text-xs font-black text-text uppercase tracking-widest">Histórico &amp; Chat</h3>
                     </div>
-                    <div id="man-chat-msgs" class="flex-1 overflow-y-auto p-4 space-y-3 bg-gray-50/30" style="min-height:200px">
+                    <div id="man-chat-msgs" class="flex-1 overflow-y-auto p-3 space-y-2.5 bg-gray-50/30">
                         <div class="flex flex-col items-center justify-center h-full opacity-20 py-10">
                             <i data-lucide="loader" class="w-8 h-8 mb-2"></i>
                             <p class="text-[10px] font-black uppercase tracking-widest">Carregando...</p>
                         </div>
                     </div>
-                    <div class="p-3 border-t border-border bg-white flex-shrink-0">
+                    <div class="p-2.5 border-t border-border bg-white flex-shrink-0">
                         <div class="flex gap-2">
-                            <textarea id="man-chat-input" rows="2" placeholder="Escreva uma atualização técnica... (Ctrl+Enter para enviar)" class="flex-grow p-2 bg-background border border-border rounded-lg text-xs resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"></textarea>
+                            <textarea id="man-chat-input" rows="2" placeholder="Atualização técnica... (Ctrl+Enter para enviar)" class="flex-grow px-2.5 py-2 bg-background border border-border rounded-lg text-xs resize-none focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all"></textarea>
                             <button onclick="enviarComentario()" class="bg-primary hover:bg-primary-hover text-white px-3 rounded-lg transition-all flex items-center">
                                 <i data-lucide="send" class="w-4 h-4"></i>
                             </button>
