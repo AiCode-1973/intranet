@@ -198,7 +198,8 @@ function email_decode_part($body, $encoding, $subtype) {
 }
 
 // ── Entrada CLI (Task Scheduler / Cron) ─────────────────────────────────────
-if (php_sapi_name() === 'cli') {
+// Só executa se este arquivo for o script principal (não quando incluído por outro arquivo)
+if (php_sapi_name() === 'cli' && realpath($_SERVER['SCRIPT_FILENAME'] ?? '') === __FILE__) {
     require_once __DIR__ . '/config.php';
     require_once __DIR__ . '/functions.php';
 

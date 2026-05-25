@@ -27,10 +27,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['acao'] ?? '') === 'salvar_
 
     if ($existe) {
         $stmt = $conn->prepare("UPDATE email_imap_config SET imap_host=?, imap_port=?, imap_user=?, imap_pass=?, imap_ssl=?, novalidate_cert=?, pasta_inbox=?, pasta_processado=?, ativo=?");
-        $stmt->bind_param("sissiissl", $host, $port, $user, $pass, $ssl, $novalidate, $inbox, $processado, $ativo);
+        $stmt->bind_param("sissiissi", $host, $port, $user, $pass, $ssl, $novalidate, $inbox, $processado, $ativo);
     } else {
         $stmt = $conn->prepare("INSERT INTO email_imap_config (imap_host,imap_port,imap_user,imap_pass,imap_ssl,novalidate_cert,pasta_inbox,pasta_processado,ativo) VALUES (?,?,?,?,?,?,?,?,?)");
-        $stmt->bind_param("sissiissl", $host, $port, $user, $pass, $ssl, $novalidate, $inbox, $processado, $ativo);
+        $stmt->bind_param("sissiissi", $host, $port, $user, $pass, $ssl, $novalidate, $inbox, $processado, $ativo);
     }
 
     if ($stmt->execute()) {
