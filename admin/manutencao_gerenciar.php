@@ -14,8 +14,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
     if ($_POST['acao'] == 'atualizar_chamado') {
         $status = sanitize($_POST['status']);
         $tecnico_id = $_POST['tecnico_id'] ? intval($_POST['tecnico_id']) : null;
-        $resolucao = isset($_POST['resolucao']) ? $_POST['resolucao'] : null;
+        $resolucao = isset($_POST['resolucao']) ? trim($_POST['resolucao']) : '';
         $data_fechamento = ($status == 'Resolvido' || $status == 'Cancelado') ? date('Y-m-d H:i:s') : null;
+
+        // Estado anterior para comparação
+        $anterior = $conn->query("SELECT status, resolucao, tecnico_id FROM manutencao WHERE id = $id")->fetch_assoc();
 
         $stmt = $conn->prepare("UPDATE manutencao SET status = ?, tecnico_id = ?, resolucao = ?, data_fechamento = ? WHERE id = ?");
         $stmt->bind_param("sissi", $status, $tecnico_id, $resolucao, $data_fechamento, $id);
@@ -24,6 +27,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
             $mensagem = "Chamado #$id atualizado com sucesso!";
             $tipo_mensagem = "success";
             registrarLog($conn, "Atualizou chamado de manutenção #$id para $status");
+
+            // Gerar notificação automática para o solicitante
+            $partes = [];
+            if ($anterior && $anterior['status'] !== $status) {
+                $partes[] = "Status alterado para: {$status}";
+            }
+            $resolucao_anterior = trim($anterior['resolucao'] ?? '');
+            if ($resolucao !== $resolucao_anterior && $resolucao !== '') {
+                $partes[] = "Resolução registrada: {$resolucao}";
+            }
+            if (!empty($partes)) {
+                $notif = '🔧 ' . implode("\n", $partes);
+                $admin_id = intval($_SESSION['usuario_id']);
+                $stmt2 = $conn->prepare("INSERT INTO manutencao_comentarios (manutencao_id, usuario_id, comentario, lido_pelo_tecnico, lido_pelo_usuario) VALUES (?, ?, ?, 1, 0)");
+                $stmt2->bind_param("iis", $id, $admin_id, $notif);
+                $stmt2->execute();
+                $stmt2->close();
+            }
         } else {
             $mensagem = "Erro ao atualizar: " . $conn->error;
             $tipo_mensagem = "danger";
