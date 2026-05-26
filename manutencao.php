@@ -413,7 +413,7 @@ $prioridade_labels = [
 
     <!-- Modal Detalhes Modo Paisagem (2 Colunas) -->
     <div id="modalDetalhes" class="modal">
-        <div class="bg-white w-full max-w-4xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col md:flex-row" style="height:72vh;max-height:72vh">
+        <div class="bg-white w-full max-w-4xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col md:flex-row" style="height:65vh;max-height:65vh">
 
             <!-- ── Coluna Esquerda: Informações ─────────────────────────────── -->
             <div class="w-full md:w-[42%] flex flex-col border-r border-border">
