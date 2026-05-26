@@ -31,6 +31,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $tecnico_id = intval($_POST['tecnico_id']);
     $data_fechamento = ($status == 'Resolvido' || $status == 'Cancelado') ? date('Y-m-d H:i:s') : null;
 
+    // Estado anterior para comparação
+    $ant_res = $conn->query("SELECT status, resolucao FROM ceh_chamados WHERE id = $id");
+    $anterior = ($ant_res && $ant_res->num_rows > 0) ? $ant_res->fetch_assoc() : null;
+
     $stmt = $conn->prepare("UPDATE ceh_chamados SET status = ?, resolucao = ?, tecnico_id = ?, data_fechamento = ? WHERE id = ?");
     $stmt->bind_param("ssisi", $status, $resolucao, $tecnico_id, $data_fechamento, $id);
 
@@ -38,6 +42,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
         $mensagem = "Chamado CEH #$id atualizado!";
         $tipo_mensagem = "success";
         registrarLog($conn, "Atualizou chamado CEH #$id para status: $status");
+
+        // Notificação automática para o solicitante
+        $notif_parts = [];
+        if ($anterior && $anterior['status'] !== $status) {
+            $notif_parts[] = "Status alterado para: {$status}";
+        }
+        $resolucao_trim = trim($resolucao);
+        if ($resolucao_trim !== '' && trim($anterior['resolucao'] ?? '') !== $resolucao_trim) {
+            $notif_parts[] = "Resolução registrada: {$resolucao_trim}";
+        }
+        if (!empty($notif_parts)) {
+            $notif = '🔧 ' . implode("\n", $notif_parts);
+            $admin_id = intval($_SESSION['usuario_id']);
+            $stmt2 = $conn->prepare("INSERT INTO ceh_comentarios (chamado_id, usuario_id, comentario, lido_pelo_tecnico, lido_pelo_usuario) VALUES (?, ?, ?, 1, 0)");
+            $stmt2->bind_param("iis", $id, $admin_id, $notif);
+            $stmt2->execute();
+            $stmt2->close();
+        }
     } else {
         $mensagem = "Erro ao atualizar: " . $conn->error;
         $tipo_mensagem = "danger";
@@ -103,12 +125,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->close();
 }
 
+// Filtro por status
+$filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
+$where_sql = $filtro_status ? "WHERE c.status = '$filtro_status'" : "";
+
 // Buscar todos os chamados CEH com detalhes
-$sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante
+$sql = "SELECT c.*, COALESCE(u.nome, '(usuário removido)') as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante
         FROM ceh_chamados c 
-        JOIN usuarios u ON c.usuario_id = u.id 
+        LEFT JOIN usuarios u ON c.usuario_id = u.id 
         LEFT JOIN setores s ON u.setor_id = s.id
-        LEFT JOIN usuarios t ON c.tecnico_id = t.id 
+        LEFT JOIN usuarios t ON c.tecnico_id = t.id
+        $where_sql
         ORDER BY 
             CASE 
                 WHEN c.status = 'Aberto' THEN 1 
@@ -119,6 +146,9 @@ $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as set
             c.prioridade DESC, 
             c.data_abertura ASC";
 $res_chamados = $conn->query($sql);
+if (!$res_chamados) {
+    die('<div style="font-family:monospace;color:red;padding:20px">Erro na consulta: ' . htmlspecialchars($conn->error) . '</div>');
+}
 $chamados_array = [];
 
 while($row = $res_chamados->fetch_assoc()) {
@@ -167,13 +197,15 @@ $prioridade_styles = [
     'Urgente' => 'text-rose-600 font-black'
 ];
 
-// Stats para o dashboard superior
-$stats = ['Aberto' => 0, 'Em Atendimento' => 0, 'Aguardando Peça' => 0, 'Total' => 0];
-$res_stats = $conn->query("SELECT status, COUNT(*) as total FROM ceh_chamados WHERE status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça') GROUP BY status");
-while($row = $res_stats->fetch_assoc()) {
-    $stats[$row['status']] = $row['total'];
+// Contagens por status (para os cards de filtro)
+$contagens = ['Todos' => 0, 'Aberto' => 0, 'Em Atendimento' => 0, 'Aguardando Peça' => 0, 'Resolvido' => 0];
+$cnt_res = $conn->query("SELECT status, COUNT(*) as total FROM ceh_chamados GROUP BY status");
+if ($cnt_res) {
+    while ($row = $cnt_res->fetch_assoc()) {
+        if (isset($contagens[$row['status']])) $contagens[$row['status']] = intval($row['total']);
+        $contagens['Todos'] += intval($row['total']);
+    }
 }
-$stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()[0];
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -217,44 +249,35 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
             </div>
         </div>
 
-        <!-- Dashboard Superior -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500">
-                    <i data-lucide="inbox" class="w-5 h-5"></i>
+        <!-- Cards de Status / Filtro -->
+        <?php
+        $cards_ceh = [
+            ['key' => '',               'label' => 'Todos',           'icon' => 'layers',       'color' => 'border-border hover:border-primary',        'active_color' => 'border-primary bg-primary/5',           'num_color' => 'text-primary'],
+            ['key' => 'Aberto',         'label' => 'Aberto',          'icon' => 'circle-dot',   'color' => 'border-border hover:border-blue-400',        'active_color' => 'border-blue-400 bg-blue-50',            'num_color' => 'text-blue-600'],
+            ['key' => 'Em Atendimento', 'label' => 'Em Atendimento',  'icon' => 'wrench',       'color' => 'border-border hover:border-amber-400',       'active_color' => 'border-amber-400 bg-amber-50',          'num_color' => 'text-amber-600'],
+            ['key' => 'Aguardando Peça','label' => 'Aguardando Peça', 'icon' => 'package',      'color' => 'border-border hover:border-purple-400',      'active_color' => 'border-purple-400 bg-purple-50',        'num_color' => 'text-purple-600'],
+            ['key' => 'Resolvido',      'label' => 'Resolvido',       'icon' => 'check-circle', 'color' => 'border-border hover:border-emerald-400',     'active_color' => 'border-emerald-400 bg-emerald-50',      'num_color' => 'text-emerald-600'],
+        ];
+        ?>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+            <?php foreach ($cards_ceh as $card):
+                $isActive = ($filtro_status === $card['key']);
+                $count = $card['key'] === '' ? $contagens['Todos'] : ($contagens[$card['key']] ?? 0);
+                $href = '?' . ($card['key'] ? 'status=' . urlencode($card['key']) : '');
+                $baseClass = 'flex flex-col gap-1.5 p-3 bg-white rounded-xl border-2 transition-all cursor-pointer no-underline';
+                $colorClass = $isActive ? $card['active_color'] : $card['color'];
+            ?>
+            <a href="<?php echo $href; ?>" class="<?php echo $baseClass . ' ' . $colorClass; ?>">
+                <div class="flex items-center justify-between">
+                    <i data-lucide="<?php echo $card['icon']; ?>" class="w-4 h-4 <?php echo $card['num_color']; ?> opacity-70"></i>
+                    <?php if ($isActive): ?>
+                        <span class="w-1.5 h-1.5 rounded-full <?php echo str_replace('text-', 'bg-', $card['num_color']); ?>"></span>
+                    <?php endif; ?>
                 </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo $stats['Aberto']; ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Abertos</p>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-amber-50 flex items-center justify-center text-amber-500">
-                    <i data-lucide="play-circle" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo $stats['Em Atendimento']; ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Em Curso</p>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center text-purple-500">
-                    <i data-lucide="component" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo $stats['Aguardando Peça']; ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Peças</p>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo $stats['Total']; ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Total Geral</p>
-                </div>
-            </div>
+                <span class="text-2xl font-black <?php echo $card['num_color']; ?>"><?php echo $count; ?></span>
+                <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest leading-tight"><?php echo $card['label']; ?></span>
+            </a>
+            <?php endforeach; ?>
         </div>
 
         <?php if ($mensagem): ?>
@@ -358,7 +381,7 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
 
     <!-- Modal Atendimento -->
     <div id="modalAtender" class="modal">
-        <div class="bg-white w-full max-w-5xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150 flex flex-col max-h-[90vh]">
+        <div class="bg-white w-full max-w-5xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col" style="height:58vh;max-height:58vh">
             <div class="bg-primary px-5 py-4 text-white flex justify-between items-center shrink-0">
                 <div>
                     <h2 class="text-base font-bold text-white uppercase flex items-center gap-2">
@@ -447,7 +470,7 @@ $stats['Total'] = $conn->query("SELECT COUNT(*) FROM ceh_chamados")->fetch_row()
                     </div>
 
                     <!-- Chat Container -->
-                    <div id="chat_container" class="flex-grow overflow-y-auto p-4 space-y-4 bg-[#f8f9fa] max-h-[400px] md:max-h-none">
+                    <div id="chat_container" class="flex-grow overflow-y-auto p-4 space-y-4 bg-[#f8f9fa]">
                         <!-- Comentários serão inseridos aqui via JS -->
                     </div>
 
