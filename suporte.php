@@ -86,10 +86,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
 // Poll endpoint para auto-refresh
 if (isset($_GET['action']) && $_GET['action'] === 'poll') {
     header('Content-Type: application/json');
-    $cond = isAdmin() ? '' : 'WHERE c.usuario_id = ' . intval($usuario_id);
+    $poll_where = [];
+    if (!isAdmin()) $poll_where[] = 'c.usuario_id = ' . intval($usuario_id);
+    if (!empty($_GET['status'])) $poll_where[] = "c.status = '" . $conn->real_escape_string($_GET['status']) . "'";
+    $poll_cond = $poll_where ? 'WHERE ' . implode(' AND ', $poll_where) : '';
     $rows = $conn->query("SELECT c.id, c.status,
         (SELECT COUNT(*) FROM chamados_comentarios cc WHERE cc.chamado_id = c.id AND cc.lido_pelo_usuario = 0) as nao_lidos
-        FROM chamados c $cond ORDER BY c.data_abertura DESC");
+        FROM chamados c $poll_cond ORDER BY c.data_abertura DESC");
     $result = [];
     while ($r = $rows->fetch_assoc()) $result[] = $r;
     echo json_encode(['chamados' => $result]);
@@ -745,7 +748,8 @@ $cards_suporte_user = [
 
             async function poll() {
                 try {
-                    const res = await fetch('suporte.php?action=poll', { cache: 'no-store' });
+                    const _pollStatus = new URLSearchParams(window.location.search).get('status') || '';
+                    const res = await fetch('suporte.php?action=poll' + (_pollStatus ? '&status=' + encodeURIComponent(_pollStatus) : ''), { cache: 'no-store' });
                     if (!res.ok) { pulse(false); return; }
                     const data = await res.json();
                     pulse(true);
