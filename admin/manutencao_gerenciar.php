@@ -91,9 +91,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
 // Poll endpoint para auto-refresh
 if (isset($_GET['action']) && $_GET['action'] === 'poll') {
     header('Content-Type: application/json');
+    $poll_cond = !empty($_GET['status']) ? "WHERE m.status = '" . $conn->real_escape_string($_GET['status']) . "'" : '';
     $rows = $conn->query("SELECT m.id, m.status,
         (SELECT COUNT(*) FROM manutencao_comentarios mc WHERE mc.manutencao_id = m.id AND mc.lido_pelo_tecnico = 0) as nao_lidos
-        FROM manutencao m ORDER BY m.data_abertura DESC");
+        FROM manutencao m $poll_cond ORDER BY m.data_abertura DESC");
     $result = [];
     while ($r = $rows->fetch_assoc()) $result[] = $r;
     echo json_encode(['chamados' => $result]);
@@ -534,7 +535,8 @@ $status_styles = [
 
             async function poll() {
                 try {
-                    const res = await fetch('manutencao_gerenciar.php?action=poll', { cache: 'no-store' });
+                    const _pollStatus = new URLSearchParams(window.location.search).get('status') || '';
+                    const res = await fetch('manutencao_gerenciar.php?action=poll' + (_pollStatus ? '&status=' + encodeURIComponent(_pollStatus) : ''), { cache: 'no-store' });
                     if (!res.ok) { pulse(false); return; }
                     const data = await res.json();
                     pulse(true);

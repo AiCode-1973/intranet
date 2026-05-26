@@ -90,10 +90,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
 // Poll endpoint para auto-refresh
 if (isset($_GET['action']) && $_GET['action'] === 'poll') {
     header('Content-Type: application/json');
-    $cond = isAdmin() ? '' : 'WHERE m.usuario_id = ' . intval($usuario_id);
+    $poll_where = [];
+    if (!isAdmin()) $poll_where[] = 'm.usuario_id = ' . intval($usuario_id);
+    if (!empty($_GET['status'])) $poll_where[] = "m.status = '" . $conn->real_escape_string($_GET['status']) . "'";
+    $poll_cond = $poll_where ? 'WHERE ' . implode(' AND ', $poll_where) : '';
     $rows = $conn->query("SELECT m.id, m.status,
         (SELECT COUNT(*) FROM manutencao_comentarios mc WHERE mc.manutencao_id = m.id AND mc.lido_pelo_usuario = 0) as nao_lidos
-        FROM manutencao m $cond ORDER BY m.data_abertura DESC");
+        FROM manutencao m $poll_cond ORDER BY m.data_abertura DESC");
     $result = [];
     while ($r = $rows->fetch_assoc()) $result[] = $r;
     echo json_encode(['chamados' => $result]);
@@ -154,7 +157,17 @@ while($row = $res->fetch_assoc()) {
     }
     
     $chamados[] = $row;
-    if (isset($stats[$row['status']])) $stats[$row['status']]++;
+}
+
+// Contagens globais para os cards (sem filtro de status)
+$contagens_where = isAdmin() ? '' : "WHERE usuario_id = $usuario_id";
+$contagens = ['Todos' => 0, 'Aberto' => 0, 'Em Atendimento' => 0, 'Aguardando Peça' => 0, 'Resolvido' => 0];
+$res_cont = $conn->query("SELECT status, COUNT(*) as total FROM manutencao $contagens_where GROUP BY status");
+if ($res_cont) {
+    while ($rc = $res_cont->fetch_assoc()) {
+        if (isset($contagens[$rc['status']])) $contagens[$rc['status']] = intval($rc['total']);
+        $contagens['Todos'] += intval($rc['total']);
+    }
 }
 
 $status_styles = [
@@ -226,29 +239,33 @@ $prioridade_labels = [
             <script>setTimeout(function(){var m=document.getElementById('man-msg');if(m){m.style.opacity='0';setTimeout(function(){m.remove();},500);}},4000);</script>
         <?php endif; ?>
 
-        <!-- Stats Grid -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <a href="manutencao.php" class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3 group hover:border-primary transition-all <?php echo !$filtro_status ? 'ring-1 ring-primary' : ''; ?>">
-                <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 group-hover:bg-primary group-hover:text-white transition-all">
-                    <i data-lucide="layers" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo count($chamados); ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Todos</p>
-                </div>
-            </a>
-            <?php foreach(['Aberto', 'Em Atendimento', 'Aguardando Peça', 'Resolvido'] as $st): 
-                $active = ($filtro_status == $st);
-                $style = $status_styles[$st];
+        <!-- Cards de Status -->
+        <?php
+        $cards_man = [
+            ['key' => '',               'label' => 'Todos',           'icon' => 'layers',       'color' => 'border-border hover:border-primary',         'active_color' => 'border-primary bg-primary/5',    'num_color' => 'text-primary'],
+            ['key' => 'Aberto',         'label' => 'Aberto',          'icon' => 'circle-dot',   'color' => 'border-border hover:border-blue-400',        'active_color' => 'border-blue-400 bg-blue-50',     'num_color' => 'text-blue-600'],
+            ['key' => 'Em Atendimento', 'label' => 'Em Atendimento',  'icon' => 'wrench',       'color' => 'border-border hover:border-amber-400',       'active_color' => 'border-amber-400 bg-amber-50',   'num_color' => 'text-amber-600'],
+            ['key' => 'Aguardando Peça','label' => 'Aguardando Peça','icon' => 'package',      'color' => 'border-border hover:border-purple-400',      'active_color' => 'border-purple-400 bg-purple-50', 'num_color' => 'text-purple-600'],
+            ['key' => 'Resolvido',      'label' => 'Resolvido',       'icon' => 'check-circle', 'color' => 'border-border hover:border-green-400',       'active_color' => 'border-green-400 bg-green-50',   'num_color' => 'text-green-600'],
+        ];
+        ?>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
+            <?php foreach ($cards_man as $card):
+                $isActive = ($filtro_status === $card['key']);
+                $count = $card['key'] === '' ? $contagens['Todos'] : ($contagens[$card['key']] ?? 0);
+                $href = '?' . ($card['key'] ? 'status=' . urlencode($card['key']) : '');
+                $baseClass = 'flex flex-col gap-1.5 p-3 bg-white rounded-xl border-2 transition-all cursor-pointer no-underline';
+                $colorClass = $isActive ? $card['active_color'] : $card['color'];
             ?>
-            <a href="?status=<?php echo urlencode($st); ?>" class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3 group hover:border-primary transition-all <?php echo $active ? 'ring-1 ring-primary' : ''; ?>">
-                <div class="w-10 h-10 rounded-lg <?php echo str_replace('text-', 'bg-', $style['text']); ?>/10 flex items-center justify-center <?php echo $style['text']; ?> group-hover:<?php echo str_replace('text-', 'bg-', $style['text']); ?> group-hover:text-white transition-all">
-                    <i data-lucide="<?php echo $style['icon']; ?>" class="w-5 h-5"></i>
+            <a href="<?php echo $href; ?>" class="<?php echo $baseClass . ' ' . $colorClass; ?>">
+                <div class="flex items-center justify-between">
+                    <i data-lucide="<?php echo $card['icon']; ?>" class="w-4 h-4 <?php echo $card['num_color']; ?> opacity-70"></i>
+                    <?php if ($isActive): ?>
+                        <span class="w-1.5 h-1.5 rounded-full <?php echo str_replace('text-', 'bg-', $card['num_color']); ?>"></span>
+                    <?php endif; ?>
                 </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo $stats[$st]; ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider"><?php echo $st; ?></p>
-                </div>
+                <span class="text-2xl font-black <?php echo $card['num_color']; ?>"><?php echo $count; ?></span>
+                <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest leading-tight"><?php echo $card['label']; ?></span>
             </a>
             <?php endforeach; ?>
         </div>
@@ -733,7 +750,8 @@ $prioridade_labels = [
 
             async function poll() {
                 try {
-                    const res = await fetch('manutencao.php?action=poll', { cache: 'no-store' });
+                    const _pollStatus = new URLSearchParams(window.location.search).get('status') || '';
+                    const res = await fetch('manutencao.php?action=poll' + (_pollStatus ? '&status=' + encodeURIComponent(_pollStatus) : ''), { cache: 'no-store' });
                     if (!res.ok) { pulse(false); return; }
                     const data = await res.json();
                     pulse(true);
