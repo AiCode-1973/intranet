@@ -273,7 +273,7 @@ $status_styles = [
 
     <!-- Modal Editar -->
     <div id="modalEditar" class="modal">
-        <div class="bg-white w-full max-w-4xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col" style="height:65vh;max-height:65vh">
+        <div class="bg-white w-full max-w-4xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col" style="height:58vh;max-height:58vh">
             <!-- Cabeçalho -->
             <div class="bg-primary px-4 py-2.5 text-white flex justify-between items-center flex-shrink-0">
                 <div class="flex items-center gap-2">
