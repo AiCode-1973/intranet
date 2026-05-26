@@ -94,6 +94,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->close();
 }
 
+// Filtro por status via GET
+$filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
+$where_sql = $filtro_status ? "WHERE c.status = '$filtro_status'" : '';
+
 // Buscar todos os chamados com detalhes
 $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante,
                c.satisfacao_nota, c.satisfacao_comentario
@@ -101,6 +105,7 @@ $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as set
         JOIN usuarios u ON c.usuario_id = u.id 
         LEFT JOIN setores s ON u.setor_id = s.id
         LEFT JOIN usuarios t ON c.tecnico_id = t.id 
+        $where_sql
         ORDER BY 
             CASE 
                 WHEN c.status = 'Aberto' THEN 1 
@@ -154,16 +159,23 @@ $prioridade_styles = [
     'Urgente' => 'text-rose-600 font-black'
 ];
 
-// Stats para o dashboard superior
-$stats = ['Aberto' => 0, 'Em Atendimento' => 0, 'Total' => 0];
-$res_stats = $conn->query("SELECT status, COUNT(*) as total FROM chamados WHERE status IN ('Aberto', 'Em Atendimento') GROUP BY status");
-if ($res_stats) {
-    while($row = $res_stats->fetch_assoc()) {
-        $stats[$row['status']] = $row['total'];
+// Contagens por status para os cards de filtro
+$contagens = ['Todos' => 0, 'Aberto' => 0, 'Em Atendimento' => 0, 'Aguardando Peça' => 0, 'Resolvido' => 0];
+$res_cont = $conn->query("SELECT status, COUNT(*) as total FROM chamados GROUP BY status");
+if ($res_cont) {
+    while ($rc = $res_cont->fetch_assoc()) {
+        if (isset($contagens[$rc['status']])) $contagens[$rc['status']] = $rc['total'];
+        $contagens['Todos'] += $rc['total'];
     }
 }
-$res_total = $conn->query("SELECT COUNT(*) FROM chamados");
-$stats['Total'] = $res_total ? $res_total->fetch_row()[0] : 0;
+
+$cards_suporte = [
+    ['status' => '',                'label' => 'Todos',           'count' => $contagens['Todos'],              'icon' => 'layout-list',   'color' => 'border-gray-400',    'bg' => 'bg-gray-50',    'text' => 'text-gray-600'],
+    ['status' => 'Aberto',          'label' => 'Aberto',          'count' => $contagens['Aberto'],             'icon' => 'inbox',         'color' => 'border-blue-400',    'bg' => 'bg-blue-50',    'text' => 'text-blue-600'],
+    ['status' => 'Em Atendimento',  'label' => 'Em Atendimento',  'count' => $contagens['Em Atendimento'],     'icon' => 'wrench',        'color' => 'border-amber-400',   'bg' => 'bg-amber-50',   'text' => 'text-amber-600'],
+    ['status' => 'Aguardando Peça', 'label' => 'Aguardando Peça', 'count' => $contagens['Aguardando Peça'],    'icon' => 'package',       'color' => 'border-purple-400',  'bg' => 'bg-purple-50',  'text' => 'text-purple-600'],
+    ['status' => 'Resolvido',       'label' => 'Resolvido',       'count' => $contagens['Resolvido'],          'icon' => 'check-circle',  'color' => 'border-emerald-400', 'bg' => 'bg-emerald-50', 'text' => 'text-emerald-600'],
+];
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -228,44 +240,21 @@ $stats['Total'] = $res_total ? $res_total->fetch_row()[0] : 0;
             </div>
         </div>
 
-        <!-- Dashboard Superior (Slim) -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-500">
-                    <i data-lucide="inbox" class="w-5 h-5"></i>
+        <!-- Cards de Filtro por Status -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+            <?php foreach ($cards_suporte as $card): ?>
+            <?php $ativo = ($filtro_status === $card['status']); ?>
+            <a href="?status=<?php echo urlencode($card['status']); ?>" 
+               class="bg-white p-4 rounded-xl shadow-sm border-2 flex items-center gap-3 transition-all hover:shadow-md <?php echo $ativo ? $card['color'] . ' shadow-md' : 'border-border hover:border-gray-300'; ?>">
+                <div class="w-9 h-9 rounded-lg <?php echo $card['bg']; ?> flex items-center justify-center <?php echo $card['text']; ?> shrink-0">
+                    <i data-lucide="<?php echo $card['icon']; ?>" class="w-4 h-4"></i>
                 </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo $stats['Aberto']; ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Abertos</p>
+                <div class="min-w-0">
+                    <h3 class="text-lg font-black <?php echo $ativo ? $card['text'] : 'text-text'; ?> leading-none"><?php echo $card['count']; ?></h3>
+                    <p class="text-[9px] font-bold text-text-secondary uppercase tracking-wider truncate mt-0.5"><?php echo $card['label']; ?></p>
                 </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500">
-                    <i data-lucide="activity" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo $stats['Em Atendimento']; ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Em Curso</p>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo $stats['Total']; ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Total Histórico</p>
-                </div>
-            </div>
-            <div class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400">
-                    <i data-lucide="clock" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo date('H:i'); ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Hora Atual</p>
-                </div>
-            </div>
+            </a>
+            <?php endforeach; ?>
         </div>
 
         <?php if ($mensagem): ?>
