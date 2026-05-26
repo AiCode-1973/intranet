@@ -546,6 +546,12 @@ if ($cnt_res) {
                 anexoMain.classList.add('hidden');
             }
 
+            // Limpar campo de comentário para não vazar texto de chamado anterior
+            const comentTexta = document.querySelector('#form_comentario textarea[name="comentario"]');
+            if (comentTexta) comentTexta.value = '';
+            const fileInputC = document.querySelector('#form_comentario input[type="file"]');
+            if (fileInputC) { fileInputC.value = ''; document.getElementById('file_name_display')?.classList.add('hidden'); }
+
             // Chat / Comentários
             const container = document.getElementById('chat_container');
             container.innerHTML = '';

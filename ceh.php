@@ -533,6 +533,13 @@ $prioridade_labels = [
 
             const comList = document.getElementById('detalhe_comentarios');
             comList.innerHTML = '';
+
+            // Limpar campo de comentário para não vazar texto de chamado anterior
+            const comentarioInput = document.querySelector('#form_comentario_usuario input[name="comentario"]');
+            if (comentarioInput) comentarioInput.value = '';
+            const fileInput = document.querySelector('#form_comentario_usuario input[type="file"]');
+            if (fileInput) { fileInput.value = ''; }
+
             const formCom = document.getElementById('form_comentario_usuario');
             
             if (chamado.status === 'Resolvido' || chamado.status === 'Cancelado') {
@@ -550,7 +557,7 @@ $prioridade_labels = [
                             <span class="text-[8px] font-black text-primary uppercase">${c.autor}</span>
                             <span class="text-[7px] text-text-secondary opacity-50">${c.data_comentario_fmt}</span>
                         </div>
-                        <p class="text-[9px] text-text-secondary leading-tight italic">"${c.comentario}"</p>
+                        <p class="text-[9px] text-text-secondary leading-tight italic">${c.comentario ? '"' + c.comentario + '"' : '<span class="opacity-50 not-italic">Arquivo enviado</span>'}</p>
                         ${c.anexo ? `
                             <div class="mt-2">
                                 <a href="uploads/ceh/${c.anexo}" target="_blank" class="inline-flex items-center gap-1.5 p-1.5 bg-gray-50 border border-border rounded text-[8px] font-black text-primary uppercase hover:bg-gray-100 transition-all">
