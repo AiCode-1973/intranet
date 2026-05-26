@@ -111,6 +111,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'excluir_chamado_ceh' && isAdmin()) {
     $id = intval($_POST['id']);
     
+    // Apaga comentários antes para não ficarem órfãos e reapareceram em novo chamado com mesmo ID
+    $stmt_com = $conn->prepare("DELETE FROM ceh_comentarios WHERE chamado_id = ?");
+    $stmt_com->bind_param("i", $id);
+    $stmt_com->execute();
+    $stmt_com->close();
+
     $stmt = $conn->prepare("DELETE FROM ceh_chamados WHERE id = ?");
     $stmt->bind_param("i", $id);
     
