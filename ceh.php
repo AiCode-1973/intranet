@@ -138,6 +138,7 @@ while($row = $res->fetch_assoc()) {
     // Buscar comentários
     $comentarios_res = $conn->query("SELECT cc.*, u.nome as autor FROM ceh_comentarios cc 
                                      JOIN usuarios u ON cc.usuario_id = u.id 
+                                     INNER JOIN ceh_chamados ch ON ch.id = cc.chamado_id 
                                      WHERE cc.chamado_id = $c_id 
                                      ORDER BY cc.data_comentario ASC");
     $row['comentarios'] = [];
