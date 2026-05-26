@@ -20,8 +20,10 @@ if (isset($_GET['action']) && $_GET['action'] === 'poll') {
 }
 // ───────────────────────────────────────────────────────────────────────────
 
-$mensagem = '';
-$tipo_mensagem = '';
+// Ler mensagem flash de redirect anterior
+$mensagem = $_SESSION['flash_msg'] ?? '';
+$tipo_mensagem = $_SESSION['flash_tipo'] ?? '';
+unset($_SESSION['flash_msg'], $_SESSION['flash_tipo']);
 
 // Processar atualização do chamado CEH
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'atualizar_chamado_ceh') {
@@ -39,8 +41,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->bind_param("ssisi", $status, $resolucao, $tecnico_id, $data_fechamento, $id);
 
     if ($stmt->execute()) {
-        $mensagem = "Chamado CEH #$id atualizado!";
-        $tipo_mensagem = "success";
         registrarLog($conn, "Atualizou chamado CEH #$id para status: $status");
 
         // Notificação automática para o solicitante
@@ -60,11 +60,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
             $stmt2->execute();
             $stmt2->close();
         }
+        $_SESSION['flash_msg'] = "Chamado CEH #$id atualizado!";
+        $_SESSION['flash_tipo'] = 'success';
     } else {
-        $mensagem = "Erro ao atualizar: " . $conn->error;
-        $tipo_mensagem = "danger";
+        $_SESSION['flash_msg'] = "Erro ao atualizar: " . $conn->error;
+        $_SESSION['flash_tipo'] = 'danger';
     }
     $stmt->close();
+    header('Location: ceh_gerenciar.php');
+    exit;
 }
 
 // Processar Novo Comentário do Técnico
@@ -93,11 +97,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
         $stmt = $conn->prepare("INSERT INTO ceh_comentarios (chamado_id, usuario_id, comentario, lido_pelo_tecnico, lido_pelo_usuario, anexo) VALUES (?, ?, ?, 1, 0, ?)");
         $stmt->bind_param("iiss", $chamado_id, $usuario_id, $comentario, $anexo);
         if ($stmt->execute()) {
-            $mensagem = "Comentário adicionado com sucesso!";
-            $tipo_mensagem = "success";
+            $_SESSION['flash_msg'] = "Comentário adicionado com sucesso!";
+            $_SESSION['flash_tipo'] = 'success';
         }
         $stmt->close();
     }
+    header('Location: ceh_gerenciar.php');
+    exit;
 }
 
 // Processar Marcação de Leitura (AJAX)
@@ -121,14 +127,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->bind_param("i", $id);
     
     if ($stmt->execute()) {
-        $mensagem = "Chamado CEH #$id removido!";
-        $tipo_mensagem = "success";
+        $_SESSION['flash_msg'] = "Chamado CEH #$id removido!";
+        $_SESSION['flash_tipo'] = 'success';
         registrarLog($conn, "Excluiu chamado CEH #$id");
     } else {
-        $mensagem = "Erro ao excluir: " . $conn->error;
-        $tipo_mensagem = "danger";
+        $_SESSION['flash_msg'] = "Erro ao excluir: " . $conn->error;
+        $_SESSION['flash_tipo'] = 'danger';
     }
     $stmt->close();
+    header('Location: ceh_gerenciar.php');
+    exit;
 }
 
 // Filtro por status
