@@ -7,10 +7,12 @@ requireCEH();
 // ── Endpoint de polling (AJAX) ─────────────────────────────────────────────
 if (isset($_GET['action']) && $_GET['action'] === 'poll') {
     header('Content-Type: application/json');
+    $poll_cond = !empty($_GET['status']) ? "WHERE c.status = '" . $conn->real_escape_string($_GET['status']) . "'" : '';
     $rows = $conn->query("
         SELECT c.id, c.status, c.prioridade, c.data_abertura,
                (SELECT COUNT(*) FROM ceh_comentarios cc WHERE cc.chamado_id = c.id AND cc.lido_pelo_tecnico = 0) as nao_lidos
         FROM ceh_chamados c
+        $poll_cond
         ORDER BY c.data_abertura DESC
     ");
     $result = [];
@@ -690,7 +692,8 @@ if ($cnt_res) {
 
             async function poll() {
                 try {
-                    const res = await fetch('ceh_gerenciar.php?action=poll', { cache: 'no-store' });
+                    const _pollStatus = new URLSearchParams(window.location.search).get('status') || '';
+                    const res = await fetch('ceh_gerenciar.php?action=poll' + (_pollStatus ? '&status=' + encodeURIComponent(_pollStatus) : ''), { cache: 'no-store' });
                     if (!res.ok) { pulse(false); return; }
                     const data = await res.json();
                     pulse(true);
