@@ -828,7 +828,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
 
     <!-- ── Modal Termos de Uso ───────────────────────────────────────────── -->
     <div id="modalTermos" style="display:none;position:fixed;inset:0;z-index:10000;background:rgba(0,0,0,0.7);backdrop-filter:blur(6px);align-items:center;justify-content:center;padding:16px;">
-        <div style="background:#fff;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.35);width:100%;max-width:680px;overflow:hidden;display:flex;flex-direction:column;max-height:92vh;">
+        <div style="background:#fff;border-radius:20px;box-shadow:0 24px 64px rgba(0,0,0,.35);width:100%;max-width:520px;overflow:hidden;display:flex;flex-direction:column;max-height:78vh;">
             <!-- Cabeçalho -->
             <div style="background:linear-gradient(135deg,#0d9488,#0f766e);padding:24px 28px;color:#fff;flex-shrink:0;">
                 <div style="display:flex;align-items:center;gap:14px;">
@@ -849,7 +849,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                     disponibilizada abaixo. O aceite é obrigatório e registrado com data/hora.
                 </p>
                 <!-- Visualizador de PDF -->
-                <div style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;height:340px;background:#f8fafc;">
+                <div style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;height:220px;background:#f8fafc;">
                     <iframe src="politica_uso_intranet_colaborador_apas.pdf"
                             style="width:100%;height:100%;border:none;"
                             title="Política de Uso da Intranet APAS">
