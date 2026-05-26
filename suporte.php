@@ -200,6 +200,25 @@ $prioridade_labels = [
     'Alta' => ['text' => 'text-orange-500', 'icon' => 'arrow-up'],
     'Urgente' => ['text' => 'text-red-600 font-bold', 'icon' => 'alert-circle']
 ];
+
+// Contagens globais para os cards (sem filtro de status)
+$contagens_where = isAdmin() ? '' : "WHERE usuario_id = $usuario_id";
+$contagens = ['Todos' => 0, 'Aberto' => 0, 'Em Atendimento' => 0, 'Aguardando Peça' => 0, 'Resolvido' => 0];
+$res_cont = $conn->query("SELECT status, COUNT(*) as total FROM chamados $contagens_where GROUP BY status");
+if ($res_cont) {
+    while ($rc = $res_cont->fetch_assoc()) {
+        if (isset($contagens[$rc['status']])) $contagens[$rc['status']] = $rc['total'];
+        $contagens['Todos'] += $rc['total'];
+    }
+}
+
+$cards_suporte_user = [
+    ['status' => '',                'label' => 'Todos',           'count' => $contagens['Todos'],           'icon' => 'layout-list',   'color' => 'border-gray-400',    'bg' => 'bg-gray-50',    'text' => 'text-gray-600'],
+    ['status' => 'Aberto',          'label' => 'Aberto',          'count' => $contagens['Aberto'],          'icon' => 'inbox',         'color' => 'border-blue-400',    'bg' => 'bg-blue-50',    'text' => 'text-blue-600'],
+    ['status' => 'Em Atendimento',  'label' => 'Em Atendimento',  'count' => $contagens['Em Atendimento'],  'icon' => 'wrench',        'color' => 'border-amber-400',   'bg' => 'bg-amber-50',   'text' => 'text-amber-600'],
+    ['status' => 'Aguardando Peça', 'label' => 'Aguardando Peça', 'count' => $contagens['Aguardando Peça'], 'icon' => 'package',       'color' => 'border-purple-400',  'bg' => 'bg-purple-50',  'text' => 'text-purple-600'],
+    ['status' => 'Resolvido',       'label' => 'Resolvido',       'count' => $contagens['Resolvido'],       'icon' => 'check-circle',  'color' => 'border-emerald-400', 'bg' => 'bg-emerald-50', 'text' => 'text-emerald-600'],
+];
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -254,29 +273,18 @@ $prioridade_labels = [
             <script>setTimeout(function(){var m=document.getElementById('suporte-msg');if(m){m.style.opacity='0';setTimeout(function(){m.remove();},500);}},4000);</script>
         <?php endif; ?>
 
-        <!-- Stats Grid (Slim Style) -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
-            <a href="suporte.php" class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3 group hover:border-primary transition-all <?php echo !$filtro_status ? 'ring-1 ring-primary' : ''; ?>">
-                <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 group-hover:bg-primary group-hover:text-white transition-all">
-                    <i data-lucide="layers" class="w-5 h-5"></i>
+        <!-- Cards de Filtro por Status -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+            <?php foreach ($cards_suporte_user as $card): ?>
+            <?php $ativo = ($filtro_status === $card['status']); ?>
+            <a href="?status=<?php echo urlencode($card['status']); ?>" 
+               class="bg-white p-4 rounded-xl shadow-sm border-2 flex items-center gap-3 transition-all hover:shadow-md <?php echo $ativo ? $card['color'] . ' shadow-md' : 'border-border hover:border-gray-300'; ?>">
+                <div class="w-9 h-9 rounded-lg <?php echo $card['bg']; ?> flex items-center justify-center <?php echo $card['text']; ?> shrink-0">
+                    <i data-lucide="<?php echo $card['icon']; ?>" class="w-4 h-4"></i>
                 </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo count($chamados); ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Todos</p>
-                </div>
-            </a>
-            <?php foreach(['Aberto', 'Em Atendimento', 'Resolvido', 'Cancelado'] as $st): 
-                $active = ($filtro_status == $st);
-                $style = $status_styles[$st];
-                $icon = $st == 'Aberto' ? 'clock' : ($st == 'Em Atendimento' ? 'play-circle' : ($st == 'Resolvido' ? 'check-circle' : 'x-circle'));
-            ?>
-            <a href="?status=<?php echo $st; ?>" class="bg-white p-4 rounded-xl shadow-sm border border-border flex items-center gap-3 group hover:border-primary transition-all <?php echo $active ? 'ring-1 ring-primary' : ''; ?>">
-                <div class="w-10 h-10 rounded-lg <?php echo str_replace('text-', 'bg-', $style['text']); ?>/10 flex items-center justify-center <?php echo $style['text']; ?> group-hover:<?php echo str_replace('text-', 'bg-', $style['text']); ?> group-hover:text-white transition-all">
-                    <i data-lucide="<?php echo $icon; ?>" class="w-5 h-5"></i>
-                </div>
-                <div>
-                    <h3 class="text-xl font-bold text-text"><?php echo $stats[$st]; ?></h3>
-                    <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider"><?php echo $st; ?></p>
+                <div class="min-w-0">
+                    <h3 class="text-lg font-black <?php echo $ativo ? $card['text'] : 'text-text'; ?> leading-none"><?php echo $card['count']; ?></h3>
+                    <p class="text-[9px] font-bold text-text-secondary uppercase tracking-wider truncate mt-0.5"><?php echo $card['label']; ?></p>
                 </div>
             </a>
             <?php endforeach; ?>
