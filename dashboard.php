@@ -755,6 +755,41 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
         });
         <?php endif; ?>
 
+        function recusarTermos() {
+            const corpo = document.getElementById('modalTermosCorpo');
+            const rodape = document.getElementById('modalTermosRodape');
+            corpo.innerHTML = `
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px 24px;gap:20px;">
+                    <div style="background:#fef2f2;border:2px solid #fecaca;border-radius:50%;padding:20px;">
+                        <i data-lucide="shield-x" style="width:48px;height:48px;color:#dc2626;"></i>
+                    </div>
+                    <div>
+                        <h3 style="font-size:17px;font-weight:800;color:#1e293b;margin-bottom:8px;">Acesso Não Autorizado</h3>
+                        <p style="font-size:13px;color:#64748b;line-height:1.6;max-width:420px;">
+                            O aceite da <strong style="color:#dc2626;">Política de Uso</strong> é obrigatório para utilizar a Intranet APAS Baixada Santista.
+                        </p>
+                        <p style="font-size:12px;color:#94a3b8;margin-top:10px;line-height:1.6;">
+                            Sem o aceite, não é possível acessar nenhum recurso da plataforma.
+                            Se tiver dúvidas sobre a política, entre em contato com o setor de TI.
+                        </p>
+                    </div>
+                </div>
+            `;
+            rodape.innerHTML = `
+                <div style="display:flex;gap:10px;">
+                    <button onclick="location.href='logout.php'"
+                            style="background:#dc2626;color:#fff;border:none;padding:10px 22px;border-radius:10px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;">
+                        Sair da Intranet
+                    </button>
+                    <button onclick="location.reload()"
+                            style="background:#e2e8f0;color:#475569;border:none;padding:10px 22px;border-radius:10px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;">
+                        Voltar e Ler os Termos
+                    </button>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
         function aceitarTermos() {
             const btn = document.getElementById('btnAceitarTermos');
             btn.disabled = true;
@@ -808,7 +843,7 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             </div>
 
             <!-- Corpo -->
-            <div style="padding:24px 28px;flex-grow:1;overflow-y:auto;">
+            <div id="modalTermosCorpo" style="padding:24px 28px;flex-grow:1;overflow-y:auto;">
                 <p style="font-size:12px;color:#64748b;line-height:1.7;margin-bottom:16px;">
                     Para utilizar a Intranet APAS você deve ler e aceitar a <strong style="color:#0d9488;">Política de Uso</strong>
                     disponibilizada abaixo. O aceite é obrigatório e registrado com data/hora.
@@ -841,7 +876,13 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             </div>
 
             <!-- Rodapé -->
-            <div style="padding:16px 28px;border-top:1px solid #e2e8f0;display:flex;justify-content:flex-end;background:#f8fafc;flex-shrink:0;">
+            <div id="modalTermosRodape" style="padding:16px 28px;border-top:1px solid #e2e8f0;display:flex;justify-content:space-between;align-items:center;background:#f8fafc;flex-shrink:0;gap:10px;">
+                <button onclick="recusarTermos()"
+                        style="background:#fff;color:#dc2626;border:2px solid #fecaca;padding:10px 22px;border-radius:10px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;transition:background .2s;"
+                        onmouseover="this.style.background='#fef2f2'"
+                        onmouseout="this.style.background='#fff'">
+                    Não Aceito
+                </button>
                 <button id="btnAceitarTermos" disabled onclick="aceitarTermos()"
                         style="background:#0d9488;color:#fff;border:none;padding:10px 28px;border-radius:10px;font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;cursor:pointer;opacity:.5;transition:opacity .2s;"
                         onmouseover="if(!this.disabled)this.style.background='#0f766e'"
