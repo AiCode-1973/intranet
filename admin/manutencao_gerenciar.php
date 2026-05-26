@@ -136,6 +136,16 @@ if (!$res) {
 $chamados = [];
 while($row = $res->fetch_assoc()) $chamados[] = $row;
 
+// Contagens por status (sempre sem filtro)
+$contagens = ['Todos' => 0, 'Aberto' => 0, 'Em Atendimento' => 0, 'Aguardando Peça' => 0, 'Resolvido' => 0];
+$cnt_res = $conn->query("SELECT status, COUNT(*) as total FROM manutencao GROUP BY status");
+if ($cnt_res) {
+    while ($row = $cnt_res->fetch_assoc()) {
+        if (isset($contagens[$row['status']])) $contagens[$row['status']] = intval($row['total']);
+        $contagens['Todos'] += intval($row['total']);
+    }
+}
+
 // Buscar técnicos (Marcados explicitamente como técnicos de manutenção)
 $tecnicos_res = $conn->query("SELECT id, nome FROM usuarios WHERE is_manutencao = 1 AND ativo = 1 ORDER BY nome");
 $tecnicos = [];
@@ -194,6 +204,37 @@ $status_styles = [
             </div>
             <script>setTimeout(function(){var m=document.getElementById('man-msg');if(m){m.style.opacity='0';setTimeout(function(){m.remove();},500);}},4000);</script>
         <?php endif; ?>
+
+        <!-- Cards de Status -->
+        <?php
+        $cards = [
+            ['key' => '',               'label' => 'Todos',           'icon' => 'layers',        'color' => 'border-border hover:border-primary',          'active_color' => 'border-primary bg-primary/5',             'num_color' => 'text-primary'],
+            ['key' => 'Aberto',         'label' => 'Aberto',          'icon' => 'circle-dot',    'color' => 'border-border hover:border-blue-400',          'active_color' => 'border-blue-400 bg-blue-50',              'num_color' => 'text-blue-600'],
+            ['key' => 'Em Atendimento', 'label' => 'Em Atendimento',  'icon' => 'wrench',        'color' => 'border-border hover:border-amber-400',         'active_color' => 'border-amber-400 bg-amber-50',            'num_color' => 'text-amber-600'],
+            ['key' => 'Aguardando Peça','label' => 'Aguardando Peça', 'icon' => 'package',       'color' => 'border-border hover:border-purple-400',        'active_color' => 'border-purple-400 bg-purple-50',          'num_color' => 'text-purple-600'],
+            ['key' => 'Resolvido',      'label' => 'Resolvido',       'icon' => 'check-circle',  'color' => 'border-border hover:border-green-400',         'active_color' => 'border-green-400 bg-green-50',            'num_color' => 'text-green-600'],
+        ];
+        ?>
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-4">
+            <?php foreach ($cards as $card):
+                $isActive = ($filtro_status === $card['key']);
+                $count = $card['key'] === '' ? $contagens['Todos'] : ($contagens[$card['key']] ?? 0);
+                $href = '?' . ($card['key'] ? 'status=' . urlencode($card['key']) : '');
+                $baseClass = 'flex flex-col gap-1.5 p-3 bg-white rounded-xl border-2 transition-all cursor-pointer no-underline';
+                $colorClass = $isActive ? $card['active_color'] : $card['color'];
+            ?>
+            <a href="<?php echo $href; ?>" class="<?php echo $baseClass . ' ' . $colorClass; ?>">
+                <div class="flex items-center justify-between">
+                    <i data-lucide="<?php echo $card['icon']; ?>" class="w-4 h-4 <?php echo $card['num_color']; ?> opacity-70"></i>
+                    <?php if ($isActive): ?>
+                        <span class="w-1.5 h-1.5 rounded-full <?php echo str_replace('text-', 'bg-', $card['num_color']); ?>"></span>
+                    <?php endif; ?>
+                </div>
+                <span class="text-2xl font-black <?php echo $card['num_color']; ?>"><?php echo $count; ?></span>
+                <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest leading-tight"><?php echo $card['label']; ?></span>
+            </a>
+            <?php endforeach; ?>
+        </div>
 
         <!-- Table -->
         <div class="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
