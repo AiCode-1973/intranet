@@ -2,7 +2,15 @@
 require_once '../config.php';
 require_once '../functions.php';
 
-requireAdmin();
+requireLogin();
+$setor_id    = isset($_SESSION['setor_id']) ? intval($_SESSION['setor_id']) : 0;
+if (!temPermissao($conn, $setor_id, 'banners', 'visualizar')) {
+    header('Location: ../dashboard.php');
+    exit;
+}
+$pode_criar   = temPermissao($conn, $setor_id, 'banners', 'criar');
+$pode_editar  = temPermissao($conn, $setor_id, 'banners', 'editar');
+$pode_excluir = temPermissao($conn, $setor_id, 'banners', 'excluir');
 
 // Garantir que a tabela existe
 $conn->query("
@@ -26,7 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
     $acao = $_POST['acao'];
 
     // ── CRIAR ────────────────────────────────
-    if ($acao == 'criar') {
+    if ($acao == 'criar' && $pode_criar) {
         $titulo   = sanitize($_POST['titulo']);
         $link_url = !empty($_POST['link_url']) ? sanitize($_POST['link_url']) : null;
         $ativo    = isset($_POST['ativo']) ? 1 : 0;
@@ -72,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         }
 
     // ── EDITAR (só título, link e status) ────
-    } elseif ($acao == 'editar') {
+    } elseif ($acao == 'editar' && $pode_editar) {
         $id       = intval($_POST['id']);
         $titulo   = sanitize($_POST['titulo']);
         $link_url = !empty($_POST['link_url']) ? sanitize($_POST['link_url']) : null;
@@ -131,7 +139,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         fim_edicao:;
 
     // ── EXCLUIR ──────────────────────────────
-    } elseif ($acao == 'excluir') {
+    } elseif ($acao == 'excluir' && $pode_excluir) {
         $id = intval($_POST['id']);
         $row = $conn->query("SELECT imagem FROM banners WHERE id = $id")->fetch_assoc();
         if ($row) {
@@ -150,7 +158,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         $stmt->close();
 
     // ── TOGGLE ATIVO ─────────────────────────
-    } elseif ($acao == 'toggle_ativo') {
+    } elseif ($acao == 'toggle_ativo' && $pode_editar) {
         $id    = intval($_POST['id']);
         $atual = intval($_POST['ativo_atual']);
         $novo  = $atual == 1 ? 0 : 1;
@@ -158,6 +166,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         $mensagem = $novo ? 'Banner ativado!' : 'Banner desativado!';
         $tipo_mensagem = 'success';
         registrarLog($conn, 'Alterou status do banner ID: ' . $id . ' para ' . ($novo ? 'ativo' : 'inativo'));
+    } else {
+        $mensagem = 'Você não tem permissão para realizar esta ação.';
+        $tipo_mensagem = 'danger';
     }
 }
 
@@ -186,9 +197,11 @@ $banners = $conn->query("SELECT * FROM banners ORDER BY created_at DESC");
                 </h1>
                 <p class="text-text-secondary text-xs mt-1">Gerencie as imagens exibidas no painel principal dos colaboradores.</p>
             </div>
+            <?php if ($pode_criar): ?>
             <button onclick="abrirModalCriar()" class="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md transition-all active:scale-95 flex items-center gap-2">
                 <i data-lucide="plus" class="w-4 h-4"></i> Novo Banner
             </button>
+            <?php endif; ?>
         </div>
 
         <!-- Mensagem de feedback -->
@@ -243,6 +256,7 @@ $banners = $conn->query("SELECT * FROM banners ORDER BY created_at DESC");
                 <!-- Ações -->
                 <div class="px-4 pb-4 flex items-center gap-2">
                     <!-- Toggle ativo -->
+                    <?php if ($pode_editar): ?>
                     <form method="POST" class="flex-1">
                         <input type="hidden" name="acao" value="toggle_ativo">
                         <input type="hidden" name="id" value="<?php echo $b['id']; ?>">
@@ -258,8 +272,10 @@ $banners = $conn->query("SELECT * FROM banners ORDER BY created_at DESC");
                             class="px-3 py-1.5 bg-blue-50 text-blue-600 border border-blue-200 rounded-lg text-[10px] font-black uppercase hover:bg-blue-100 transition-all">
                         <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                     </button>
+                    <?php endif; ?>
 
                     <!-- Excluir -->
+                    <?php if ($pode_excluir): ?>
                     <form method="POST" onsubmit="return confirm('Excluir este banner? A imagem também será apagada.');">
                         <input type="hidden" name="acao" value="excluir">
                         <input type="hidden" name="id" value="<?php echo $b['id']; ?>">
@@ -267,6 +283,7 @@ $banners = $conn->query("SELECT * FROM banners ORDER BY created_at DESC");
                             <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                         </button>
                     </form>
+                    <?php endif; ?>
                 </div>
             </div>
             <?php endwhile; ?>
