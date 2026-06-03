@@ -543,129 +543,189 @@ function processarFoto3x4($caminho_origem, $caminho_destino) {
     
     <!-- Modal Usuário -->
     <div id="modalUsuario" class="modal">
-        <div class="bg-white w-full max-w-md mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150">
-            <div class="bg-primary px-5 py-4 text-white flex justify-between items-center">
-                <div>
-                    <h2 id="modalTitulo" class="text-base font-bold">Novo Usuário</h2>
-                    <p class="text-white/70 text-[10px] uppercase font-bold tracking-widest">Ficha de Cadastro</p>
-                </div>
-                <button class="p-1.5 hover:bg-white/10 rounded-lg transition-colors" type="button" onclick="fecharModal()">
-                    <i data-lucide="x" class="w-5 h-5"></i>
-                </button>
-            </div>
-            
-            <form method="POST" action="" class="p-5" enctype="multipart/form-data">
+        <div class="bg-white w-full max-w-4xl mx-4 rounded-2xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150">
+            <form method="POST" action="" enctype="multipart/form-data" class="flex max-h-[90vh]">
                 <input type="hidden" name="acao" id="acao" value="criar">
                 <input type="hidden" name="id" id="usuario_id">
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div class="md:col-span-2 flex flex-col items-center mb-2">
-                        <div id="fotoPreviewContainer" class="hidden mb-2">
-                            <img id="fotoPreview" src="" alt="Preview" class="foto-3x4-large shadow-lg">
+
+                <!-- Coluna Esquerda — Identidade / Foto -->
+                <div class="bg-primary w-64 shrink-0 relative overflow-hidden flex flex-col p-7">
+                    <!-- Círculos decorativos -->
+                    <div class="absolute -bottom-10 -left-10 w-40 h-40 bg-white/10 rounded-full"></div>
+                    <div class="absolute -top-6 -right-6 w-28 h-28 bg-white/10 rounded-full"></div>
+
+                    <!-- Título -->
+                    <div class="relative z-10 mb-6">
+                        <span class="text-[9px] font-black uppercase tracking-[0.2em] text-white/60 block mb-1">Ficha de Cadastro</span>
+                        <h2 id="modalTitulo" class="text-xl font-black text-white leading-snug tracking-tight">Novo Usuário</h2>
+                    </div>
+
+                    <!-- Área de Foto -->
+                    <div class="relative z-10 flex flex-col items-center gap-3 mb-6">
+                        <div id="fotoPreviewContainer" class="hidden">
+                            <img id="fotoPreview" src="" alt="Preview" class="foto-3x4-large shadow-xl">
                         </div>
-                        <div id="fotoDefault" class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center border-2 border-dashed border-gray-300 text-gray-400">
-                            <i data-lucide="camera" class="w-8 h-8"></i>
+                        <div id="fotoDefault" class="w-28 h-36 rounded-2xl bg-white/20 flex items-center justify-center border-2 border-dashed border-white/30 text-white/60">
+                            <i data-lucide="camera" class="w-10 h-10"></i>
                         </div>
-                        <label class="mt-2 cursor-pointer bg-gray-100 hover:bg-gray-200 text-text-secondary px-3 py-1 rounded-full text-[10px] font-bold transition-all border border-border">
-                            Escolher Foto (3x4)
+                        <label class="cursor-pointer bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-xl text-[9px] font-black transition-all uppercase tracking-widest flex items-center gap-1.5">
+                            <i data-lucide="upload" class="w-3 h-3"></i>
+                            Foto 3x4
                             <input type="file" name="foto" id="fotoInput" class="hidden" accept="image/*" onchange="previewImagem(this)">
                         </label>
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label for="nome" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Nome Completo</label>
-                        <input type="text" id="nome" name="nome" required class="w-full p-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary transition-all">
-                    </div>
-                    
-                    <div>
-                        <label for="cpf" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">CPF</label>
-                        <input type="text" id="cpf" name="cpf" maxlength="14" required class="w-full p-2 bg-background border border-border rounded-lg text-xs font-mono focus:outline-none focus:border-primary transition-all">
-                    </div>
-                    
-                    <div>
-                        <label for="email" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">E-mail</label>
-                        <input type="email" id="email" name="email" required class="w-full p-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary transition-all">
+                    <!-- Preview nome / função -->
+                    <div class="relative z-10 mt-auto flex flex-col gap-1 mb-4">
+                        <span id="nomePreview" class="text-sm font-black text-white leading-snug block break-words min-h-[1.2rem]"></span>
+                        <span id="funcaoPreview" class="text-[9px] font-bold text-white/50 uppercase tracking-widest block min-h-[0.9rem]"></span>
                     </div>
 
-                    <div>
-                        <label for="funcao" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Função / Cargo</label>
-                        <input type="text" id="funcao" name="funcao" placeholder="Ex: Analista de RH" class="w-full p-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary transition-all">
-                    </div>
-
-                    <div>
-                        <label for="data_admissao" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Data de Admissão</label>
-                        <input type="date" id="data_admissao" name="data_admissao" class="w-full p-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary transition-all">
-                    </div>
-                    
-                    <div>
-                        <label for="setor_id" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Setor</label>
-                        <select id="setor_id" name="setor_id" class="w-full p-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary transition-all">
-                            <option value="">Sem vínculo</option>
-                            <?php 
-                            $setores->data_seek(0);
-                            while ($setor = $setores->fetch_assoc()): 
-                            ?>
-                                <option value="<?php echo $setor['id']; ?>"><?php echo $setor['nome']; ?></option>
-                            <?php endwhile; ?>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="superior_id" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Superior Direto</label>
-                        <select id="superior_id" name="superior_id" class="w-full p-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary transition-all">
-                            <option value="">Sem superior</option>
-                            <?php 
-                            $usuarios_list = $conn->query("SELECT id, nome FROM usuarios WHERE ativo = 1 ORDER BY nome");
-                            while ($u = $usuarios_list->fetch_assoc()): 
-                            ?>
-                                <option value="<?php echo $u['id']; ?>"><?php echo $u['nome']; ?></option>
-                            <?php endwhile; ?>
-                        </select>
-                    </div>
-
-                    <div>
-                        <label for="senha" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Senha <span id="senhaOpcional" class="font-normal normal-case opacity-60 italic"></span></label>
-                        <input type="password" id="senha" name="senha" class="w-full p-2 bg-background border border-border rounded-lg text-xs focus:outline-none focus:border-primary transition-all">
-                    </div>
-                    
-                    <div class="md:col-span-2 flex items-center gap-4 mt-1 border-t border-border/50 pt-3">
-                        <label class="flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" id="is_admin" name="is_admin" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
-                            <span class="text-[11px] font-bold text-text-secondary">Administrador</span>
+                    <!-- Status Ativo (só na edição) -->
+                    <div id="ativoGroup" style="display: none;" class="relative z-10">
+                        <label class="flex items-center gap-2 cursor-pointer bg-white/10 rounded-xl p-3 hover:bg-white/20 transition-colors">
+                            <input type="checkbox" id="ativo" name="ativo" checked class="w-4 h-4 rounded border-white/30 focus:ring-primary accent-white">
+                            <div>
+                                <span class="text-[10px] font-black text-white uppercase tracking-wider block">Status</span>
+                                <span class="text-[9px] text-white/60">Usuário ativo</span>
+                            </div>
                         </label>
-
-                        <label class="flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" id="is_tecnico" name="is_tecnico" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
-                            <span class="text-[11px] font-bold text-text-secondary">Técnico de TI</span>
-                        </label>
-
-                        <label class="flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" id="is_manutencao" name="is_manutencao" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
-                            <span class="text-[11px] font-bold text-text-secondary">Técnico Manutenção</span>
-                        </label>
-
-                        <label class="flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" id="is_educacao" name="is_educacao" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
-                            <span class="text-[11px] font-bold text-text-secondary">Gestor Educação</span>
-                        </label>
-
-                        <label class="flex items-center gap-1.5 cursor-pointer">
-                            <input type="checkbox" id="is_ceh" name="is_ceh" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
-                            <span class="text-[11px] font-bold text-text-secondary">Técnico CEH</span>
-                        </label>
-                        
-                        <div id="ativoGroup" style="display: none;">
-                            <label class="flex items-center gap-1.5 cursor-pointer">
-                                <input type="checkbox" id="ativo" name="ativo" checked class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
-                                <span class="text-[11px] font-bold text-text-secondary">Ativo</span>
-                            </label>
-                        </div>
                     </div>
                 </div>
-                
-                <div class="flex justify-end gap-2 mt-6">
-                    <button type="button" onclick="fecharModal()" class="px-4 py-1.5 text-xs font-bold text-text-secondary hover:text-text transition-colors">Cancelar</button>
-                    <button type="submit" class="bg-primary hover:bg-primary-hover text-white px-6 py-1.5 rounded-lg text-xs font-bold shadow-md transition-all active:scale-95">Gravar Dados</button>
+
+                <!-- Coluna Direita — Campos -->
+                <div class="flex flex-col flex-grow min-w-0">
+                    <!-- Barra superior -->
+                    <div class="flex items-center justify-between px-6 pt-5 pb-4 border-b border-border shrink-0">
+                        <span class="text-[10px] font-black text-text-secondary uppercase tracking-widest flex items-center gap-1.5">
+                            <i data-lucide="user-cog" class="w-3.5 h-3.5 text-primary"></i>
+                            Dados do Colaborador
+                        </span>
+                        <button class="p-2 hover:bg-gray-100 rounded-full transition-all active:scale-90 text-text-secondary" type="button" onclick="fecharModal()">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+
+                    <!-- Campos (scrollável) -->
+                    <div class="flex-grow overflow-y-auto px-6 py-5">
+                        <div class="grid grid-cols-2 gap-3">
+                            <!-- Nome -->
+                            <div class="col-span-2">
+                                <label for="nome" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Nome Completo</label>
+                                <input type="text" id="nome" name="nome" required
+                                       oninput="document.getElementById('nomePreview').textContent=this.value"
+                                       class="w-full p-2.5 bg-background border border-border rounded-xl text-xs focus:outline-none focus:border-primary transition-all">
+                            </div>
+
+                            <!-- CPF -->
+                            <div>
+                                <label for="cpf" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">CPF</label>
+                                <input type="text" id="cpf" name="cpf" maxlength="14" required class="w-full p-2.5 bg-background border border-border rounded-xl text-xs font-mono focus:outline-none focus:border-primary transition-all">
+                            </div>
+
+                            <!-- E-mail -->
+                            <div>
+                                <label for="email" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">E-mail</label>
+                                <input type="email" id="email" name="email" required class="w-full p-2.5 bg-background border border-border rounded-xl text-xs focus:outline-none focus:border-primary transition-all">
+                            </div>
+
+                            <!-- Função -->
+                            <div>
+                                <label for="funcao" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Função / Cargo</label>
+                                <input type="text" id="funcao" name="funcao" placeholder="Ex: Analista de RH"
+                                       oninput="document.getElementById('funcaoPreview').textContent=this.value"
+                                       class="w-full p-2.5 bg-background border border-border rounded-xl text-xs focus:outline-none focus:border-primary transition-all">
+                            </div>
+
+                            <!-- Data Admissão -->
+                            <div>
+                                <label for="data_admissao" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Data de Admissão</label>
+                                <input type="date" id="data_admissao" name="data_admissao" class="w-full p-2.5 bg-background border border-border rounded-xl text-xs focus:outline-none focus:border-primary transition-all">
+                            </div>
+
+                            <!-- Setor -->
+                            <div>
+                                <label for="setor_id" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Setor</label>
+                                <select id="setor_id" name="setor_id" class="w-full p-2.5 bg-background border border-border rounded-xl text-xs focus:outline-none focus:border-primary transition-all">
+                                    <option value="">Sem vínculo</option>
+                                    <?php 
+                                    $setores->data_seek(0);
+                                    while ($setor = $setores->fetch_assoc()): 
+                                    ?>
+                                        <option value="<?php echo $setor['id']; ?>"><?php echo $setor['nome']; ?></option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
+
+                            <!-- Superior Direto -->
+                            <div>
+                                <label for="superior_id" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Superior Direto</label>
+                                <select id="superior_id" name="superior_id" class="w-full p-2.5 bg-background border border-border rounded-xl text-xs focus:outline-none focus:border-primary transition-all">
+                                    <option value="">Sem superior</option>
+                                    <?php 
+                                    $usuarios_list = $conn->query("SELECT id, nome FROM usuarios WHERE ativo = 1 ORDER BY nome");
+                                    while ($u = $usuarios_list->fetch_assoc()): 
+                                    ?>
+                                        <option value="<?php echo $u['id']; ?>"><?php echo $u['nome']; ?></option>
+                                    <?php endwhile; ?>
+                                </select>
+                            </div>
+
+                            <!-- Senha -->
+                            <div>
+                                <label for="senha" class="block text-[10px] font-black text-text-secondary mb-1 uppercase">Senha <span id="senhaOpcional" class="font-normal normal-case opacity-60 italic"></span></label>
+                                <input type="password" id="senha" name="senha" class="w-full p-2.5 bg-background border border-border rounded-xl text-xs focus:outline-none focus:border-primary transition-all">
+                            </div>
+
+                            <!-- Perfis de Acesso -->
+                            <div class="col-span-2 pt-3 border-t border-border/50">
+                                <span class="block text-[10px] font-black text-text-secondary mb-2.5 uppercase tracking-widest">Perfis de Acesso Especial</span>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <label class="flex items-center gap-2 p-2.5 bg-background rounded-xl border border-border hover:border-primary/30 cursor-pointer transition-all group/cb">
+                                        <input type="checkbox" id="is_admin" name="is_admin" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
+                                        <div>
+                                            <span class="text-[10px] font-black text-text group-hover/cb:text-primary transition-colors">Administrador</span>
+                                            <span class="text-[9px] text-text-secondary block">Acesso total ao sistema</span>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2.5 bg-background rounded-xl border border-border hover:border-primary/30 cursor-pointer transition-all group/cb">
+                                        <input type="checkbox" id="is_tecnico" name="is_tecnico" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
+                                        <div>
+                                            <span class="text-[10px] font-black text-text group-hover/cb:text-primary transition-colors">Técnico de TI</span>
+                                            <span class="text-[9px] text-text-secondary block">Painel de suporte TI</span>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2.5 bg-background rounded-xl border border-border hover:border-primary/30 cursor-pointer transition-all group/cb">
+                                        <input type="checkbox" id="is_manutencao" name="is_manutencao" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
+                                        <div>
+                                            <span class="text-[10px] font-black text-text group-hover/cb:text-primary transition-colors">Técnico Manutenção</span>
+                                            <span class="text-[9px] text-text-secondary block">Painel de infraestrutura</span>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2.5 bg-background rounded-xl border border-border hover:border-primary/30 cursor-pointer transition-all group/cb">
+                                        <input type="checkbox" id="is_educacao" name="is_educacao" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
+                                        <div>
+                                            <span class="text-[10px] font-black text-text group-hover/cb:text-primary transition-colors">Gestor Educação</span>
+                                            <span class="text-[9px] text-text-secondary block">Painel LMS</span>
+                                        </div>
+                                    </label>
+                                    <label class="flex items-center gap-2 p-2.5 bg-background rounded-xl border border-border hover:border-primary/30 cursor-pointer transition-all group/cb">
+                                        <input type="checkbox" id="is_ceh" name="is_ceh" class="w-3.5 h-3.5 rounded border-border text-primary focus:ring-primary">
+                                        <div>
+                                            <span class="text-[10px] font-black text-text group-hover/cb:text-primary transition-colors">Técnico CEH</span>
+                                            <span class="text-[9px] text-text-secondary block">Painel de equipamentos</span>
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Rodapé com ações -->
+                    <div class="px-6 py-4 border-t border-border shrink-0 flex justify-end gap-2 bg-gray-50/50">
+                        <button type="button" onclick="fecharModal()" class="px-5 py-2 text-xs font-black text-text-secondary hover:text-text border border-border rounded-xl transition-all uppercase tracking-widest">Cancelar</button>
+                        <button type="submit" class="bg-primary hover:bg-primary-hover text-white px-8 py-2 rounded-xl text-xs font-black shadow-lg transition-all active:scale-95 uppercase tracking-widest">Gravar Dados</button>
+                    </div>
                 </div>
             </form>
         </div>
@@ -730,6 +790,8 @@ function processarFoto3x4($caminho_origem, $caminho_destino) {
             document.getElementById('ativo').checked = true;
             document.getElementById('ativoGroup').style.display = 'none';
             document.getElementById('superior_id').value = '';
+            document.getElementById('nomePreview').textContent = '';
+            document.getElementById('funcaoPreview').textContent = '';
             
             // Reset foto
             document.getElementById('fotoInput').value = '';
@@ -760,6 +822,8 @@ function processarFoto3x4($caminho_origem, $caminho_destino) {
             document.getElementById('is_ceh').checked = usuario.is_ceh == 1;
             document.getElementById('ativo').checked = usuario.ativo == 1;
             document.getElementById('ativoGroup').style.display = 'block';
+            document.getElementById('nomePreview').textContent = usuario.nome;
+            document.getElementById('funcaoPreview').textContent = usuario.funcao || '';
             
             // Mostrar foto atual se existir
             document.getElementById('fotoInput').value = '';
