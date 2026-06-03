@@ -63,7 +63,11 @@ $certificado = $conn->query("SELECT * FROM edu_certificados WHERE usuario_id = $
                     <h1 class="text-3xl font-bold text-text mb-1 tracking-tight"><?php echo $curso['titulo']; ?></h1>
                     <p class="text-[11px] text-primary font-bold uppercase tracking-widest mb-1">Instrutor: <?php echo $curso['instrutor'] ?: 'Não informado'; ?></p>
                     <?php if ($curso['formacao_instrutor']): ?>
-                        <p class="text-[10px] text-text-secondary font-medium mb-4 italic"><?php echo $curso['formacao_instrutor']; ?></p>
+                        <div class="mb-4">
+                            <?php foreach (array_filter(array_map('trim', preg_split('/[\r\n]+/', $curso['formacao_instrutor']))) as $formacao_linha): ?>
+                                <p class="text-[10px] text-text-secondary font-medium italic leading-relaxed"><?php echo $formacao_linha; ?></p>
+                            <?php endforeach; ?>
+                        </div>
                     <?php else: ?>
                         <div class="mb-4"></div>
                     <?php endif; ?>

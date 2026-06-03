@@ -252,8 +252,8 @@ $cursos = $conn->query("SELECT * FROM edu_cursos $where_owner ORDER BY created_a
                         <input type="text" name="cargo_instrutor" id="curso_cargo_instrutor" placeholder="Ex: Diretor de Operações" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary">
                     </div>
                     <div class="col-span-2">
-                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Formação do Autor</label>
-                        <input type="text" name="formacao_instrutor" id="curso_formacao" placeholder="Ex: Graduação em RH" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary">
+                        <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Formação do Autor <span class="font-normal normal-case opacity-60">(uma por linha)</span></label>
+                        <textarea name="formacao_instrutor" id="curso_formacao" rows="3" placeholder="Ex: Graduação em Enfermagem&#10;Especialização em Cardiologia" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary resize-none"></textarea>
                     </div>
                 </div>
                 <div class="grid grid-cols-2 gap-4">
