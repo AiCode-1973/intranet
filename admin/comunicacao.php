@@ -22,7 +22,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $assunto = sanitize($_POST['assunto']);
     $corpo = $_POST['mensagem']; // Permitir HTML
     $tipo_destinatario = $_POST['tipo_destinatario']; // 'todos' ou 'individual'
-    
+
+    // Processar anexos
+    if (!empty($_FILES['anexos']['name'][0])) {
+        $dir_uploads = '../uploads/comunicacao/';
+        if (!is_dir($dir_uploads)) mkdir($dir_uploads, 0755, true);
+        $ext_permitidas = ['pdf','doc','docx','xls','xlsx','jpg','jpeg','png','gif','txt','zip','rar'];
+        $arquivos_salvos = [];
+        foreach ($_FILES['anexos']['name'] as $k => $nome_orig) {
+            if ($_FILES['anexos']['error'][$k] !== UPLOAD_ERR_OK) continue;
+            if ($_FILES['anexos']['size'][$k] > 10 * 1024 * 1024) continue;
+            $ext = strtolower(pathinfo($nome_orig, PATHINFO_EXTENSION));
+            if (!in_array($ext, $ext_permitidas)) continue;
+            $nome_seguro = uniqid('com_') . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($nome_orig));
+            if (move_uploaded_file($_FILES['anexos']['tmp_name'][$k], $dir_uploads . $nome_seguro)) {
+                $arquivos_salvos[] = ['nome' => $nome_orig, 'path' => $nome_seguro, 'size' => $_FILES['anexos']['size'][$k]];
+            }
+        }
+        if (!empty($arquivos_salvos)) {
+            $corpo .= '<div style="margin-top:20px;padding:14px 16px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;">';
+            $corpo .= '<p style="margin:0 0 8px;font-weight:700;font-size:11px;color:#0d9488;text-transform:uppercase;letter-spacing:.05em;">&#128206; Anexos</p>';
+            $corpo .= '<ul style="margin:0;padding:0;list-style:none;">';
+            foreach ($arquivos_salvos as $arq) {
+                $kb = round($arq['size'] / 1024, 1);
+                $corpo .= '<li style="margin-bottom:5px;">'
+                    . '<a href="uploads/comunicacao/' . htmlspecialchars($arq['path']) . '" '
+                    . 'style="color:#0d9488;font-weight:600;font-size:12px;">'
+                    . htmlspecialchars($arq['nome']) . '</a>'
+                    . '<span style="color:#9ca3af;font-size:10px;margin-left:5px;">(' . $kb . ' KB)</span>'
+                    . '</li>';
+            }
+            $corpo .= '</ul></div>';
+        }
+    }
+
     // Obter config de e-mail
     $res_config = $conn->query("SELECT * FROM email_config LIMIT 1");
     $config = $res_config->fetch_assoc();
@@ -153,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
                         <h2 class="text-sm font-black uppercase tracking-widest">Nova Mensagem</h2>
                     </div>
                     
-                    <form method="POST" class="p-8 space-y-6">
+                    <form method="POST" enctype="multipart/form-data" class="p-8 space-y-6">
                         <input type="hidden" name="acao" value="enviar">
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -185,6 +218,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
                             <label class="block text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-2 font-bold uppercase">Conteúdo da Mensagem</label>
                             <textarea name="mensagem" rows="10" required placeholder="Digite sua mensagem aqui... Você pode usar tags HTML básicas."
                                       class="w-full p-4 bg-background border border-border rounded-2xl text-sm font-medium focus:outline-none focus:border-primary transition-all leading-relaxed"></textarea>
+                        </div>
+
+                        <!-- Anexos -->
+                        <div>
+                            <label class="block text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-2">
+                                Anexos
+                                <span class="font-normal normal-case opacity-60 text-[9px]">(PDF, DOC, XLS, JPG, PNG, ZIP &mdash; m&aacute;x. 10MB cada)</span>
+                            </label>
+                            <div id="dropZone"
+                                 onclick="document.getElementById('anexosInput').click()"
+                                 ondragover="event.preventDefault();this.classList.add('!border-primary','bg-primary/[0.02]')"
+                                 ondragleave="this.classList.remove('!border-primary','bg-primary/[0.02]')"
+                                 ondrop="event.preventDefault();this.classList.remove('!border-primary','bg-primary/[0.02]');anexosInputDrop(event)"
+                                 class="border-2 border-dashed border-border hover:border-primary rounded-2xl p-6 text-center cursor-pointer transition-all group hover:bg-primary/[0.02]">
+                                <i data-lucide="paperclip" class="w-6 h-6 text-text-secondary/40 group-hover:text-primary mx-auto mb-2 transition-colors"></i>
+                                <p class="text-[11px] font-bold text-text-secondary group-hover:text-primary transition-colors">Clique para selecionar ou arraste arquivos aqui</p>
+                                <p class="text-[9px] text-text-secondary/50 mt-0.5">PDF, DOC, XLS, JPG, PNG, ZIP &mdash; at&eacute; 10MB cada</p>
+                                <input type="file" id="anexosInput" name="anexos[]" multiple
+                                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.txt,.zip,.rar"
+                                       class="hidden" onchange="mostrarAnexos(this.files)">
+                            </div>
+                            <div id="listaAnexos" class="mt-3 space-y-2 hidden"></div>
                         </div>
 
                         <div class="flex justify-end pt-4">
@@ -294,6 +349,64 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
                 document.body.appendChild(form);
                 form.submit();
             }
+        }
+
+        const _icones_ext = {
+            pdf: 'file-text', doc: 'file-text', docx: 'file-text',
+            xls: 'table-2', xlsx: 'table-2',
+            jpg: 'image', jpeg: 'image', png: 'image', gif: 'image',
+            zip: 'archive', rar: 'archive',
+            txt: 'file',
+        };
+
+        let _arquivosAtuais = new DataTransfer();
+
+        function mostrarAnexos(files) {
+            Array.from(files).forEach(f => _arquivosAtuais.items.add(f));
+            document.getElementById('anexosInput').files = _arquivosAtuais.files;
+            _renderizarAnexos();
+        }
+
+        function _removerAnexo(idx) {
+            const novo = new DataTransfer();
+            Array.from(_arquivosAtuais.files).forEach((f, i) => { if (i !== idx) novo.items.add(f); });
+            _arquivosAtuais = novo;
+            document.getElementById('anexosInput').files = _arquivosAtuais.files;
+            _renderizarAnexos();
+        }
+
+        function _renderizarAnexos() {
+            const lista = document.getElementById('listaAnexos');
+            lista.innerHTML = '';
+            if (_arquivosAtuais.files.length === 0) { lista.classList.add('hidden'); return; }
+            lista.classList.remove('hidden');
+            Array.from(_arquivosAtuais.files).forEach((file, idx) => {
+                const ext = file.name.split('.').pop().toLowerCase();
+                const icon = _icones_ext[ext] || 'file';
+                const kb = (file.size / 1024).toFixed(1);
+                const item = document.createElement('div');
+                item.className = 'flex items-center justify-between p-2.5 bg-background border border-border rounded-xl';
+                item.innerHTML = `
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                            <i data-lucide="${icon}" class="w-3.5 h-3.5 text-primary"></i>
+                        </div>
+                        <div>
+                            <span class="text-[11px] font-bold text-text block leading-tight">${file.name}</span>
+                            <span class="text-[9px] text-text-secondary">${kb} KB</span>
+                        </div>
+                    </div>
+                    <button type="button" onclick="_removerAnexo(${idx})" class="p-1.5 hover:bg-red-50 rounded-lg text-text-secondary hover:text-red-500 transition-all shrink-0" title="Remover">
+                        <i data-lucide="x" class="w-3.5 h-3.5"></i>
+                    </button>
+                `;
+                lista.appendChild(item);
+            });
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        function anexosInputDrop(event) {
+            mostrarAnexos(event.dataTransfer.files);
         }
     </script>
     <?php include '../footer.php'; ?>
