@@ -18,6 +18,132 @@ $logs = $conn->query("SELECT l.*, u.nome as usuario_nome
                       LEFT JOIN usuarios u ON l.usuario_id = u.id 
                       ORDER BY l.data_envio DESC LIMIT 10");
 
+// ── INICIAR ENVIO EM LOTE (AJAX) ─────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'iniciar_lote') {
+    header('Content-Type: application/json; charset=utf-8');
+
+    $assunto = sanitize($_POST['assunto']);
+    $corpo   = $_POST['mensagem'];
+
+    // Processar anexos (mesma lógica do enviar normal)
+    if (!empty($_FILES['anexos']['name'][0])) {
+        $dir_uploads = '../uploads/comunicacao/';
+        if (!is_dir($dir_uploads)) mkdir($dir_uploads, 0755, true);
+        $ext_permitidas = ['pdf','doc','docx','xls','xlsx','jpg','jpeg','png','gif','txt','zip','rar'];
+        $arquivos_salvos = [];
+        foreach ($_FILES['anexos']['name'] as $k => $nome_orig) {
+            if ($_FILES['anexos']['error'][$k] !== UPLOAD_ERR_OK) continue;
+            if ($_FILES['anexos']['size'][$k] > 10 * 1024 * 1024) continue;
+            $ext = strtolower(pathinfo($nome_orig, PATHINFO_EXTENSION));
+            if (!in_array($ext, $ext_permitidas)) continue;
+            $nome_seguro = uniqid('com_') . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '_', basename($nome_orig));
+            if (move_uploaded_file($_FILES['anexos']['tmp_name'][$k], $dir_uploads . $nome_seguro)) {
+                $arquivos_salvos[] = ['nome' => $nome_orig, 'path' => $nome_seguro, 'size' => $_FILES['anexos']['size'][$k]];
+            }
+        }
+        if (!empty($arquivos_salvos)) {
+            $corpo .= '<div style="margin-top:20px;padding:14px 16px;background:#f0fdfa;border:1px solid #99f6e4;border-radius:8px;">';
+            $corpo .= '<p style="margin:0 0 8px;font-weight:700;font-size:11px;color:#0d9488;text-transform:uppercase;letter-spacing:.05em;">&#128206; Anexos</p>';
+            $corpo .= '<ul style="margin:0;padding:0;list-style:none;">';
+            foreach ($arquivos_salvos as $arq) {
+                $kb = round($arq['size'] / 1024, 1);
+                $corpo .= '<li style="margin-bottom:5px;">'
+                    . '<a href="uploads/comunicacao/' . htmlspecialchars($arq['path']) . '" style="color:#0d9488;font-weight:600;font-size:12px;">'
+                    . htmlspecialchars($arq['nome']) . '</a>'
+                    . '<span style="color:#9ca3af;font-size:10px;margin-left:5px;">(' . $kb . ' KB)</span></li>';
+            }
+            $corpo .= '</ul></div>';
+        }
+    }
+
+    $res_config = $conn->query("SELECT * FROM email_config LIMIT 1");
+    $config = $res_config->fetch_assoc();
+    if (!$config) {
+        echo json_encode(['ok' => false, 'erro' => 'Configure o servidor SMTP antes de enviar!']);
+        exit;
+    }
+
+    $job_key = 'ejob_' . bin2hex(random_bytes(8));
+    $_SESSION[$job_key] = [
+        'assunto'  => $assunto,
+        'corpo'    => $corpo,
+        'lista'    => $usuarios_arr,
+        'enviados' => 0,
+        'falhas'   => 0,
+    ];
+
+    echo json_encode(['ok' => true, 'job_key' => $job_key, 'total' => count($usuarios_arr)]);
+    exit;
+}
+
+// ── PROCESSAR LOTE (AJAX) ────────────────────────────────────────────────────
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'processar_lote') {
+    header('Content-Type: application/json; charset=utf-8');
+    set_time_limit(120);
+    ignore_user_abort(true);
+
+    $job_key = isset($_POST['job_key']) ? preg_replace('/[^a-zA-Z0-9_]/', '', $_POST['job_key']) : '';
+    $offset  = intval($_POST['offset'] ?? 0);
+    $tam_lote = 5;
+
+    if (empty($job_key) || !isset($_SESSION[$job_key])) {
+        echo json_encode(['ok' => false, 'erro' => 'Sessão expirada. Recarregue a página e tente novamente.']);
+        exit;
+    }
+
+    $job   = $_SESSION[$job_key];
+    $lista = $job['lista'];
+    $total = count($lista);
+    $lote  = array_slice($lista, $offset, $tam_lote);
+
+    $res_config = $conn->query("SELECT * FROM email_config LIMIT 1");
+    $config = $res_config->fetch_assoc();
+
+    $enviados_lote = 0;
+    $falhas_lote   = 0;
+
+    foreach ($lote as $dest) {
+        if (enviarEmail($dest['email'], $job['assunto'], $job['corpo'], $config)) {
+            $enviados_lote++;
+            $stmt = $conn->prepare("INSERT INTO email_logs (usuario_id, destinatario_email, assunto, mensagem, status) VALUES (?, ?, ?, ?, 'Sucesso')");
+            $stmt->bind_param("isss", $dest['id'], $dest['email'], $job['assunto'], $job['corpo']);
+            $stmt->execute();
+            $stmt->close();
+        } else {
+            $falhas_lote++;
+            $stmt = $conn->prepare("INSERT INTO email_logs (usuario_id, destinatario_email, assunto, mensagem, status, erro_mensagem) VALUES (?, ?, ?, ?, 'Falha', 'Erro no servidor de envio')");
+            $stmt->bind_param("isss", $dest['id'], $dest['email'], $job['assunto'], $job['corpo']);
+            $stmt->execute();
+            $stmt->close();
+        }
+    }
+
+    $_SESSION[$job_key]['enviados'] += $enviados_lote;
+    $_SESSION[$job_key]['falhas']   += $falhas_lote;
+    $total_enviados = $_SESSION[$job_key]['enviados'];
+    $total_falhas   = $_SESSION[$job_key]['falhas'];
+
+    $novo_offset = $offset + count($lote);
+    $concluido   = ($novo_offset >= $total);
+
+    if ($concluido) {
+        registrarLog($conn, "Enviou e-mail em lote: \"{$job['assunto']}\" ({$total_enviados} enviados, {$total_falhas} falhas)");
+        unset($_SESSION[$job_key]);
+    }
+
+    echo json_encode([
+        'ok'             => true,
+        'enviados_lote'  => $enviados_lote,
+        'falhas_lote'    => $falhas_lote,
+        'total_enviados' => $total_enviados,
+        'total_falhas'   => $total_falhas,
+        'offset'         => $novo_offset,
+        'total'          => $total,
+        'concluido'      => $concluido,
+    ]);
+    exit;
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'enviar') {
     $assunto = sanitize($_POST['assunto']);
     $corpo = $_POST['mensagem']; // Permitir HTML
@@ -408,7 +534,122 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
         function anexosInputDrop(event) {
             mostrarAnexos(event.dataTransfer.files);
         }
+
+        // ── Envio em lote (intercepta submit quando destinatário = todos) ──────
+        document.querySelector('form[enctype="multipart/form-data"]').addEventListener('submit', function(e) {
+            if (document.getElementById('tipo_destinatario').value !== 'todos') return;
+            e.preventDefault();
+
+            const modal = document.getElementById('modalProgresso');
+            modal.style.display = 'flex';
+            document.getElementById('progressoConcluido').classList.add('hidden');
+            document.getElementById('progressoBarra').style.width = '0%';
+            document.getElementById('progressoContador').textContent = 'Iniciando...';
+            document.getElementById('progressoPorcentagem').textContent = '0%';
+            document.getElementById('progressoEnviados').textContent = '0';
+            document.getElementById('progressoFalhas').textContent = '0';
+            document.getElementById('progressoSubtitulo').textContent = 'Aguarde, os e-mails estão sendo enviados em lotes.';
+
+            const fd = new FormData(this);
+            fd.set('acao', 'iniciar_lote');
+
+            fetch(location.href, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.ok) {
+                        modal.style.display = 'none';
+                        alert('Erro ao iniciar envio: ' + data.erro);
+                        return;
+                    }
+                    _processarLote(data.job_key, 0, data.total);
+                })
+                .catch(err => {
+                    modal.style.display = 'none';
+                    alert('Erro de comunicação: ' + err.message);
+                });
+        });
+
+        function _processarLote(jobKey, offset, total) {
+            const fd = new FormData();
+            fd.append('acao', 'processar_lote');
+            fd.append('job_key', jobKey);
+            fd.append('offset', offset);
+
+            fetch(location.href, { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(data => {
+                    if (!data.ok) {
+                        alert('Erro no processamento: ' + (data.erro || 'Desconhecido'));
+                        document.getElementById('modalProgresso').style.display = 'none';
+                        return;
+                    }
+                    const pct = data.total > 0 ? Math.round((data.offset / data.total) * 100) : 100;
+                    document.getElementById('progressoBarra').style.width = pct + '%';
+                    document.getElementById('progressoContador').textContent = data.offset + ' / ' + data.total;
+                    document.getElementById('progressoPorcentagem').textContent = pct + '%';
+                    document.getElementById('progressoEnviados').textContent = data.total_enviados;
+                    document.getElementById('progressoFalhas').textContent = data.total_falhas;
+
+                    if (data.concluido) {
+                        document.getElementById('progressoSubtitulo').textContent = 'Processamento finalizado!';
+                        document.getElementById('progressoResumo').textContent =
+                            data.total_enviados + ' enviado(s)' +
+                            (data.total_falhas > 0 ? ', ' + data.total_falhas + ' com falha' : '') + '.';
+                        document.getElementById('progressoConcluido').classList.remove('hidden');
+                        if (typeof lucide !== 'undefined') lucide.createIcons();
+                    } else {
+                        _processarLote(jobKey, data.offset, data.total);
+                    }
+                })
+                .catch(err => {
+                    alert('Erro: ' + err.message);
+                    document.getElementById('modalProgresso').style.display = 'none';
+                });
+        }
     </script>
     <?php include '../footer.php'; ?>
+
+    <!-- Modal: Progresso de Envio em Lote -->
+    <div id="modalProgresso" style="display:none" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full border border-border">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+                    <i data-lucide="send" class="w-5 h-5 text-primary"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-black text-text uppercase tracking-widest">Enviando mensagens</h3>
+                    <p class="text-[10px] text-text-secondary" id="progressoSubtitulo">Aguarde, os e-mails estão sendo enviados em lotes.</p>
+                </div>
+            </div>
+
+            <div class="w-full bg-gray-100 rounded-full h-2.5 mb-3 overflow-hidden">
+                <div id="progressoBarra" class="h-2.5 rounded-full bg-primary transition-all duration-500" style="width:0%"></div>
+            </div>
+            <div class="flex justify-between text-[10px] font-bold text-text-secondary mb-5">
+                <span id="progressoContador">Iniciando...</span>
+                <span id="progressoPorcentagem">0%</span>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <div class="p-3 bg-green-50 rounded-xl text-center border border-green-100">
+                    <p class="text-2xl font-black text-green-600" id="progressoEnviados">0</p>
+                    <p class="text-[9px] font-black text-green-500 uppercase tracking-wider mt-0.5">Enviados</p>
+                </div>
+                <div class="p-3 bg-red-50 rounded-xl text-center border border-red-100">
+                    <p class="text-2xl font-black text-red-500" id="progressoFalhas">0</p>
+                    <p class="text-[9px] font-black text-red-400 uppercase tracking-wider mt-0.5">Falhas</p>
+                </div>
+            </div>
+
+            <div id="progressoConcluido" class="hidden mt-5 p-4 bg-green-50 border border-green-100 rounded-2xl text-center">
+                <i data-lucide="check-circle" class="w-8 h-8 text-green-500 mx-auto mb-2"></i>
+                <p class="text-sm font-black text-green-700">Envio concluído!</p>
+                <p class="text-[10px] text-green-600 mt-1" id="progressoResumo"></p>
+                <button onclick="location.reload()" class="mt-4 bg-primary text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-primary-hover transition-all active:scale-95">
+                    OK
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
