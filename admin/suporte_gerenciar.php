@@ -99,7 +99,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
 $filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $where_sql = $filtro_status ? "WHERE c.status = '$filtro_status'" : '';
 
-// Buscar todos os chamados com detalhes
+// Paginação
+$por_pagina      = 15;
+$pagina_atual    = max(1, intval($_GET['page'] ?? 1));
+$sql_count       = "SELECT COUNT(*) as total FROM chamados c JOIN usuarios u ON c.usuario_id = u.id LEFT JOIN setores s ON u.setor_id = s.id LEFT JOIN usuarios t ON c.tecnico_id = t.id $where_sql";
+$total_registros = (int) $conn->query($sql_count)->fetch_assoc()['total'];
+$total_paginas   = max(1, (int) ceil($total_registros / $por_pagina));
+$pagina_atual    = min($pagina_atual, $total_paginas);
+$offset          = ($pagina_atual - 1) * $por_pagina;
+
+// Buscar chamados da página atual com detalhes
 $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante,
                c.satisfacao_nota, c.satisfacao_comentario
         FROM chamados c 
@@ -115,7 +124,8 @@ $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as set
                 ELSE 4 
             END, 
             c.prioridade DESC, 
-            c.data_abertura ASC";
+            c.data_abertura ASC
+        LIMIT $por_pagina OFFSET $offset";
 $res_chamados = $conn->query($sql);
 $chamados_lista = [];
 
@@ -361,6 +371,42 @@ $cards_suporte = [
                     </tbody>
                 </table>
             </div>
+
+            <?php if ($total_paginas > 1): ?>
+            <div class="px-4 py-3 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
+                <p class="text-[10px] text-text-secondary font-bold">
+                    Exibindo <?php echo $offset + 1; ?>–<?php echo min($offset + $por_pagina, $total_registros); ?> de <strong><?php echo $total_registros; ?></strong> chamados
+                </p>
+                <nav class="flex items-center gap-1">
+                    <a href="?status=<?php echo urlencode($filtro_status); ?>&page=<?php echo $pagina_atual - 1; ?>"
+                       class="px-2.5 py-1.5 rounded-lg border border-border text-[10px] font-black text-text-secondary transition-all hover:bg-background hover:text-primary <?php echo $pagina_atual <= 1 ? 'pointer-events-none opacity-30' : ''; ?>">
+                        <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
+                    </a>
+
+                    <?php
+                    $janela = 2;
+                    for ($p = 1; $p <= $total_paginas; $p++):
+                        if ($p == 1 || $p == $total_paginas || ($p >= $pagina_atual - $janela && $p <= $pagina_atual + $janela)):
+                    ?>
+                    <a href="?status=<?php echo urlencode($filtro_status); ?>&page=<?php echo $p; ?>"
+                       class="px-3 py-1.5 rounded-lg border text-[10px] font-black transition-all <?php echo $p == $pagina_atual ? 'bg-primary text-white border-primary shadow-sm' : 'border-border text-text-secondary hover:bg-background hover:text-primary'; ?>">
+                        <?php echo $p; ?>
+                    </a>
+                    <?php
+                        elseif ($p == $pagina_atual - $janela - 1 || $p == $pagina_atual + $janela + 1):
+                            echo '<span class="px-1 text-[10px] text-text-secondary/50">…</span>';
+                        endif;
+                    endfor;
+                    ?>
+
+                    <a href="?status=<?php echo urlencode($filtro_status); ?>&page=<?php echo $pagina_atual + 1; ?>"
+                       class="px-2.5 py-1.5 rounded-lg border border-border text-[10px] font-black text-text-secondary transition-all hover:bg-background hover:text-primary <?php echo $pagina_atual >= $total_paginas ? 'pointer-events-none opacity-30' : ''; ?>">
+                        <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+                    </a>
+                </nav>
+            </div>
+            <?php endif; ?>
+
         </div>
     </div>
 
