@@ -21,12 +21,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $id = intval($_POST['id']);
     $status = sanitize($_POST['status']);
     $prioridade = sanitize($_POST['prioridade']);
+    $categoria = sanitize($_POST['categoria'] ?? '');
     $resolucao = $_POST['resolucao'] ?? '';
     $tecnico_id = !empty($_POST['tecnico_id']) ? intval($_POST['tecnico_id']) : null;
     $data_fechamento = ($status == 'Resolvido' || $status == 'Cancelado') ? date('Y-m-d H:i:s') : null;
 
-    $stmt = $conn->prepare("UPDATE chamados SET status = ?, prioridade = ?, resolucao = ?, tecnico_id = ?, data_fechamento = ? WHERE id = ?");
-    $stmt->bind_param("sssisi", $status, $prioridade, $resolucao, $tecnico_id, $data_fechamento, $id);
+    $stmt = $conn->prepare("UPDATE chamados SET status = ?, prioridade = ?, categoria = ?, resolucao = ?, tecnico_id = ?, data_fechamento = ? WHERE id = ?");
+    $stmt->bind_param("ssssisi", $status, $prioridade, $categoria, $resolucao, $tecnico_id, $data_fechamento, $id);
 
     if ($stmt->execute()) {
         registrarLog($conn, "Atualizou chamado #$id para status: $status");
@@ -669,6 +670,15 @@ $cards_suporte = [
                         </div>
 
                         <div class="mb-4">
+                            <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Categoria</label>
+                            <select name="categoria" id="form_categoria" class="w-full p-2.5 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
+                                <?php foreach ($categorias_lista as $cat): ?>
+                                <option value="<?php echo htmlspecialchars($cat['nome']); ?>"><?php echo htmlspecialchars($cat['nome']); ?><?php echo !$cat['ativo'] ? ' (inativa)' : ''; ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
                             <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Técnico Atribuído</label>
                             <select name="tecnico_id" id="form_tecnico" class="w-full p-2.5 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
                                 <option value="">Selecione o Técnico</option>
@@ -709,6 +719,7 @@ $cards_suporte = [
             document.getElementById('form_status').value = chamado.status;
             document.getElementById('form_prioridade').value = chamado.prioridade;
             document.getElementById('form_tecnico').value = chamado.tecnico_id || '';
+            document.getElementById('form_categoria').value = chamado.categoria || '';
             document.getElementById('form_resolucao').value = chamado.resolucao || '';
 
             // Marcar como lido pelo técnico (AJAX)
