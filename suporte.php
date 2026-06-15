@@ -8,6 +8,12 @@ $usuario_id = $_SESSION['usuario_id'];
 $mensagem = '';
 $tipo_mensagem = '';
 
+// Carregar categorias dinamicamente
+$cats_query = $conn->query("SELECT nome FROM suporte_categorias WHERE ativo = 1 ORDER BY ordem, nome");
+$cats_suporte = [];
+if ($cats_query) while ($c = $cats_query->fetch_assoc()) $cats_suporte[] = $c['nome'];
+if (empty($cats_suporte)) $cats_suporte = ['Hardware','Software','Internet/Rede','E-mail','Impressora','Suporte Geral'];
+
 // Processar abertura de chamado
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'abrir_chamado') {
     $titulo = sanitize($_POST['titulo']);
@@ -400,12 +406,9 @@ $cards_suporte_user = [
                     <div class="md:col-span-2">
                         <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Categoria</label>
                         <select name="categoria" class="w-full p-2 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all cursor-pointer">
-                            <option value="Hardware">Hardware</option>
-                            <option value="Software">Software</option>
-                            <option value="Internet/Rede">Internet / Rede</option>
-                            <option value="E-mail">E-mail</option>
-                            <option value="Impressora">Impressoras</option>
-                            <option value="Suporte Geral" selected>Suporte Geral</option>
+                            <?php foreach ($cats_suporte as $cat): ?>
+                            <option value="<?php echo htmlspecialchars($cat); ?>"><?php echo htmlspecialchars($cat); ?></option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 

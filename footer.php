@@ -17,7 +17,7 @@
                 <div class="flex items-center gap-4 mb-1.5">
                     <div class="flex flex-col items-center">
                         <span class="text-[10px] font-black text-text-secondary uppercase tracking-[0.2em] mb-1">E-mail</span>
-                        <span class="text-xs font-bold text-text">suporte@hsesantos.com.br</span>
+                        <span class="text-xs font-bold text-text">suporte@apassantos.com.br</span>
                     </div>
                     <!--<div class="w-px h-8 bg-border"></div>
                     <div class="flex flex-col items-center">

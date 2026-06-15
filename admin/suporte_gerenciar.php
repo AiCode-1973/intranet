@@ -95,6 +95,74 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->close();
 }
 
+// ── GERENCIAR CATEGORIAS DE SUPORTE ─────────────────────────────────────────
+$conn->query("CREATE TABLE IF NOT EXISTS suporte_categorias (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    ativo TINYINT(1) NOT NULL DEFAULT 1,
+    ordem INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+if ((int)$conn->query("SELECT COUNT(*) FROM suporte_categorias")->fetch_row()[0] === 0) {
+    $conn->query("INSERT INTO suporte_categorias (nome, ordem) VALUES
+        ('Hardware',1),('Software',2),('Internet/Rede',3),
+        ('E-mail',4),('Impressora',5),('Suporte Geral',6)");
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'criar_categoria') {
+    $nome_cat = sanitize($_POST['nome_cat'] ?? '');
+    if (!empty($nome_cat)) {
+        $stmt = $conn->prepare("INSERT INTO suporte_categorias (nome) VALUES (?)");
+        $stmt->bind_param("s", $nome_cat);
+        $stmt->execute();
+        $stmt->close();
+        registrarLog($conn, "Criou categoria de suporte: $nome_cat");
+    }
+    header('Location: suporte_gerenciar.php?cat=1');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'editar_categoria') {
+    $id_cat  = intval($_POST['cat_id'] ?? 0);
+    $nome_cat = sanitize($_POST['nome_cat'] ?? '');
+    if ($id_cat > 0 && !empty($nome_cat)) {
+        $stmt = $conn->prepare("UPDATE suporte_categorias SET nome = ? WHERE id = ?");
+        $stmt->bind_param("si", $nome_cat, $id_cat);
+        $stmt->execute();
+        $stmt->close();
+        registrarLog($conn, "Editou categoria de suporte ID $id_cat → $nome_cat");
+    }
+    header('Location: suporte_gerenciar.php?cat=1');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'excluir_categoria') {
+    $id_cat = intval($_POST['cat_id'] ?? 0);
+    if ($id_cat > 0) {
+        $stmt = $conn->prepare("DELETE FROM suporte_categorias WHERE id = ?");
+        $stmt->bind_param("i", $id_cat);
+        $stmt->execute();
+        $stmt->close();
+        registrarLog($conn, "Excluiu categoria de suporte ID $id_cat");
+    }
+    header('Location: suporte_gerenciar.php?cat=1');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'toggle_categoria') {
+    $id_cat     = intval($_POST['cat_id'] ?? 0);
+    $ativo_atual = intval($_POST['ativo_atual'] ?? 1);
+    $novo       = $ativo_atual == 1 ? 0 : 1;
+    if ($id_cat > 0) $conn->query("UPDATE suporte_categorias SET ativo = $novo WHERE id = $id_cat");
+    header('Location: suporte_gerenciar.php?cat=1');
+    exit;
+}
+
+$cats_res = $conn->query("SELECT * FROM suporte_categorias ORDER BY ordem, nome");
+$categorias_lista = [];
+while ($c = $cats_res->fetch_assoc()) $categorias_lista[] = $c;
+
 // Filtro por status via GET
 $filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $where_sql = $filtro_status ? "WHERE c.status = '$filtro_status'" : '';
@@ -225,7 +293,7 @@ $cards_suporte = [
             <div>
                 <h1 class="text-xl font-bold text-primary flex items-center gap-2 tracking-tight">
                     <i data-lucide="shield-check" class="w-6 h-6"></i>
-                    Gerencial de Chamados
+                    Gerenciamento de Chamados
                 </h1>
                 <p class="text-text-secondary text-xs mt-1">Gestão técnica e operacional de TI</p>
             </div>
@@ -236,6 +304,10 @@ $cards_suporte = [
                     <span id="suporte-poll-status" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest">Ao Vivo</span>
                 </div>
+                <button onclick="abrirModalCategorias()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="tag" class="w-3.5 h-3.5 text-violet-500"></i>
+                    Categorias
+                </button>
                 <a href="email_chamados.php" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="mail" class="w-3.5 h-3.5 text-blue-500"></i>
                     E-mail → Chamado
@@ -407,6 +479,94 @@ $cards_suporte = [
             </div>
             <?php endif; ?>
 
+        </div>
+    </div>
+
+    <!-- Modal Categorias de Suporte -->
+    <div id="modalCategorias" class="modal <?php echo isset($_GET['cat']) ? 'active' : ''; ?>">
+        <div class="bg-white w-full max-w-lg mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150 flex flex-col max-h-[90vh]">
+            <div class="bg-violet-600 px-5 py-4 text-white flex justify-between items-center shrink-0">
+                <div>
+                    <h2 class="text-base font-bold flex items-center gap-2">
+                        <i data-lucide="tag" class="w-4 h-4"></i> Categorias de Suporte
+                    </h2>
+                    <p class="text-white/70 text-[10px] uppercase font-bold tracking-widest mt-0.5">Gerencie as opções disponíveis</p>
+                </div>
+                <button onclick="fecharModalCategorias()" class="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto flex-grow">
+                <div class="p-4 space-y-2">
+                    <?php if (empty($categorias_lista)): ?>
+                    <p class="text-center text-xs text-text-secondary py-6 italic">Nenhuma categoria cadastrada.</p>
+                    <?php endif; ?>
+                    <?php foreach ($categorias_lista as $cat): ?>
+                    <div class="flex items-center justify-between p-3 bg-background rounded-xl border border-border <?php echo !$cat['ativo'] ? 'opacity-50' : ''; ?>">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-lg bg-violet-500/10 flex items-center justify-center shrink-0">
+                                <i data-lucide="tag" class="w-3.5 h-3.5 text-violet-500"></i>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-text"><?php echo htmlspecialchars($cat['nome']); ?></span>
+                                <?php if (!$cat['ativo']): ?>
+                                    <span class="ml-1 text-[8px] font-black text-red-400 uppercase tracking-wider">(inativa)</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <form method="POST" class="inline">
+                                <input type="hidden" name="acao" value="toggle_categoria">
+                                <input type="hidden" name="cat_id" value="<?php echo $cat['id']; ?>">
+                                <input type="hidden" name="ativo_atual" value="<?php echo $cat['ativo']; ?>">
+                                <button type="submit" title="<?php echo $cat['ativo'] ? 'Desativar' : 'Ativar'; ?>" class="p-1.5 rounded-lg transition-all <?php echo $cat['ativo'] ? 'text-amber-500 hover:bg-amber-50' : 'text-emerald-500 hover:bg-emerald-50'; ?>">
+                                    <i data-lucide="<?php echo $cat['ativo'] ? 'eye-off' : 'eye'; ?>" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </form>
+                            <button onclick="abrirEdicaoCategoria(<?php echo $cat['id']; ?>, '<?php echo htmlspecialchars(addslashes($cat['nome'])); ?>')"
+                                    class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
+                                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <form method="POST" class="inline" onsubmit="return confirm('Excluir a categoria \"<?php echo htmlspecialchars(addslashes($cat['nome'])); ?>\"?')">
+                                <input type="hidden" name="acao" value="excluir_categoria">
+                                <input type="hidden" name="cat_id" value="<?php echo $cat['id']; ?>">
+                                <button type="submit" class="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-all">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <!-- Formulário de edição inline -->
+                <div id="formEdicaoCat" class="hidden px-4 pb-3">
+                    <form method="POST" class="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
+                        <input type="hidden" name="acao" value="editar_categoria">
+                        <input type="hidden" name="cat_id" id="editCatId">
+                        <label class="block text-[10px] font-black text-blue-700 uppercase tracking-widest">Editando</label>
+                        <div class="flex gap-2">
+                            <input type="text" name="nome_cat" id="editCatNome" required
+                                   class="flex-grow p-2 bg-white border border-blue-200 rounded-lg text-xs font-bold focus:outline-none focus:border-blue-400">
+                            <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase hover:bg-blue-700 transition-all shrink-0">Salvar</button>
+                            <button type="button" onclick="cancelarEdicaoCategoria()" class="px-3 py-2 bg-white border border-border text-text-secondary rounded-lg text-[10px] font-black uppercase hover:bg-gray-50 transition-all shrink-0">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Adicionar nova categoria -->
+            <div class="p-4 border-t border-border bg-white shrink-0">
+                <form method="POST" class="flex gap-2">
+                    <input type="hidden" name="acao" value="criar_categoria">
+                    <input type="text" name="nome_cat" placeholder="Nome da nova categoria..." required
+                           class="flex-grow p-2.5 bg-background border border-border rounded-xl text-xs font-bold focus:outline-none focus:border-primary transition-all">
+                    <button type="submit" class="px-4 py-2.5 bg-primary text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary-hover transition-all active:scale-95 flex items-center gap-1.5 shrink-0">
+                        <i data-lucide="plus" class="w-3.5 h-3.5"></i> Adicionar
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
 
@@ -720,6 +880,25 @@ $cards_suporte = [
             poll();
             setInterval(poll, INTERVAL);
         })();
+
+        function abrirModalCategorias() {
+            document.getElementById('modalCategorias').classList.add('active');
+        }
+        function fecharModalCategorias() {
+            document.getElementById('modalCategorias').classList.remove('active');
+            const url = new URL(window.location);
+            url.searchParams.delete('cat');
+            window.history.replaceState({}, '', url);
+        }
+        function abrirEdicaoCategoria(id, nome) {
+            document.getElementById('editCatId').value = id;
+            document.getElementById('editCatNome').value = nome;
+            document.getElementById('formEdicaoCat').classList.remove('hidden');
+            document.getElementById('editCatNome').focus();
+        }
+        function cancelarEdicaoCategoria() {
+            document.getElementById('formEdicaoCat').classList.add('hidden');
+        }
         // ────────────────────────────────────────────────────────────────────
     </script>
     <?php include '../footer.php'; ?>

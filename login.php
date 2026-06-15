@@ -170,7 +170,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                         <div>
                             <p class="text-[10px] md:text-xs font-black text-text uppercase leading-none mb-1">Suporte Técnico</p>
-                            <p class="text-[10px] text-text-secondary font-bold">Email: suporte@hsesantos.com.br</p>
+                            <p class="text-[10px] text-text-secondary font-bold">Email: suporte@apassantos.com.br</p>
                         </div>
                     </div>
                     <button onclick="document.getElementById('dev-info').classList.toggle('hidden')" class="p-2 hover:bg-primary/5 rounded-lg transition-colors">
