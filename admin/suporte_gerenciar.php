@@ -221,6 +221,13 @@ while ($row = $res_chamados->fetch_assoc()) {
     $chamados_lista[] = $row;
 }
 
+// Dados para o hash inicial do poll (todos os chamados, não só a página atual)
+$poll_hash_res = $conn->query("SELECT c.id, c.status,
+    (SELECT COUNT(*) FROM chamados_comentarios cc WHERE cc.chamado_id = c.id AND cc.lido_pelo_tecnico = 0) as nao_lidos
+    FROM chamados c $where_sql ORDER BY c.data_abertura DESC");
+$poll_hash_data = [];
+while ($ph = $poll_hash_res->fetch_assoc()) $poll_hash_data[] = $ph;
+
 // Buscar lista de técnicos (Filtra especificamente pelo atributo is_tecnico = TI)
 $tecnicos = $conn->query("SELECT id, nome FROM usuarios WHERE is_tecnico = 1 AND ativo = 1 ORDER BY nome ASC");
 
@@ -826,14 +833,7 @@ $cards_suporte = [
                 return list.map(c => c.id + ':' + c.status + ':' + c.nao_lidos).sort().join('|');
             }
 
-            let lastHash = stateHash(
-                [...document.querySelectorAll('#suporte-tbody tr[data-id]')]
-                    .map(tr => ({
-                        id:        tr.dataset.id,
-                        status:    tr.dataset.status  || '',
-                        nao_lidos: tr.dataset.unread   || '0'
-                    }))
-            );
+            let lastHash = stateHash(<?php echo json_encode($poll_hash_data); ?>);
 
             function showToast(msg, autoReload) {
                 const old = document.getElementById('suporte-toast');
