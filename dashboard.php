@@ -146,20 +146,27 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             <?php endif; ?>
 
             <?php if (temPermissao($conn, $_SESSION['setor_id'], 'suporte')): ?>
-            <a href="suporte.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-primary transition-all">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                        <i data-lucide="monitor-dot" class="w-5 h-5"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-xl font-bold text-text"><?php echo $total_chamados_pendentes; ?></h3>
-                        <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">TI Pendente</p>
+            <a href="suporte.php" class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center h-full gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
+                <div class="w-16 h-16 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500 relative">
+                    <i data-lucide="monitor-dot" class="w-8 h-8"></i>
+                    <?php if ($total_chamados_pendentes > 0): ?>
+                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm ring-2 ring-red-500/20">
+                            <?php echo $total_chamados_pendentes; ?>
+                        </span>
+                    <?php endif; ?>
+                </div>
+                <div class="flex-grow">
+                    <h3 class="text-base font-bold text-text tracking-tight group-hover:text-primary transition-colors">Suporte de TI</h3>
+                    <p class="text-[11px] text-text-secondary leading-relaxed mb-2">Abra chamados de suporte técnico, reporte problemas em equipamentos ou sistemas de TI.</p>
+                    <div class="flex items-center gap-4">
+                        <span class="text-[9px] font-black text-indigo-600 uppercase tracking-widest border-b border-indigo-200 pb-0.5">Novo Chamado</span>
+                        <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest border-b border-border pb-0.5">Meus Chamados</span>
                     </div>
                 </div>
-                <p class="mt-2 text-[10px] text-indigo-400 font-semibold group-hover:text-indigo-600 transition-colors">
-                    <i data-lucide="plus-circle" class="w-3 h-3 inline-block mr-0.5 -mt-0.5"></i>
-                    Clique para abrir um chamado de TI
-                </p>
+                <!-- Subtle context info -->
+                <div class="absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
+                    <i data-lucide="monitor-dot" class="w-24 h-24"></i>
+                </div>
             </a>
             <?php endif; ?>
         </div>
