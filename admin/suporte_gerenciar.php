@@ -263,6 +263,29 @@ $cards_suporte = [
     ['status' => 'Aguardando Peça', 'label' => 'Aguardando Peça', 'count' => $contagens['Aguardando Peça'],    'icon' => 'package',       'color' => 'border-purple-400',  'bg' => 'bg-purple-50',  'text' => 'text-purple-600'],
     ['status' => 'Resolvido',       'label' => 'Resolvido',       'count' => $contagens['Resolvido'],          'icon' => 'check-circle',  'color' => 'border-emerald-400', 'bg' => 'bg-emerald-50', 'text' => 'text-emerald-600'],
 ];
+
+// Ranking de chamados resolvidos por técnico
+$ranking_tecnicos = [];
+$res_rank = $conn->query("
+    SELECT u.nome, COUNT(*) as total_resolvidos,
+           SUM(CASE WHEN c.satisfacao_nota IS NOT NULL THEN c.satisfacao_nota ELSE 0 END) as soma_notas,
+           SUM(CASE WHEN c.satisfacao_nota IS NOT NULL THEN 1 ELSE 0 END) as total_avaliados
+    FROM chamados c
+    JOIN usuarios u ON c.tecnico_id = u.id
+    WHERE c.status = 'Resolvido' AND c.tecnico_id IS NOT NULL
+    GROUP BY c.tecnico_id, u.nome
+    ORDER BY total_resolvidos DESC
+    LIMIT 10
+");
+if ($res_rank) {
+    while ($rr = $res_rank->fetch_assoc()) {
+        $rr['media_nota'] = $rr['total_avaliados'] > 0
+            ? round($rr['soma_notas'] / $rr['total_avaliados'], 1)
+            : null;
+        $ranking_tecnicos[] = $rr;
+    }
+}
+$max_resolvidos = !empty($ranking_tecnicos) ? $ranking_tecnicos[0]['total_resolvidos'] : 1;
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -354,6 +377,37 @@ $cards_suporte = [
                 <span class="text-xs font-bold uppercase tracking-tighter"><?php echo $mensagem; ?></span>
             </div>
             <script>setTimeout(function(){var m=document.getElementById('suporte-msg');if(m){m.style.opacity='0';setTimeout(function(){m.remove();},500);}},4000);</script>
+        <?php endif; ?>
+
+        <?php if (!empty($ranking_tecnicos)): ?>
+        <!-- Ranking Técnicos -->
+        <div class="bg-white rounded-xl shadow-sm border border-border p-4 mb-6">
+            <div class="flex items-center gap-2 mb-4">
+                <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-500"></i>
+                <h3 class="text-xs font-black text-text uppercase tracking-widest">Chamados Resolvidos por Técnico</h3>
+            </div>
+            <div class="space-y-2.5">
+                <?php foreach ($ranking_tecnicos as $i => $tec): ?>
+                <?php $pct = $max_resolvidos > 0 ? round(($tec['total_resolvidos'] / $max_resolvidos) * 100) : 0; ?>
+                <div class="flex items-center gap-3">
+                    <span class="text-[10px] font-black text-text-secondary w-4 text-right shrink-0"><?php echo $i + 1; ?></span>
+                    <span class="text-xs font-bold text-text truncate w-36 shrink-0"><?php echo htmlspecialchars($tec['nome']); ?></span>
+                    <div class="flex-1 bg-background rounded-full h-2 overflow-hidden">
+                        <div class="h-2 rounded-full bg-emerald-400 transition-all" style="width:<?php echo $pct; ?>%"></div>
+                    </div>
+                    <span class="text-xs font-black text-emerald-600 w-6 text-right shrink-0"><?php echo $tec['total_resolvidos']; ?></span>
+                    <?php if ($tec['media_nota'] !== null): ?>
+                    <span class="text-[10px] font-bold text-amber-500 shrink-0 flex items-center gap-0.5">
+                        <i data-lucide="star" class="w-3 h-3 fill-amber-400 text-amber-400"></i>
+                        <?php echo $tec['media_nota']; ?>
+                    </span>
+                    <?php else: ?>
+                    <span class="w-10 shrink-0"></span>
+                    <?php endif; ?>
+                </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
         <?php endif; ?>
 
         <!-- Table (Slim Style) -->
