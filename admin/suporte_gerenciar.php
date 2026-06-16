@@ -264,7 +264,10 @@ $offset          = ($pagina_atual - 1) * $por_pagina;
 
 // Buscar chamados da página atual com detalhes
 $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante,
-               c.satisfacao_nota, c.satisfacao_comentario
+               c.satisfacao_nota, c.satisfacao_comentario,
+               (SELECT GROUP_CONCAT(tf.ramal ORDER BY tf.ordem SEPARATOR ', ')
+                FROM telefones tf
+                WHERE tf.setor_id = u.setor_id AND tf.ramal IS NOT NULL AND tf.ramal != '') as ramais_setor
         FROM chamados c 
         JOIN usuarios u ON c.usuario_id = u.id 
         LEFT JOIN setores s ON u.setor_id = s.id
@@ -1116,9 +1119,13 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                     <div class="p-4 border-b border-border bg-gray-50 shrink-0">
                         <h3 class="text-sm font-bold text-text mb-1" id="view_titulo">---</h3>
                         <p class="text-xs text-text-secondary leading-relaxed bg-white p-3 rounded-lg border border-border/50 max-h-24 overflow-y-auto italic" id="view_descricao">---</p>
-                        <div class="mt-2 flex gap-4 text-[9px] font-black text-text-secondary/40 uppercase tracking-widest">
+                        <div class="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[9px] font-black text-text-secondary/40 uppercase tracking-widest">
                             <span id="view_solicitante">---</span>
                             <span id="view_data">---</span>
+                            <span id="view_ramais" class="hidden items-center gap-1 text-blue-500/70">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.5 12a19.79 19.79 0 0 1-3-8.63A2 2 0 0 1 3.58 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                <span id="view_ramais_txt"></span>
+                            </span>
                         </div>
                     </div>
 
@@ -1287,6 +1294,16 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
             document.getElementById('view_descricao').textContent = chamado.descricao;
             document.getElementById('view_solicitante').textContent = 'Solicitante: ' + chamado.solicitante + ' (' + chamado.setor_solicitante + ')';
             document.getElementById('view_data').textContent = 'Aberto em: ' + chamado.data_abertura;
+            const ramaisEl = document.getElementById('view_ramais');
+            const ramaisTxt = document.getElementById('view_ramais_txt');
+            if (chamado.ramais_setor) {
+                ramaisTxt.textContent = 'Ramal: ' + chamado.ramais_setor;
+                ramaisEl.classList.remove('hidden');
+                ramaisEl.classList.add('flex');
+            } else {
+                ramaisEl.classList.add('hidden');
+                ramaisEl.classList.remove('flex');
+            }
             
             document.getElementById('form_id').value = chamado.id;
             document.getElementById('comentario_chamado_id').value = chamado.id;
