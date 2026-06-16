@@ -24,10 +24,7 @@ $total_chamados_pendentes = $conn->query("SELECT COUNT(*) as total FROM chamados
 
 // Total chamados manutenção pendentes
 if (isAdmin()) {
-    $total_manutencao_pendentes = $conn->query("SELECT COUNT(*) as total FROM manutencao WHERE status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
-} else {
-    $total_manutencao_pendentes = $conn->query("SELECT COUNT(*) as total FROM manutencao WHERE usuario_id = $uid AND status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
-}
+$total_manutencao_pendentes = $conn->query("SELECT COUNT(*) as total FROM manutencao WHERE usuario_id = $uid AND status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
 
 // Total documentos biblioteca
 $total_biblioteca = $conn->query("SELECT COUNT(*) as total FROM biblioteca")->fetch_assoc()['total'];
