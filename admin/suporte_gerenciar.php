@@ -643,25 +643,33 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                     </div>
 
                     <!-- Status pills -->
-                    <div class="flex flex-wrap gap-1.5">
+                    <div class="grid grid-cols-4 gap-1.5">
                         <?php
-                        $pill_cfg = [
+                        $pill_cfg_row = [
                             'Aberto'          => ['dot'=>'bg-blue-500',   'text'=>'text-blue-400',   'bg'=>'bg-blue-500/10',   'border'=>'border-blue-500/20'],
                             'Em Atendimento'  => ['dot'=>'bg-amber-500',  'text'=>'text-amber-400',  'bg'=>'bg-amber-500/10',  'border'=>'border-amber-500/20'],
                             'Aguardando Peça' => ['dot'=>'bg-violet-500', 'text'=>'text-violet-400', 'bg'=>'bg-violet-500/10', 'border'=>'border-violet-500/20'],
                             'Resolvido'       => ['dot'=>'bg-emerald-500','text'=>'text-emerald-400','bg'=>'bg-emerald-500/10','border'=>'border-emerald-500/20'],
-                            'Cancelado'       => ['dot'=>'bg-slate-500',  'text'=>'text-slate-400',  'bg'=>'bg-slate-500/10',  'border'=>'border-slate-500/20'],
                         ];
-                        foreach ($pill_cfg as $label => $cfg):
+                        foreach ($pill_cfg_row as $label => $cfg):
                             $cnt = $contagens[$label] ?? 0;
-                            if ($cnt === 0 && $label === 'Cancelado') continue;
                         ?>
-                        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border <?php echo $cfg['bg'].' '.$cfg['border']; ?>">
-                            <span class="w-1.5 h-1.5 rounded-full <?php echo $cfg['dot']; ?> shrink-0"></span>
-                            <span class="text-[10px] font-bold <?php echo $cfg['text']; ?>"><?php echo $label; ?></span>
-                            <span class="text-[10px] font-black text-white ml-0.5"><?php echo $cnt; ?></span>
+                        <div class="flex flex-col items-center gap-1 px-2 py-2 rounded-lg border <?php echo $cfg['bg'].' '.$cfg['border']; ?>">
+                            <span class="text-lg font-black text-white leading-none"><?php echo $cnt; ?></span>
+                            <span class="w-1.5 h-1.5 rounded-full <?php echo $cfg['dot']; ?>"></span>
+                            <span class="text-[9px] font-bold <?php echo $cfg['text']; ?> text-center leading-tight"><?php echo $label; ?></span>
                         </div>
                         <?php endforeach; ?>
+                    </div>
+                    <?php if (($contagens['Cancelado'] ?? 0) > 0 || $sem_tecnico > 0): ?>
+                    <div class="flex flex-wrap gap-1.5">
+                        <?php if (($contagens['Cancelado'] ?? 0) > 0): ?>
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border bg-slate-500/10 border-slate-500/20">
+                            <span class="w-1.5 h-1.5 rounded-full bg-slate-500 shrink-0"></span>
+                            <span class="text-[10px] font-bold text-slate-400">Cancelado</span>
+                            <span class="text-[10px] font-black text-white ml-0.5"><?php echo $contagens['Cancelado']; ?></span>
+                        </div>
+                        <?php endif; ?>
                         <?php if ($sem_tecnico > 0): ?>
                         <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border bg-rose-500/10 border-rose-500/30">
                             <i data-lucide="alert-triangle" class="w-3 h-3 text-rose-400 shrink-0"></i>
@@ -669,6 +677,7 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                         </div>
                         <?php endif; ?>
                     </div>
+                    <?php endif; ?>
 
                     <!-- Ranking -->
                     <?php if (!empty($ranking_tecnicos)): ?>
