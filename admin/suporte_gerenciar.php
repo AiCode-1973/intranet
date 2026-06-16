@@ -382,11 +382,14 @@ $max_resolvidos = !empty($ranking_tecnicos) ? $ranking_tecnicos[0]['total_resolv
         <?php if (!empty($ranking_tecnicos)): ?>
         <!-- Ranking Técnicos -->
         <div class="bg-white rounded-xl shadow-sm border border-border p-4 mb-6">
-            <div class="flex items-center gap-2 mb-4">
-                <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-500"></i>
-                <h3 class="text-xs font-black text-text uppercase tracking-widest">Chamados Resolvidos por Técnico</h3>
-            </div>
-            <div class="space-y-2.5">
+            <button onclick="toggleRanking()" class="flex items-center justify-between w-full text-left group">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-500"></i>
+                    <h3 class="text-xs font-black text-text uppercase tracking-widest">Chamados Resolvidos por Técnico</h3>
+                </div>
+                <i id="ranking-chevron" data-lucide="chevron-up" class="w-4 h-4 text-text-secondary transition-transform duration-200 group-hover:text-text"></i>
+            </button>
+            <div id="ranking-body" class="space-y-2.5 mt-4">
                 <?php foreach ($ranking_tecnicos as $i => $tec): ?>
                 <?php $pct = $max_resolvidos > 0 ? round(($tec['total_resolvidos'] / $max_resolvidos) * 100) : 0; ?>
                 <div class="flex items-center gap-3">
@@ -768,6 +771,35 @@ $max_resolvidos = !empty($ranking_tecnicos) ? $ranking_tecnicos[0]['total_resolv
     </div>
 
     <script>
+        // Toggle ranking de técnicos
+        (function () {
+            const STORAGE_KEY = 'suporte_ranking_aberto';
+            const body    = document.getElementById('ranking-body');
+            const chevron = document.getElementById('ranking-chevron');
+            if (!body) return;
+
+            function aplicarEstado(aberto, animar) {
+                if (aberto) {
+                    body.style.display = '';
+                    chevron.style.transform = 'rotate(0deg)';
+                } else {
+                    body.style.display = 'none';
+                    chevron.style.transform = 'rotate(180deg)';
+                }
+                if (animar) chevron.style.transition = 'transform 0.2s';
+            }
+
+            // Restaurar estado salvo (padrão: aberto)
+            const salvo = localStorage.getItem(STORAGE_KEY);
+            aplicarEstado(salvo !== '0', false);
+
+            window.toggleRanking = function () {
+                const aberto = body.style.display === 'none';
+                aplicarEstado(aberto, true);
+                localStorage.setItem(STORAGE_KEY, aberto ? '1' : '0');
+            };
+        })();
+
         function abrirAtendimento(chamado) {
             document.getElementById('view_id').textContent = '#' + chamado.id.toString().padStart(3, '0');
             document.getElementById('view_titulo').textContent = chamado.titulo;
