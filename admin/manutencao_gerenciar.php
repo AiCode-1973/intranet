@@ -86,6 +86,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao'])) {
         echo json_encode(['ok' => true]);
         exit;
     }
+
+    if ($_POST['acao'] == 'limpar_chat') {
+        $man_id = intval($_POST['manutencao_id'] ?? 0);
+        if ($man_id) {
+            $stmt = $conn->prepare("DELETE FROM manutencao_comentarios WHERE manutencao_id = ?");
+            $stmt->bind_param("i", $man_id);
+            $stmt->execute();
+            $stmt->close();
+            registrarLog($conn, "Limpou histórico do chat da O.S. #$man_id");
+        }
+        header('Content-Type: application/json');
+        echo json_encode(['ok' => true]);
+        exit;
+    }
 }
 
 // Poll endpoint para auto-refresh
@@ -371,9 +385,15 @@ $status_styles = [
 
                 <!-- Coluna direita: Chat/Histórico -->
                 <div class="w-[58%] flex flex-col overflow-hidden">
-                    <div class="px-4 py-2.5 border-b border-border bg-background/50 flex-shrink-0 flex items-center gap-1.5">
-                        <i data-lucide="message-circle" class="w-4 h-4 text-primary"></i>
-                        <h3 class="text-xs font-black text-text uppercase tracking-widest">Histórico &amp; Chat</h3>
+                    <div class="px-4 py-2.5 border-b border-border bg-background/50 flex-shrink-0 flex items-center justify-between">
+                        <div class="flex items-center gap-1.5">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-primary"></i>
+                            <h3 class="text-xs font-black text-text uppercase tracking-widest">Histórico &amp; Chat</h3>
+                        </div>
+                        <button onclick="limparChat()" title="Limpar histórico" class="flex items-center gap-1 text-[10px] font-bold text-rose-400 hover:text-rose-600 transition-colors px-2 py-1 rounded hover:bg-rose-50">
+                            <i data-lucide="trash-2" class="w-3 h-3"></i>
+                            Limpar
+                        </button>
                     </div>
                     <div id="man-chat-msgs" class="flex-1 overflow-y-auto p-3 space-y-2.5 bg-gray-50/30">
                         <div class="flex flex-col items-center justify-center h-full opacity-20 py-10">
@@ -479,6 +499,20 @@ $status_styles = [
                 if (data.ok) carregarChat(id);
             })
             .catch(function() { input.disabled = false; });
+        }
+
+        function limparChat() {
+            if (!modalChamadoId) return;
+            if (!confirm('Apagar todo o histórico de mensagens desta O.S.? Esta ação não pode ser desfeita.')) return;
+            const id = modalChamadoId;
+            fetch('manutencao_gerenciar.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: 'acao=limpar_chat&manutencao_id=' + id
+            })
+            .then(r => r.json())
+            .then(function(data) { if (data.ok) carregarChat(id); })
+            .catch(function() {});
         }
 
         document.addEventListener('keydown', function(e) {
