@@ -166,6 +166,14 @@ $tecnicos_res = $conn->query("SELECT id, nome FROM usuarios WHERE is_manutencao 
 $tecnicos = [];
 while($row = $tecnicos_res->fetch_assoc()) $tecnicos[] = $row;
 
+// Dados para o hash inicial do poll (mesma query do endpoint ?action=poll)
+$poll_hash_where = $filtro_status ? "WHERE m.status = '" . $conn->real_escape_string($filtro_status) . "'" : '';
+$poll_hash_res = $conn->query("SELECT m.id, m.status,
+    (SELECT COUNT(*) FROM manutencao_comentarios mc WHERE mc.manutencao_id = m.id AND mc.lido_pelo_tecnico = 0) as nao_lidos
+    FROM manutencao m $poll_hash_where ORDER BY m.data_abertura DESC");
+$poll_hash_data = [];
+while ($ph = $poll_hash_res->fetch_assoc()) $poll_hash_data[] = $ph;
+
 $status_styles = [
     'Aberto' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-600'],
     'Em Atendimento' => ['bg' => 'bg-amber-100', 'text' => 'text-amber-600'],
@@ -545,7 +553,7 @@ $status_styles = [
                 return list.map(c => c.id + ':' + c.status + ':' + c.nao_lidos).sort().join('|');
             }
 
-            let lastHash = null; // definido no primeiro poll para evitar reload imediato
+            let lastHash = stateHash(<?php echo json_encode($poll_hash_data); ?>);
 
             function showToast(msg, autoReload) {
                 const old = document.getElementById('man-toast');
@@ -585,11 +593,6 @@ $status_styles = [
                             nao_lidos: String(c.nao_lidos)
                         }))
                     );
-
-                    if (lastHash === null) {
-                        lastHash = currentHash; // primeiro poll: só define baseline
-                        return;
-                    }
 
                     if (currentHash !== lastHash) {
                         lastHash = currentHash;
