@@ -418,14 +418,17 @@ $status_styles = [
             modalChamadoId = null;
         }
 
+        let _chatReqId = 0;
+
         function carregarChat(id) {
             const box = document.getElementById('man-chat-msgs');
             box.innerHTML = '<div class="flex items-center justify-center py-10 opacity-30"><i data-lucide="loader" class="w-6 h-6"></i></div>';
             lucide.createIcons();
+            const reqId = ++_chatReqId;
             fetch('manutencao_gerenciar.php?action=get_comments&id=' + id, { cache: 'no-store' })
                 .then(r => r.json())
-                .then(data => renderChat(data.comentarios))
-                .catch(() => { box.innerHTML = '<p class="text-xs text-center opacity-40 py-8">Erro ao carregar mensagens.</p>'; });
+                .then(data => { if (reqId === _chatReqId) renderChat(data.comentarios); })
+                .catch(() => { if (reqId === _chatReqId) box.innerHTML = '<p class="text-xs text-center opacity-40 py-8">Erro ao carregar mensagens.</p>'; });
         }
 
         function renderChat(comentarios) {
