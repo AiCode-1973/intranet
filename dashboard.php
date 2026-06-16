@@ -97,74 +97,146 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             </div>
         </div>
 
-        <!-- Upper Quick Grid (Slim Cards) -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <!-- Stats Row -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
+
             <?php if (temPermissao($conn, $_SESSION['setor_id'], 'mural')): ?>
-            <a href="mural.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-primary transition-all">
+            <a href="mural.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-orange-400 hover:shadow-md transition-all">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all">
+                    <div class="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all shrink-0">
                         <i data-lucide="megaphone" class="w-5 h-5"></i>
                     </div>
-                    <div>
-                        <h3 class="text-xl font-bold text-text"><?php echo $total_avisos; ?></h3>
-                        <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Mural de Avisos</p>
+                    <div class="min-w-0">
+                        <h3 class="text-2xl font-black text-text leading-none"><?php echo $total_avisos; ?></h3>
+                        <p class="text-[9px] font-bold text-text-secondary uppercase tracking-wider mt-0.5">Avisos Ativos</p>
+                        <?php if ($ultimo_aviso): ?>
+                        <p class="text-[9px] text-orange-400 truncate mt-0.5 leading-tight"><?php echo htmlspecialchars($ultimo_aviso['titulo']); ?></p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </a>
             <?php endif; ?>
 
             <?php if (temPermissao($conn, $_SESSION['setor_id'], 'agenda')): ?>
-            <a href="agenda.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-primary transition-all">
+            <a href="agenda.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-emerald-400 hover:shadow-md transition-all">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 group-hover:bg-emerald-500 group-hover:text-white transition-all shrink-0">
                         <i data-lucide="calendar" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-text"><?php echo $total_eventos_hoje; ?></h3>
-                        <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Eventos Hoje</p>
+                        <h3 class="text-2xl font-black text-text leading-none"><?php echo $total_eventos_hoje; ?></h3>
+                        <p class="text-[9px] font-bold text-text-secondary uppercase tracking-wider mt-0.5">Eventos Hoje</p>
+                        <p class="text-[9px] text-emerald-400 mt-0.5"><?php echo date('d/m'); ?></p>
                     </div>
                 </div>
             </a>
             <?php endif; ?>
 
             <?php if (temPermissao($conn, $_SESSION['setor_id'], 'aniversariantes')): ?>
-            <a href="aniversariantes.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-primary transition-all">
+            <a href="aniversariantes.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-pink-400 hover:shadow-md transition-all">
                 <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-pink-50 flex items-center justify-center text-pink-500 group-hover:bg-pink-500 group-hover:text-white transition-all">
+                    <div class="w-10 h-10 rounded-xl bg-pink-50 flex items-center justify-center text-pink-500 group-hover:bg-pink-500 group-hover:text-white transition-all shrink-0">
                         <i data-lucide="cake" class="w-5 h-5"></i>
                     </div>
                     <div>
-                        <h3 class="text-xl font-bold text-text"><?php echo $total_niver_mes; ?></h3>
-                        <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">No Mês</p>
+                        <h3 class="text-2xl font-black <?php echo $total_niver_hoje > 0 ? 'text-pink-500' : 'text-text'; ?> leading-none"><?php echo $total_niver_mes; ?></h3>
+                        <p class="text-[9px] font-bold text-text-secondary uppercase tracking-wider mt-0.5">Aniversariantes</p>
+                        <?php if ($total_niver_hoje > 0): ?>
+                        <p class="text-[9px] text-pink-500 font-bold mt-0.5"><?php echo $total_niver_hoje; ?> hoje!</p>
+                        <?php else: ?>
+                        <p class="text-[9px] text-text-secondary/50 mt-0.5">no m&ecirc;s</p>
+                        <?php endif; ?>
                     </div>
                 </div>
             </a>
             <?php endif; ?>
 
-            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'suporte')): ?>
-            <a href="suporte.php" class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center h-full gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
-                <div class="w-16 h-16 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-500 relative">
-                    <i data-lucide="monitor-dot" class="w-8 h-8"></i>
-                    <?php if ($total_chamados_pendentes > 0): ?>
-                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm ring-2 ring-red-500/20">
-                            <?php echo $total_chamados_pendentes; ?>
-                        </span>
-                    <?php endif; ?>
-                </div>
-                <div class="flex-grow">
-                    <h3 class="text-base font-bold text-text tracking-tight group-hover:text-primary transition-colors">Suporte de TI</h3>
-                    <p class="text-[11px] text-text-secondary leading-relaxed mb-2">Abra chamados de suporte técnico, reporte problemas em equipamentos ou sistemas de TI.</p>
-                    <div class="flex items-center gap-4">
-                        <span class="text-[9px] font-black text-indigo-600 uppercase tracking-widest border-b border-indigo-200 pb-0.5">Novo Chamado</span>
-                        <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest border-b border-border pb-0.5">Meus Chamados</span>
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'educacao')): ?>
+            <a href="educacao.php" class="bg-white p-4 rounded-xl shadow-sm border border-border group hover:border-violet-400 hover:shadow-md transition-all">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-violet-50 flex items-center justify-center text-violet-500 group-hover:bg-violet-500 group-hover:text-white transition-all shrink-0">
+                        <i data-lucide="graduation-cap" class="w-5 h-5"></i>
                     </div>
-                </div>
-                <!-- Subtle context info -->
-                <div class="absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                    <i data-lucide="monitor-dot" class="w-24 h-24"></i>
+                    <div class="flex-grow min-w-0">
+                        <h3 class="text-2xl font-black text-text leading-none"><?php echo $percentual_global; ?><span class="text-sm font-bold text-text-secondary ml-0.5">%</span></h3>
+                        <p class="text-[9px] font-bold text-text-secondary uppercase tracking-wider mt-0.5">Meu Progresso</p>
+                        <div class="mt-1.5 h-1 bg-gray-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-violet-400 rounded-full" style="width:<?php echo $percentual_global; ?>%"></div>
+                        </div>
+                    </div>
                 </div>
             </a>
             <?php endif; ?>
+
+        </div>
+
+        <!-- Service Cards: TI &middot; CEH &middot; Manuten&ccedil;&atilde;o -->
+        <?php $ceh_pendentes = $conn->query("SELECT COUNT(*) as total FROM ceh_chamados WHERE status IN ('Aberto', 'Em Atendimento', 'Aguardando Pe&ccedil;a')")->fetch_assoc()['total']; ?>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'suporte')): ?>
+            <a href="suporte.php" class="bg-white rounded-xl border border-border shadow-sm flex items-center gap-4 p-5 hover:border-indigo-400 hover:shadow-md transition-all group overflow-hidden relative">
+                <div class="w-14 h-14 rounded-xl bg-indigo-50 flex items-center justify-center text-indigo-500 group-hover:bg-indigo-500 group-hover:text-white transition-all duration-300 shrink-0 relative">
+                    <i data-lucide="monitor-dot" class="w-7 h-7"></i>
+                    <?php if ($total_chamados_pendentes > 0): ?>
+                    <span class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow ring-2 ring-red-500/20">
+                        <?php echo $total_chamados_pendentes; ?>
+                    </span>
+                    <?php endif; ?>
+                </div>
+                <div class="flex-grow min-w-0">
+                    <h3 class="text-sm font-bold text-text group-hover:text-indigo-600 transition-colors">Suporte de TI</h3>
+                    <p class="text-[10px] text-text-secondary leading-relaxed mt-0.5 mb-2.5">Reporte problemas em equipamentos ou sistemas de TI.</p>
+                    <span class="text-[9px] font-black text-indigo-500 uppercase tracking-widest">Abrir chamado &rarr;</span>
+                </div>
+                <div class="absolute -right-3 -bottom-3 opacity-[0.04] group-hover:opacity-[0.07] transition-opacity pointer-events-none">
+                    <i data-lucide="monitor-dot" class="w-20 h-20"></i>
+                </div>
+            </a>
+            <?php endif; ?>
+
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'ceh')): ?>
+            <a href="ceh.php" class="bg-white rounded-xl border border-border shadow-sm flex items-center gap-4 p-5 hover:border-primary hover:shadow-md transition-all group overflow-hidden relative">
+                <div class="w-14 h-14 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-300 shrink-0 relative">
+                    <i data-lucide="stethoscope" class="w-7 h-7"></i>
+                    <?php if ($ceh_pendentes > 0): ?>
+                    <span class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow ring-2 ring-red-500/20">
+                        <?php echo $ceh_pendentes; ?>
+                    </span>
+                    <?php endif; ?>
+                </div>
+                <div class="flex-grow min-w-0">
+                    <h3 class="text-sm font-bold text-text group-hover:text-primary transition-colors">Central de Equipamentos</h3>
+                    <p class="text-[10px] text-text-secondary leading-relaxed mt-0.5 mb-2.5">Manuten&ccedil;&atilde;o e calibra&ccedil;&atilde;o de equipamentos hospitalares (CEH).</p>
+                    <span class="text-[9px] font-black text-primary uppercase tracking-widest">Abrir chamado &rarr;</span>
+                </div>
+                <div class="absolute -right-3 -bottom-3 opacity-[0.04] group-hover:opacity-[0.07] transition-opacity pointer-events-none">
+                    <i data-lucide="stethoscope" class="w-20 h-20"></i>
+                </div>
+            </a>
+            <?php endif; ?>
+
+            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'manutencao')): ?>
+            <a href="manutencao.php" class="bg-white rounded-xl border border-border shadow-sm flex items-center gap-4 p-5 hover:border-orange-400 hover:shadow-md transition-all group overflow-hidden relative">
+                <div class="w-14 h-14 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all duration-300 shrink-0 relative">
+                    <i data-lucide="wrench" class="w-7 h-7"></i>
+                    <?php if ($total_manutencao_pendentes > 0): ?>
+                    <span class="absolute -top-1.5 -right-1.5 min-w-[20px] h-5 px-1 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow ring-2 ring-red-500/20">
+                        <?php echo $total_manutencao_pendentes; ?>
+                    </span>
+                    <?php endif; ?>
+                </div>
+                <div class="flex-grow min-w-0">
+                    <h3 class="text-sm font-bold text-text group-hover:text-orange-600 transition-colors">Infraestrutura &amp; Manuten&ccedil;&atilde;o</h3>
+                    <p class="text-[10px] text-text-secondary leading-relaxed mt-0.5 mb-2.5">Relate problemas em infraestrutura ou equipamentos.</p>
+                    <span class="text-[9px] font-black text-orange-500 uppercase tracking-widest">Abrir ordem &rarr;</span>
+                </div>
+                <div class="absolute -right-3 -bottom-3 opacity-[0.04] group-hover:opacity-[0.07] transition-opacity pointer-events-none">
+                    <i data-lucide="wrench" class="w-20 h-20"></i>
+                </div>
+            </a>
+            <?php endif; ?>
+
         </div>
 
         <!-- Main Dashboard Modules -->
@@ -537,62 +609,6 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
             <?php endif; ?>
         </div>
 
-        <!-- Operational Quick Access (Slim) -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <?php
-            // Buscar chamados CEH pendentes para o card
-            $ceh_pendentes = $conn->query("SELECT COUNT(*) as total FROM ceh_chamados WHERE status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
-            ?>
-            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'ceh')): ?>
-            <a href="ceh.php" class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center h-full gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
-                <div class="w-16 h-16 rounded-xl bg-primary/5 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-all duration-500 relative">
-                    <i data-lucide="stethoscope" class="w-8 h-8"></i>
-                    <?php if ($ceh_pendentes > 0): ?>
-                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm ring-2 ring-red-500/20">
-                            <?php echo $ceh_pendentes; ?>
-                        </span>
-                    <?php endif; ?>
-                </div>
-                <div class="flex-grow">
-                    <h3 class="text-base font-bold text-text tracking-tight group-hover:text-primary transition-colors">Central de Equipamentos</h3>
-                    <p class="text-[11px] text-text-secondary leading-relaxed mb-2">Solicite manutenção, calibração ou reporte problemas em equipamentos hospitalares (CEH).</p>
-                    <div class="flex items-center gap-4">
-                        <span class="text-[9px] font-black text-primary uppercase tracking-widest border-b border-primary/20 pb-0.5">Novo Chamado</span>
-                        <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest border-b border-border pb-0.5">Meus Chamados</span>
-                    </div>
-                </div>
-                <!-- Subtle context info -->
-                <div class="absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                    <i data-lucide="stethoscope" class="w-24 h-24"></i>
-                </div>
-            </a>
-            <?php endif; ?>
-
-            <?php if (temPermissao($conn, $_SESSION['setor_id'], 'manutencao')): ?>
-            <a href="manutencao.php" class="bg-white p-5 rounded-xl border border-border shadow-sm flex items-center h-full gap-5 hover:border-primary transition-all group cursor-pointer overflow-hidden relative">
-                <div class="w-16 h-16 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 group-hover:bg-orange-500 group-hover:text-white transition-all duration-500 relative">
-                    <i data-lucide="wrench" class="w-8 h-8"></i>
-                    <?php if ($total_manutencao_pendentes > 0): ?>
-                        <span class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm ring-2 ring-red-500/20">
-                            <?php echo $total_manutencao_pendentes; ?>
-                        </span>
-                    <?php endif; ?>
-                </div>
-                <div>
-                    <h3 class="text-base font-bold text-text tracking-tight group-hover:text-primary transition-colors">Infraestrutura & Manutenção</h3>
-                    <p class="text-[11px] text-text-secondary leading-relaxed mb-2">Relate problemas em infraestrutura ou equipamentos para a equipe de manutenção.</p>
-                    <div class="flex items-center gap-4">
-                        <span class="text-[9px] font-black text-orange-600 uppercase tracking-widest border-b border-orange-200 pb-0.5">Abrir Ordem</span>
-                        <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest border-b border-border pb-0.5">Chamados Ativos</span>
-                    </div>
-                </div>
-                <!-- Subtle context info -->
-                <div class="absolute -right-2 -bottom-2 opacity-[0.03] group-hover:opacity-[0.08] transition-opacity">
-                    <i data-lucide="wrench" class="w-24 h-24"></i>
-                </div>
-            </a>
-            <?php endif; ?>
-        </div>
     </div>
     
     <?php include 'footer.php'; ?>
