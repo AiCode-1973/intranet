@@ -394,7 +394,7 @@ $max_resolvidos = !empty($ranking_tecnicos) ? $ranking_tecnicos[0]['total_resolv
                 <?php $pct = $max_resolvidos > 0 ? round(($tec['total_resolvidos'] / $max_resolvidos) * 100) : 0; ?>
                 <div class="flex items-center gap-3">
                     <span class="text-[10px] font-black text-text-secondary w-4 text-right shrink-0"><?php echo $i + 1; ?></span>
-                    <span class="text-xs font-bold text-text truncate w-36 shrink-0"><?php echo htmlspecialchars($tec['nome']); ?></span>
+                    <span class="text-xs font-bold text-text shrink-0 min-w-[8rem]"><?php echo htmlspecialchars($tec['nome']); ?></span>
                     <div class="flex-1 bg-background rounded-full h-2 overflow-hidden">
                         <div class="h-2 rounded-full bg-emerald-400 transition-all" style="width:<?php echo $pct; ?>%"></div>
                     </div>
