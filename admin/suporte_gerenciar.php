@@ -96,6 +96,91 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->close();
 }
 
+// ── GERENCIAR MENSAGENS RÁPIDAS ──────────────────────────────────────────────
+$conn->query("CREATE TABLE IF NOT EXISTS suporte_msgs_rapidas (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    titulo VARCHAR(120) NOT NULL,
+    texto TEXT NOT NULL,
+    ativo TINYINT(1) NOT NULL DEFAULT 1,
+    ordem INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+if ((int)$conn->query("SELECT COUNT(*) FROM suporte_msgs_rapidas")->fetch_row()[0] === 0) {
+    $conn->query("INSERT INTO suporte_msgs_rapidas (titulo, texto, ordem) VALUES
+        ('Sem solução no momento', 'Chamado verificado. No momento não foi possível resolver o problema. Aguardando mais informações ou peça necessária.', 1),
+        ('Problema resolvido remotamente', 'Problema identificado e resolvido remotamente via acesso ao equipamento do usuário. Sistema normalizado.', 2),
+        ('Equipamento encaminhado para manutenção', 'Equipamento retirado para manutenção na bancada técnica. Usuário notificado sobre prazo estimado de retorno.', 3),
+        ('Reinstalação de software realizada', 'Software desinstalado e reinstalado corretamente. Configurações básicas aplicadas e testadas com o usuário.', 4),
+        ('Aguardando retorno do fornecedor', 'Chamado encaminhado ao fornecedor/fabricante para suporte especializado. Aguardando retorno com prazo de solução.', 5),
+        ('Orientação ao usuário realizada', 'Usuário orientado sobre o correto uso do recurso/equipamento. Dúvida esclarecida e situação normalizada.', 6)");
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'criar_msg_rapida') {
+    $titulo_mr = sanitize($_POST['titulo_mr'] ?? '');
+    $texto_mr  = $_POST['texto_mr'] ?? '';
+    if (!empty($titulo_mr) && !empty($texto_mr)) {
+        $stmt = $conn->prepare("INSERT INTO suporte_msgs_rapidas (titulo, texto) VALUES (?, ?)");
+        $stmt->bind_param("ss", $titulo_mr, $texto_mr);
+        $stmt->execute();
+        $stmt->close();
+        registrarLog($conn, "Criou mensagem rápida: $titulo_mr");
+    }
+    header('Location: suporte_gerenciar.php?mr=1');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'editar_msg_rapida') {
+    $id_mr    = intval($_POST['mr_id'] ?? 0);
+    $titulo_mr = sanitize($_POST['titulo_mr'] ?? '');
+    $texto_mr  = $_POST['texto_mr'] ?? '';
+    if ($id_mr > 0 && !empty($titulo_mr) && !empty($texto_mr)) {
+        $stmt = $conn->prepare("UPDATE suporte_msgs_rapidas SET titulo = ?, texto = ? WHERE id = ?");
+        $stmt->bind_param("ssi", $titulo_mr, $texto_mr, $id_mr);
+        $stmt->execute();
+        $stmt->close();
+        registrarLog($conn, "Editou mensagem rápida ID $id_mr");
+    }
+    header('Location: suporte_gerenciar.php?mr=1');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'excluir_msg_rapida') {
+    $id_mr = intval($_POST['mr_id'] ?? 0);
+    if ($id_mr > 0) {
+        $stmt = $conn->prepare("DELETE FROM suporte_msgs_rapidas WHERE id = ?");
+        $stmt->bind_param("i", $id_mr);
+        $stmt->execute();
+        $stmt->close();
+        registrarLog($conn, "Excluiu mensagem rápida ID $id_mr");
+    }
+    header('Location: suporte_gerenciar.php?mr=1');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'toggle_msg_rapida') {
+    $id_mr      = intval($_POST['mr_id'] ?? 0);
+    $ativo_atual = intval($_POST['ativo_atual'] ?? 1);
+    $novo       = $ativo_atual == 1 ? 0 : 1;
+    if ($id_mr > 0) $conn->query("UPDATE suporte_msgs_rapidas SET ativo = $novo WHERE id = $id_mr");
+    header('Location: suporte_gerenciar.php?mr=1');
+    exit;
+}
+
+// AJAX: retorna mensagens rápidas ativas em JSON (para uso no modal de atendimento)
+if (isset($_GET['action']) && $_GET['action'] === 'get_msgs_rapidas') {
+    header('Content-Type: application/json');
+    $rows = $conn->query("SELECT id, titulo, texto FROM suporte_msgs_rapidas WHERE ativo = 1 ORDER BY ordem, titulo");
+    $msgs = [];
+    while ($r = $rows->fetch_assoc()) $msgs[] = $r;
+    echo json_encode($msgs);
+    exit;
+}
+
+$msgs_rapidas_res = $conn->query("SELECT * FROM suporte_msgs_rapidas ORDER BY ordem, titulo");
+$msgs_rapidas_lista = [];
+while ($m = $msgs_rapidas_res->fetch_assoc()) $msgs_rapidas_lista[] = $m;
+
 // ── GERENCIAR CATEGORIAS DE SUPORTE ─────────────────────────────────────────
 $conn->query("CREATE TABLE IF NOT EXISTS suporte_categorias (
     id INT AUTO_INCREMENT PRIMARY KEY,
@@ -377,6 +462,10 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                 <button onclick="abrirModalCategorias()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="tag" class="w-3.5 h-3.5 text-violet-500"></i>
                     Categorias
+                </button>
+                <button onclick="abrirModalMsgsRapidas()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
+                    Msgs. Rápidas
                 </button>
                 <button onclick="abrirDashboard()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-emerald-500"></i>
@@ -820,6 +909,105 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
         </div>
     </div>
 
+    <!-- Modal Mensagens Rápidas -->
+    <div id="modalMsgsRapidas" class="modal <?php echo isset($_GET['mr']) ? 'active' : ''; ?>">
+        <div class="bg-white w-full max-w-2xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150 flex flex-col max-h-[90vh]">
+            <div class="bg-amber-500 px-5 py-4 text-white flex justify-between items-center shrink-0">
+                <div>
+                    <h2 class="text-base font-bold flex items-center gap-2">
+                        <i data-lucide="zap" class="w-4 h-4"></i> Mensagens Rápidas
+                    </h2>
+                    <p class="text-white/80 text-[10px] uppercase font-bold tracking-widest mt-0.5">Textos prontos para resolução / observações</p>
+                </div>
+                <button onclick="fecharModalMsgsRapidas()" class="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto flex-grow">
+                <div class="p-4 space-y-2">
+                    <?php if (empty($msgs_rapidas_lista)): ?>
+                    <p class="text-center text-xs text-text-secondary py-6 italic">Nenhuma mensagem cadastrada.</p>
+                    <?php endif; ?>
+                    <?php foreach ($msgs_rapidas_lista as $mr): ?>
+                    <div class="p-3 bg-background rounded-xl border border-border <?php echo !$mr['ativo'] ? 'opacity-50' : ''; ?>">
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="flex items-start gap-2.5 flex-1 min-w-0">
+                                <div class="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
+                                    <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-xs font-bold text-text"><?php echo htmlspecialchars($mr['titulo']); ?></span>
+                                        <?php if (!$mr['ativo']): ?>
+                                            <span class="text-[8px] font-black text-red-400 uppercase tracking-wider">(inativa)</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    <p class="text-[10px] text-text-secondary mt-0.5 line-clamp-2 leading-relaxed"><?php echo htmlspecialchars($mr['texto']); ?></p>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-1 shrink-0">
+                                <form method="POST" class="inline">
+                                    <input type="hidden" name="acao" value="toggle_msg_rapida">
+                                    <input type="hidden" name="mr_id" value="<?php echo $mr['id']; ?>">
+                                    <input type="hidden" name="ativo_atual" value="<?php echo $mr['ativo']; ?>">
+                                    <button type="submit" title="<?php echo $mr['ativo'] ? 'Desativar' : 'Ativar'; ?>" class="p-1.5 rounded-lg transition-all <?php echo $mr['ativo'] ? 'text-amber-500 hover:bg-amber-50' : 'text-emerald-500 hover:bg-emerald-50'; ?>">
+                                        <i data-lucide="<?php echo $mr['ativo'] ? 'eye-off' : 'eye'; ?>" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </form>
+                                <button onclick="abrirEdicaoMsgRapida(<?php echo $mr['id']; ?>, '<?php echo htmlspecialchars(addslashes($mr['titulo'])); ?>', '<?php echo htmlspecialchars(addslashes($mr['texto'])); ?>')"
+                                        class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
+                                    <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                                </button>
+                                <form method="POST" class="inline" onsubmit="return confirm('Excluir a mensagem rápida \"<?php echo htmlspecialchars(addslashes($mr['titulo'])); ?>\"?')">
+                                    <input type="hidden" name="acao" value="excluir_msg_rapida">
+                                    <input type="hidden" name="mr_id" value="<?php echo $mr['id']; ?>">
+                                    <button type="submit" class="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-all">
+                                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <!-- Formulário de edição inline -->
+                <div id="formEdicaoMR" class="hidden px-4 pb-3">
+                    <form method="POST" class="p-3 bg-blue-50 border border-blue-200 rounded-xl space-y-2">
+                        <input type="hidden" name="acao" value="editar_msg_rapida">
+                        <input type="hidden" name="mr_id" id="editMRId">
+                        <label class="block text-[10px] font-black text-blue-700 uppercase tracking-widest">Editando mensagem</label>
+                        <input type="text" name="titulo_mr" id="editMRTitulo" required placeholder="Título..."
+                               class="w-full p-2 bg-white border border-blue-200 rounded-lg text-xs font-bold focus:outline-none focus:border-blue-400">
+                        <textarea name="texto_mr" id="editMRTexto" required rows="3" placeholder="Texto completo..."
+                                  class="w-full p-2 bg-white border border-blue-200 rounded-lg text-xs font-bold focus:outline-none focus:border-blue-400 resize-none leading-relaxed"></textarea>
+                        <div class="flex gap-2">
+                            <button type="submit" class="px-3 py-2 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase hover:bg-blue-700 transition-all">Salvar</button>
+                            <button type="button" onclick="cancelarEdicaoMsgRapida()" class="px-3 py-2 bg-white border border-border text-text-secondary rounded-lg text-[10px] font-black uppercase hover:bg-gray-50 transition-all">Cancelar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Adicionar nova mensagem -->
+            <div class="p-4 border-t border-border bg-white shrink-0">
+                <form method="POST" class="space-y-2">
+                    <input type="hidden" name="acao" value="criar_msg_rapida">
+                    <input type="text" name="titulo_mr" placeholder="Título da mensagem rápida..." required
+                           class="w-full p-2.5 bg-background border border-border rounded-xl text-xs font-bold focus:outline-none focus:border-primary transition-all">
+                    <div class="flex gap-2">
+                        <textarea name="texto_mr" placeholder="Texto completo que será inserido no campo de resolução..." required rows="2"
+                                  class="flex-grow p-2.5 bg-background border border-border rounded-xl text-xs font-bold focus:outline-none focus:border-primary transition-all resize-none leading-relaxed"></textarea>
+                        <button type="submit" class="px-4 py-2 bg-amber-500 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-amber-600 transition-all active:scale-95 flex items-center gap-1.5 shrink-0 self-end">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Adicionar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Categorias de Suporte -->
     <div id="modalCategorias" class="modal <?php echo isset($_GET['cat']) ? 'active' : ''; ?>">
         <div class="bg-white w-full max-w-lg mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150 flex flex-col max-h-[90vh]">
@@ -1028,7 +1216,24 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                         </div>
 
                         <div class="flex-grow flex flex-col">
-                            <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Resolução / Observações Técnicas</label>
+                            <div class="flex items-center justify-between mb-1">
+                                <label class="block text-[9px] font-black text-text-secondary uppercase tracking-widest">Resolução / Observações Técnicas</label>
+                                <button type="button" onclick="toggleMsgsRapidasPicker()" id="btnMsgRapida"
+                                        class="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-600 hover:bg-amber-500/20 transition-all text-[9px] font-black uppercase tracking-wider">
+                                    <i data-lucide="zap" class="w-3 h-3"></i> Msgs. Rápidas
+                                </button>
+                            </div>
+                            <!-- Picker de mensagens rápidas -->
+                            <div id="mrPickerPanel" class="hidden mb-2 bg-amber-50 border border-amber-200 rounded-xl overflow-hidden">
+                                <div class="flex items-center gap-2 px-3 py-2 border-b border-amber-200 bg-amber-100">
+                                    <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-600 shrink-0"></i>
+                                    <input type="text" id="mrPickerSearch" oninput="filtrarMsgsRapidas()" placeholder="Filtrar mensagens..." 
+                                           class="flex-grow bg-transparent text-xs font-bold text-amber-900 placeholder-amber-400 focus:outline-none">
+                                </div>
+                                <div id="mrPickerList" class="max-h-48 overflow-y-auto divide-y divide-amber-100">
+                                    <p class="text-center text-xs text-amber-400 py-3 italic" id="mrPickerLoading">Carregando...</p>
+                                </div>
+                            </div>
                             <textarea name="resolucao" id="form_resolucao" placeholder="Documente o atendimento ou a solução aplicada..."
                                       class="flex-grow w-full p-3 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all min-h-[150px]"></textarea>
                         </div>
@@ -1074,6 +1279,9 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
         })();
 
         function abrirAtendimento(chamado) {
+            // Fechar picker de mensagens rápidas se estiver aberto
+            document.getElementById('mrPickerPanel').classList.add('hidden');
+            document.getElementById('mrPickerSearch').value = '';
             document.getElementById('view_id').textContent = '#' + chamado.id.toString().padStart(3, '0');
             document.getElementById('view_titulo').textContent = chamado.titulo;
             document.getElementById('view_descricao').textContent = chamado.descricao;
@@ -1276,6 +1484,95 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
         }
         function cancelarEdicaoCategoria() {
             document.getElementById('formEdicaoCat').classList.add('hidden');
+        }
+
+        // ── Mensagens Rápidas ─────────────────────────────────────────────
+        let _mrCache = null;
+
+        function abrirModalMsgsRapidas() {
+            document.getElementById('modalMsgsRapidas').classList.add('active');
+            lucide.createIcons();
+        }
+        function fecharModalMsgsRapidas() {
+            document.getElementById('modalMsgsRapidas').classList.remove('active');
+            const url = new URL(window.location);
+            url.searchParams.delete('mr');
+            window.history.replaceState({}, '', url);
+        }
+        function abrirEdicaoMsgRapida(id, titulo, texto) {
+            document.getElementById('editMRId').value = id;
+            document.getElementById('editMRTitulo').value = titulo;
+            document.getElementById('editMRTexto').value = texto;
+            document.getElementById('formEdicaoMR').classList.remove('hidden');
+            document.getElementById('editMRTitulo').focus();
+        }
+        function cancelarEdicaoMsgRapida() {
+            document.getElementById('formEdicaoMR').classList.add('hidden');
+        }
+
+        // Picker dentro do modalAtender
+        function toggleMsgsRapidasPicker() {
+            const panel = document.getElementById('mrPickerPanel');
+            const isHidden = panel.classList.contains('hidden');
+            panel.classList.toggle('hidden', !isHidden);
+            if (isHidden) {
+                carregarMsgsRapidasPicker();
+                document.getElementById('mrPickerSearch').focus();
+            }
+        }
+
+        function carregarMsgsRapidasPicker() {
+            if (_mrCache !== null) { renderizarMsgsPicker(_mrCache); return; }
+            fetch('suporte_gerenciar.php?action=get_msgs_rapidas')
+                .then(r => r.json())
+                .then(data => { _mrCache = data; renderizarMsgsPicker(data); })
+                .catch(() => {
+                    document.getElementById('mrPickerList').innerHTML =
+                        '<p class="text-center text-xs text-red-400 py-3">Erro ao carregar mensagens.</p>';
+                });
+        }
+
+        function renderizarMsgsPicker(msgs, filtro) {
+            const list = document.getElementById('mrPickerList');
+            const lower = (filtro || '').toLowerCase();
+            const itens = msgs.filter(m =>
+                !lower || m.titulo.toLowerCase().includes(lower) || m.texto.toLowerCase().includes(lower)
+            );
+            if (itens.length === 0) {
+                list.innerHTML = '<p class="text-center text-xs text-amber-400 py-3 italic">Nenhuma mensagem encontrada.</p>';
+                return;
+            }
+            list.innerHTML = itens.map(m => `
+                <button type="button" onclick="inserirMsgRapida(${JSON.stringify(m.texto)})"
+                        class="w-full text-left px-3 py-2.5 hover:bg-amber-50 transition-colors group">
+                    <div class="flex items-start gap-2">
+                        <div class="w-5 h-5 rounded bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-amber-500/20 transition-colors">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+                        </div>
+                        <div>
+                            <p class="text-[10px] font-black text-amber-800">${escHtml(m.titulo)}</p>
+                            <p class="text-[9px] text-amber-600 leading-relaxed mt-0.5 line-clamp-2">${escHtml(m.texto)}</p>
+                        </div>
+                    </div>
+                </button>
+            `).join('');
+        }
+
+        function filtrarMsgsRapidas() {
+            if (_mrCache) renderizarMsgsPicker(_mrCache, document.getElementById('mrPickerSearch').value);
+        }
+
+        function inserirMsgRapida(texto) {
+            const ta = document.getElementById('form_resolucao');
+            const atual = ta.value.trim();
+            ta.value = atual ? atual + '\n\n' + texto : texto;
+            document.getElementById('mrPickerPanel').classList.add('hidden');
+            ta.focus();
+            ta.scrollTop = ta.scrollHeight;
+        }
+
+        function escHtml(s) {
+            return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
         }
         // ────────────────────────────────────────────────────────────────────
     </script>
