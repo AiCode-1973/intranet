@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
 if (isset($_GET['action']) && $_GET['action'] === 'poll') {
     header('Content-Type: application/json');
     $poll_where = [];
-    if (!isAdmin()) $poll_where[] = 'c.usuario_id = ' . intval($usuario_id);
+    $poll_where[] = 'c.usuario_id = ' . intval($usuario_id);
     if (!empty($_GET['status'])) $poll_where[] = "c.status = '" . $conn->real_escape_string($_GET['status']) . "'";
     $poll_cond = $poll_where ? 'WHERE ' . implode(' AND ', $poll_where) : '';
     $rows = $conn->query("SELECT c.id, c.status,
@@ -110,9 +110,7 @@ if (isset($_GET['msg'])) {
 $filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $where_clauses = [];
 
-if (!isAdmin()) {
-    $where_clauses[] = "c.usuario_id = $usuario_id";
-}
+$where_clauses[] = "c.usuario_id = $usuario_id";
 
 if ($filtro_status) {
     $where_clauses[] = "c.status = '$filtro_status'";
@@ -163,7 +161,7 @@ while($row = $res->fetch_assoc()) {
 
 // Dados para o hash inicial do poll (mesma query do endpoint ?action=poll)
 $poll_where_init = [];
-if (!isAdmin()) $poll_where_init[] = 'c.usuario_id = ' . intval($usuario_id);
+$poll_where_init[] = 'c.usuario_id = ' . intval($usuario_id);
 if ($filtro_status) $poll_where_init[] = "c.status = '" . $conn->real_escape_string($filtro_status) . "'";
 $poll_cond_init = $poll_where_init ? 'WHERE ' . implode(' AND ', $poll_where_init) : '';
 $poll_hash_res = $conn->query("SELECT c.id, c.status,
