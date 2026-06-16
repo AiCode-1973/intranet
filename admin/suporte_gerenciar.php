@@ -1535,18 +1535,21 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
         function renderizarMsgsPicker(msgs, filtro) {
             const list = document.getElementById('mrPickerList');
             const lower = (filtro || '').toLowerCase();
-            const itens = msgs.filter(m =>
-                !lower || m.titulo.toLowerCase().includes(lower) || m.texto.toLowerCase().includes(lower)
-            );
+            const itens = msgs.reduce((acc, m, i) => {
+                if (!lower || m.titulo.toLowerCase().includes(lower) || m.texto.toLowerCase().includes(lower)) {
+                    acc.push({ ...m, _origIdx: i });
+                }
+                return acc;
+            }, []);
             if (itens.length === 0) {
                 list.innerHTML = '<p class="text-center text-xs text-amber-400 py-3 italic">Nenhuma mensagem encontrada.</p>';
                 return;
             }
             list.innerHTML = itens.map(m => `
-                <button type="button" onclick="inserirMsgRapida(${JSON.stringify(m.texto)})"
-                        class="w-full text-left px-3 py-2.5 hover:bg-amber-50 transition-colors group">
+                <button type="button" data-mr-idx="${m._origIdx}"
+                        class="mr-picker-item w-full text-left px-3 py-2.5 hover:bg-amber-100 transition-colors group">
                     <div class="flex items-start gap-2">
-                        <div class="w-5 h-5 rounded bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5 group-hover:bg-amber-500/20 transition-colors">
+                        <div class="w-5 h-5 rounded bg-amber-500/10 flex items-center justify-center shrink-0 mt-0.5">
                             <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
                         </div>
                         <div>
@@ -1556,6 +1559,14 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                     </div>
                 </button>
             `).join('');
+
+            // Delegação de eventos — evita problemas com inline JS e caracteres especiais
+            list.querySelectorAll('.mr-picker-item').forEach(btn => {
+                btn.addEventListener('click', function () {
+                    const idx = parseInt(this.getAttribute('data-mr-idx'), 10);
+                    inserirMsgRapida(_mrCache[idx].texto);
+                });
+            });
         }
 
         function filtrarMsgsRapidas() {
