@@ -577,230 +577,237 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                 </button>
             </div>
 
-            <!-- Scrollable body -->
-            <div class="overflow-y-auto flex-grow p-6 space-y-5" style="scrollbar-width:thin;scrollbar-color:#1e2330 transparent">
+            <!-- Landscape body: left + right -->
+            <div class="flex flex-row flex-1 min-h-0">
 
-                <!-- KPI Cards -->
-                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-                    <div class="bg-[#161b22] rounded-xl p-4 border border-white/8 flex flex-col gap-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Total</span>
-                            <div class="w-7 h-7 rounded-lg bg-white/5 flex items-center justify-center">
-                                <i data-lucide="inbox" class="w-3.5 h-3.5 text-slate-400"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-3xl font-black text-white leading-none"><?php echo $contagens['Todos']; ?></h3>
-                            <p class="text-[10px] text-slate-500 mt-1">chamados registrados</p>
-                        </div>
-                    </div>
+                <!-- ── LEFT PANEL ── KPIs + Status + Ranking ──────────── -->
+                <div class="w-[38%] shrink-0 flex flex-col gap-4 p-5 border-r border-white/8 overflow-y-auto" style="scrollbar-width:thin;scrollbar-color:#1e2330 transparent">
 
+                    <!-- KPI 2×2 -->
                     <?php $taxa = $contagens['Todos'] > 0 ? round(($contagens['Resolvido'] / $contagens['Todos']) * 100) : 0; ?>
-                    <div class="bg-[#161b22] rounded-xl p-4 border border-emerald-500/20 flex flex-col gap-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[9px] font-black text-emerald-500/80 uppercase tracking-widest">Resolvidos</span>
-                            <div class="w-7 h-7 rounded-lg bg-emerald-500/10 flex items-center justify-center">
-                                <i data-lucide="check-circle" class="w-3.5 h-3.5 text-emerald-400"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-3xl font-black text-emerald-400 leading-none"><?php echo $taxa; ?>%</h3>
-                            <p class="text-[10px] text-slate-500 mt-1"><?php echo $contagens['Resolvido']; ?> de <?php echo $contagens['Todos']; ?></p>
-                        </div>
-                        <div class="h-1 bg-white/5 rounded-full overflow-hidden">
-                            <div class="h-1 bg-emerald-500 rounded-full" style="width:<?php echo $taxa; ?>%"></div>
-                        </div>
-                    </div>
-
-                    <div class="bg-[#161b22] rounded-xl p-4 border border-blue-500/20 flex flex-col gap-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[9px] font-black text-blue-500/80 uppercase tracking-widest">Tempo Médio</span>
-                            <div class="w-7 h-7 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                                <i data-lucide="clock" class="w-3.5 h-3.5 text-blue-400"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-3xl font-black text-blue-400 leading-none"><?php echo $tempo_medio_h !== null ? $tempo_medio_h : '–'; ?></h3>
-                            <p class="text-[10px] text-slate-500 mt-1"><?php echo $tempo_medio_h !== null ? 'horas para resolver' : 'sem dados'; ?></p>
-                        </div>
-                    </div>
-
-                    <div class="bg-[#161b22] rounded-xl p-4 border border-amber-500/20 flex flex-col gap-3">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[9px] font-black text-amber-500/80 uppercase tracking-widest">Satisfação</span>
-                            <div class="w-7 h-7 rounded-lg bg-amber-500/10 flex items-center justify-center">
-                                <i data-lucide="star" class="w-3.5 h-3.5 text-amber-400"></i>
-                            </div>
-                        </div>
-                        <div>
-                            <h3 class="text-3xl font-black text-amber-400 leading-none"><?php echo $satisfacao_media !== null ? $satisfacao_media : '–'; ?><?php if ($satisfacao_media !== null): ?><span class="text-lg font-bold opacity-50">/5</span><?php endif; ?></h3>
-                            <p class="text-[10px] text-slate-500 mt-1"><?php echo $satisfacao_total > 0 ? $satisfacao_total . ' avaliações' : 'sem avaliações'; ?></p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Status Pills -->
-                <div class="flex flex-wrap gap-2">
-                    <?php
-                    $pill_cfg = [
-                        'Aberto'          => ['dot'=>'bg-blue-500',   'text'=>'text-blue-400',   'bg'=>'bg-blue-500/10',   'border'=>'border-blue-500/20'],
-                        'Em Atendimento'  => ['dot'=>'bg-amber-500',  'text'=>'text-amber-400',  'bg'=>'bg-amber-500/10',  'border'=>'border-amber-500/20'],
-                        'Aguardando Peça' => ['dot'=>'bg-violet-500', 'text'=>'text-violet-400', 'bg'=>'bg-violet-500/10', 'border'=>'border-violet-500/20'],
-                        'Resolvido'       => ['dot'=>'bg-emerald-500','text'=>'text-emerald-400','bg'=>'bg-emerald-500/10','border'=>'border-emerald-500/20'],
-                        'Cancelado'       => ['dot'=>'bg-slate-500',  'text'=>'text-slate-400',  'bg'=>'bg-slate-500/10',  'border'=>'border-slate-500/20'],
-                    ];
-                    foreach ($pill_cfg as $label => $cfg):
-                        $cnt = $contagens[$label] ?? 0;
-                        if ($cnt === 0 && $label === 'Cancelado') continue;
-                    ?>
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border <?php echo $cfg['bg'].' '.$cfg['border']; ?>">
-                        <span class="w-1.5 h-1.5 rounded-full <?php echo $cfg['dot']; ?> shrink-0"></span>
-                        <span class="text-[10px] font-bold <?php echo $cfg['text']; ?>"><?php echo $label; ?></span>
-                        <span class="text-[10px] font-black text-white ml-1"><?php echo $cnt; ?></span>
-                    </div>
-                    <?php endforeach; ?>
-                    <?php if ($sem_tecnico > 0): ?>
-                    <div class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border bg-rose-500/10 border-rose-500/30">
-                        <i data-lucide="alert-triangle" class="w-3 h-3 text-rose-400 shrink-0"></i>
-                        <span class="text-[10px] font-bold text-rose-400"><?php echo $sem_tecnico; ?> sem técnico</span>
-                    </div>
-                    <?php endif; ?>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-
-                    <!-- Por Prioridade -->
-                    <?php if (!empty($stats_prioridade)): ?>
-                    <div class="bg-[#161b22] border border-white/8 rounded-xl p-5">
-                        <div class="flex items-center gap-1.5 mb-4">
-                            <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-slate-500"></i>
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Por Prioridade</p>
-                        </div>
-                        <?php
-                        $pri_bar  = ['Urgente'=>'bg-gradient-to-r from-rose-600 to-rose-400','Alta'=>'bg-gradient-to-r from-orange-500 to-orange-300','Média'=>'bg-gradient-to-r from-blue-600 to-blue-400','Baixa'=>'bg-slate-600'];
-                        $pri_text = ['Urgente'=>'text-rose-400','Alta'=>'text-orange-400','Média'=>'text-blue-400','Baixa'=>'text-slate-400'];
-                        foreach ($stats_prioridade as $p):
-                            $pct = $max_pri > 0 ? round(($p['total'] / $max_pri) * 100) : 0;
-                            $bar   = $pri_bar[$p['prioridade']]  ?? 'bg-slate-600';
-                            $tcolor = $pri_text[$p['prioridade']] ?? 'text-slate-400';
-                        ?>
-                        <div class="mb-3">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs font-bold <?php echo $tcolor; ?>"><?php echo htmlspecialchars($p['prioridade']); ?></span>
-                                <span class="text-xs font-black text-white"><?php echo $p['total']; ?> <span class="text-slate-600 font-normal text-[10px]">(<?php echo $pct; ?>%)</span></span>
-                            </div>
-                            <div class="h-2.5 bg-white/5 rounded-full overflow-hidden">
-                                <div class="h-2.5 rounded-full <?php echo $bar; ?>" style="width:<?php echo $pct; ?>%"></div>
-                            </div>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php endif; ?>
-
-                    <!-- Por Categoria -->
-                    <?php if (!empty($stats_categoria)): ?>
-                    <div class="bg-[#161b22] border border-white/8 rounded-xl p-5">
-                        <div class="flex items-center gap-1.5 mb-4">
-                            <i data-lucide="tag" class="w-3.5 h-3.5 text-slate-500"></i>
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Por Categoria</p>
-                        </div>
-                        <?php foreach ($stats_categoria as $idx => $c):
-                            $pct = $max_cat > 0 ? round(($c['total'] / $max_cat) * 100) : 0;
-                            $opacities = ['opacity-100','opacity-90','opacity-80','opacity-70','opacity-60','opacity-55','opacity-50','opacity-45'];
-                            $op = $opacities[$idx] ?? 'opacity-40';
-                        ?>
-                        <div class="mb-3">
-                            <div class="flex items-center justify-between mb-1">
-                                <span class="text-xs font-bold text-slate-300 truncate max-w-[60%]"><?php echo htmlspecialchars($c['categoria']); ?></span>
-                                <span class="text-xs font-black text-white"><?php echo $c['total']; ?> <span class="text-slate-600 font-normal text-[10px]">(<?php echo $pct; ?>%)</span></span>
-                            </div>
-                            <div class="h-2.5 bg-white/5 rounded-full overflow-hidden">
-                                <div class="h-2.5 rounded-full bg-violet-500 <?php echo $op; ?>" style="width:<?php echo $pct; ?>%"></div>
-                            </div>
-                        </div>
-                        <?php endforeach; ?>
-                    </div>
-                    <?php endif; ?>
-
-                </div>
-
-                <!-- Evolução Mensal -->
-                <?php if (!empty($stats_mensal)): ?>
-                <div class="bg-[#161b22] border border-white/8 rounded-xl p-5">
-                    <div class="flex items-center justify-between mb-5">
-                        <div class="flex items-center gap-1.5">
-                            <i data-lucide="trending-up" class="w-3.5 h-3.5 text-slate-500"></i>
-                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Evolução Mensal</p>
-                        </div>
-                        <div class="flex items-center gap-4">
-                            <span class="flex items-center gap-1.5 text-[10px] font-bold text-blue-400"><span class="w-2 h-2 rounded-sm bg-blue-500/70 inline-block"></span>Abertos</span>
-                            <span class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400"><span class="w-2 h-2 rounded-sm bg-emerald-500/70 inline-block"></span>Resolvidos</span>
-                        </div>
-                    </div>
-                    <?php $max_men_val = max(array_column($stats_mensal, 'abertos')); $max_men_val = $max_men_val > 0 ? $max_men_val : 1; ?>
-                    <!-- Grid lines -->
-                    <div class="relative">
-                        <div class="absolute inset-0 flex flex-col justify-between pointer-events-none" style="padding-bottom:1.75rem">
-                            <?php for ($gl = 0; $gl < 4; $gl++): ?>
-                            <div class="border-t border-white/5 w-full"></div>
-                            <?php endfor; ?>
-                        </div>
-                        <div class="flex items-end gap-2 h-36 relative z-10">
-                            <?php foreach ($stats_mensal as $m):
-                                $h_ab  = max(4, round(($m['abertos']   / $max_men_val) * 100));
-                                $h_res = max(0, round(($m['resolvidos'] / $max_men_val) * 100));
-                            ?>
-                            <div class="flex-1 flex flex-col items-center gap-1.5">
-                                <div class="w-full flex items-end gap-0.5 h-28 justify-center">
-                                    <div class="flex-1 rounded-t-sm bg-blue-500/60 hover:bg-blue-500/90 transition-colors cursor-default" style="height:<?php echo $h_ab; ?>%" title="Abertos: <?php echo $m['abertos']; ?>"></div>
-                                    <div class="flex-1 rounded-t-sm bg-emerald-500/60 hover:bg-emerald-500/90 transition-colors cursor-default" style="height:<?php echo $h_res; ?>%" title="Resolvidos: <?php echo $m['resolvidos']; ?>"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="bg-[#161b22] rounded-xl p-3.5 border border-white/8 flex flex-col gap-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Total</span>
+                                <div class="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center">
+                                    <i data-lucide="inbox" class="w-3 h-3 text-slate-400"></i>
                                 </div>
-                                <span class="text-[9px] font-bold text-slate-600 uppercase"><?php echo htmlspecialchars($m['mes']); ?></span>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-black text-white leading-none"><?php echo $contagens['Todos']; ?></h3>
+                                <p class="text-[9px] text-slate-600 mt-0.5">chamados</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#161b22] rounded-xl p-3.5 border border-emerald-500/20 flex flex-col gap-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9px] font-black text-emerald-500/80 uppercase tracking-widest">Resolvidos</span>
+                                <div class="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+                                    <i data-lucide="check-circle" class="w-3 h-3 text-emerald-400"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-black text-emerald-400 leading-none"><?php echo $taxa; ?>%</h3>
+                                <p class="text-[9px] text-slate-600 mt-0.5"><?php echo $contagens['Resolvido']; ?> de <?php echo $contagens['Todos']; ?></p>
+                            </div>
+                            <div class="h-1 bg-white/5 rounded-full overflow-hidden">
+                                <div class="h-1 bg-emerald-500 rounded-full" style="width:<?php echo $taxa; ?>%"></div>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#161b22] rounded-xl p-3.5 border border-blue-500/20 flex flex-col gap-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9px] font-black text-blue-500/80 uppercase tracking-widest">Tempo Médio</span>
+                                <div class="w-6 h-6 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                                    <i data-lucide="clock" class="w-3 h-3 text-blue-400"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-black text-blue-400 leading-none"><?php echo $tempo_medio_h !== null ? $tempo_medio_h : '–'; ?></h3>
+                                <p class="text-[9px] text-slate-600 mt-0.5"><?php echo $tempo_medio_h !== null ? 'horas p/ resolver' : 'sem dados'; ?></p>
+                            </div>
+                        </div>
+
+                        <div class="bg-[#161b22] rounded-xl p-3.5 border border-amber-500/20 flex flex-col gap-2.5">
+                            <div class="flex items-center justify-between">
+                                <span class="text-[9px] font-black text-amber-500/80 uppercase tracking-widest">Satisfação</span>
+                                <div class="w-6 h-6 rounded-lg bg-amber-500/10 flex items-center justify-center">
+                                    <i data-lucide="star" class="w-3 h-3 text-amber-400"></i>
+                                </div>
+                            </div>
+                            <div>
+                                <h3 class="text-2xl font-black text-amber-400 leading-none"><?php echo $satisfacao_media !== null ? $satisfacao_media : '–'; ?><?php if ($satisfacao_media !== null): ?><span class="text-base font-bold opacity-40">/5</span><?php endif; ?></h3>
+                                <p class="text-[9px] text-slate-600 mt-0.5"><?php echo $satisfacao_total > 0 ? $satisfacao_total . ' avaliações' : 'sem avaliações'; ?></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Status pills -->
+                    <div class="flex flex-wrap gap-1.5">
+                        <?php
+                        $pill_cfg = [
+                            'Aberto'          => ['dot'=>'bg-blue-500',   'text'=>'text-blue-400',   'bg'=>'bg-blue-500/10',   'border'=>'border-blue-500/20'],
+                            'Em Atendimento'  => ['dot'=>'bg-amber-500',  'text'=>'text-amber-400',  'bg'=>'bg-amber-500/10',  'border'=>'border-amber-500/20'],
+                            'Aguardando Peça' => ['dot'=>'bg-violet-500', 'text'=>'text-violet-400', 'bg'=>'bg-violet-500/10', 'border'=>'border-violet-500/20'],
+                            'Resolvido'       => ['dot'=>'bg-emerald-500','text'=>'text-emerald-400','bg'=>'bg-emerald-500/10','border'=>'border-emerald-500/20'],
+                            'Cancelado'       => ['dot'=>'bg-slate-500',  'text'=>'text-slate-400',  'bg'=>'bg-slate-500/10',  'border'=>'border-slate-500/20'],
+                        ];
+                        foreach ($pill_cfg as $label => $cfg):
+                            $cnt = $contagens[$label] ?? 0;
+                            if ($cnt === 0 && $label === 'Cancelado') continue;
+                        ?>
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border <?php echo $cfg['bg'].' '.$cfg['border']; ?>">
+                            <span class="w-1.5 h-1.5 rounded-full <?php echo $cfg['dot']; ?> shrink-0"></span>
+                            <span class="text-[10px] font-bold <?php echo $cfg['text']; ?>"><?php echo $label; ?></span>
+                            <span class="text-[10px] font-black text-white ml-0.5"><?php echo $cnt; ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                        <?php if ($sem_tecnico > 0): ?>
+                        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border bg-rose-500/10 border-rose-500/30">
+                            <i data-lucide="alert-triangle" class="w-3 h-3 text-rose-400 shrink-0"></i>
+                            <span class="text-[10px] font-bold text-rose-400"><?php echo $sem_tecnico; ?> sem técnico</span>
+                        </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Ranking -->
+                    <?php if (!empty($ranking_tecnicos)): ?>
+                    <div class="bg-[#161b22] border border-white/8 rounded-xl p-4 flex-1">
+                        <div class="flex items-center gap-1.5 mb-3">
+                            <i data-lucide="trophy" class="w-3.5 h-3.5 text-slate-500"></i>
+                            <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ranking de Resoluções</p>
+                        </div>
+                        <div class="space-y-2.5">
+                            <?php
+                            $medals = ['🥇','🥈','🥉'];
+                            foreach ($ranking_tecnicos as $i => $tec):
+                                $pct = $max_resolvidos > 0 ? round(($tec['total_resolvidos'] / $max_resolvidos) * 100) : 0;
+                            ?>
+                            <div>
+                                <div class="flex items-center justify-between mb-1">
+                                    <div class="flex items-center gap-1.5">
+                                        <span class="text-sm leading-none shrink-0 w-5"><?php echo isset($medals[$i]) ? $medals[$i] : '<span class="text-[10px] font-black text-slate-600">'.($i+1).'</span>'; ?></span>
+                                        <span class="text-xs font-bold text-slate-300 truncate max-w-[130px]"><?php echo htmlspecialchars($tec['nome']); ?></span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5 shrink-0">
+                                        <?php if ($tec['media_nota'] !== null): ?>
+                                        <span class="flex items-center gap-0.5 text-[10px] font-bold text-amber-400">
+                                            <i data-lucide="star" class="w-3 h-3 fill-amber-400 text-amber-400"></i><?php echo $tec['media_nota']; ?>
+                                        </span>
+                                        <?php endif; ?>
+                                        <span class="text-xs font-black text-emerald-400"><?php echo $tec['total_resolvidos']; ?></span>
+                                    </div>
+                                </div>
+                                <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-1.5 rounded-full <?php echo $i === 0 ? 'bg-gradient-to-r from-amber-500 to-emerald-400' : ($i === 1 ? 'bg-emerald-500/80' : 'bg-emerald-500/50'); ?>" style="width:<?php echo $pct; ?>%"></div>
+                                </div>
                             </div>
                             <?php endforeach; ?>
                         </div>
                     </div>
-                </div>
-                <?php endif; ?>
+                    <?php endif; ?>
 
-                <!-- Ranking Técnicos -->
-                <?php if (!empty($ranking_tecnicos)): ?>
-                <div class="bg-[#161b22] border border-white/8 rounded-xl p-5">
-                    <div class="flex items-center gap-1.5 mb-4">
-                        <i data-lucide="trophy" class="w-3.5 h-3.5 text-slate-500"></i>
-                        <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Ranking de Resoluções</p>
-                    </div>
-                    <div class="space-y-3">
-                        <?php
-                        $medals = ['🥇','🥈','🥉'];
-                        foreach ($ranking_tecnicos as $i => $tec):
-                            $pct = $max_resolvidos > 0 ? round(($tec['total_resolvidos'] / $max_resolvidos) * 100) : 0;
-                        ?>
-                        <div>
-                            <div class="flex items-center justify-between mb-1">
-                                <div class="flex items-center gap-2">
-                                    <span class="text-sm leading-none shrink-0 w-5"><?php echo $medals[$i] ?? '<span class="text-[10px] font-black text-slate-600">'.($i+1).'</span>'; ?></span>
-                                    <span class="text-xs font-bold text-slate-300"><?php echo htmlspecialchars($tec['nome']); ?></span>
+                </div><!-- end left panel -->
+
+                <!-- ── RIGHT PANEL ── Prioridade + Categoria + Mensal ──── -->
+                <div class="flex-1 flex flex-col gap-4 p-5 overflow-y-auto" style="scrollbar-width:thin;scrollbar-color:#1e2330 transparent">
+
+                    <div class="grid grid-cols-2 gap-4">
+
+                        <!-- Por Prioridade -->
+                        <?php if (!empty($stats_prioridade)): ?>
+                        <div class="bg-[#161b22] border border-white/8 rounded-xl p-4">
+                            <div class="flex items-center gap-1.5 mb-3">
+                                <i data-lucide="alert-circle" class="w-3.5 h-3.5 text-slate-500"></i>
+                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Por Prioridade</p>
+                            </div>
+                            <?php
+                            $pri_bar  = ['Urgente'=>'bg-gradient-to-r from-rose-600 to-rose-400','Alta'=>'bg-gradient-to-r from-orange-500 to-orange-300','Média'=>'bg-gradient-to-r from-blue-600 to-blue-400','Baixa'=>'bg-slate-600'];
+                            $pri_text = ['Urgente'=>'text-rose-400','Alta'=>'text-orange-400','Média'=>'text-blue-400','Baixa'=>'text-slate-400'];
+                            foreach ($stats_prioridade as $p):
+                                $pct    = $max_pri > 0 ? round(($p['total'] / $max_pri) * 100) : 0;
+                                $bar    = $pri_bar[$p['prioridade']]  ?? 'bg-slate-600';
+                                $tcolor = $pri_text[$p['prioridade']] ?? 'text-slate-400';
+                            ?>
+                            <div class="mb-2.5">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-bold <?php echo $tcolor; ?>"><?php echo htmlspecialchars($p['prioridade']); ?></span>
+                                    <span class="text-xs font-black text-white"><?php echo $p['total']; ?> <span class="text-slate-600 font-normal text-[10px]">(<?php echo $pct; ?>%)</span></span>
                                 </div>
-                                <div class="flex items-center gap-2 shrink-0">
-                                    <?php if ($tec['media_nota'] !== null): ?>
-                                    <span class="flex items-center gap-0.5 text-[10px] font-bold text-amber-400">
-                                        <i data-lucide="star" class="w-3 h-3 fill-amber-400 text-amber-400"></i><?php echo $tec['media_nota']; ?>
-                                    </span>
-                                    <?php endif; ?>
-                                    <span class="text-xs font-black text-emerald-400"><?php echo $tec['total_resolvidos']; ?> <span class="text-slate-600 font-normal text-[9px]">resolvidos</span></span>
+                                <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-2 rounded-full <?php echo $bar; ?>" style="width:<?php echo $pct; ?>%"></div>
                                 </div>
                             </div>
-                            <div class="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                <div class="h-1.5 rounded-full <?php echo $i === 0 ? 'bg-gradient-to-r from-amber-500 to-emerald-400' : ($i === 1 ? 'bg-emerald-500/80' : 'bg-emerald-500/50'); ?>" style="width:<?php echo $pct; ?>%"></div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- Por Categoria -->
+                        <?php if (!empty($stats_categoria)): ?>
+                        <div class="bg-[#161b22] border border-white/8 rounded-xl p-4">
+                            <div class="flex items-center gap-1.5 mb-3">
+                                <i data-lucide="tag" class="w-3.5 h-3.5 text-slate-500"></i>
+                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Por Categoria</p>
+                            </div>
+                            <?php foreach ($stats_categoria as $idx => $c):
+                                $pct = $max_cat > 0 ? round(($c['total'] / $max_cat) * 100) : 0;
+                                $opacities = ['opacity-100','opacity-90','opacity-80','opacity-70','opacity-60','opacity-55','opacity-50','opacity-45'];
+                                $op = $opacities[$idx] ?? 'opacity-40';
+                            ?>
+                            <div class="mb-2.5">
+                                <div class="flex items-center justify-between mb-1">
+                                    <span class="text-xs font-bold text-slate-300 truncate max-w-[55%]"><?php echo htmlspecialchars($c['categoria']); ?></span>
+                                    <span class="text-xs font-black text-white"><?php echo $c['total']; ?> <span class="text-slate-600 font-normal text-[10px]">(<?php echo $pct; ?>%)</span></span>
+                                </div>
+                                <div class="h-2 bg-white/5 rounded-full overflow-hidden">
+                                    <div class="h-2 rounded-full bg-violet-500 <?php echo $op; ?>" style="width:<?php echo $pct; ?>%"></div>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                        <?php endif; ?>
+
+                    </div>
+
+                    <!-- Evolução Mensal -->
+                    <?php if (!empty($stats_mensal)): ?>
+                    <div class="bg-[#161b22] border border-white/8 rounded-xl p-4 flex-1">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-1.5">
+                                <i data-lucide="trending-up" class="w-3.5 h-3.5 text-slate-500"></i>
+                                <p class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Evolução Mensal</p>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span class="flex items-center gap-1.5 text-[10px] font-bold text-blue-400"><span class="w-2 h-2 rounded-sm bg-blue-500/70 inline-block"></span>Abertos</span>
+                                <span class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-400"><span class="w-2 h-2 rounded-sm bg-emerald-500/70 inline-block"></span>Resolvidos</span>
                             </div>
                         </div>
-                        <?php endforeach; ?>
+                        <?php $max_men_val = max(array_column($stats_mensal, 'abertos')); $max_men_val = $max_men_val > 0 ? $max_men_val : 1; ?>
+                        <div class="relative">
+                            <div class="absolute inset-0 flex flex-col justify-between pointer-events-none" style="padding-bottom:1.6rem">
+                                <?php for ($gl = 0; $gl < 4; $gl++): ?><div class="border-t border-white/5 w-full"></div><?php endfor; ?>
+                            </div>
+                            <div class="flex items-end gap-2 relative z-10" style="height:9rem">
+                                <?php foreach ($stats_mensal as $m):
+                                    $h_ab  = max(4, round(($m['abertos']   / $max_men_val) * 100));
+                                    $h_res = max(0, round(($m['resolvidos'] / $max_men_val) * 100));
+                                ?>
+                                <div class="flex-1 flex flex-col items-center gap-1.5">
+                                    <div class="w-full flex items-end gap-0.5 justify-center" style="height:7.5rem">
+                                        <div class="flex-1 rounded-t-sm bg-blue-500/60 hover:bg-blue-500/90 transition-colors cursor-default" style="height:<?php echo $h_ab; ?>%" title="Abertos: <?php echo $m['abertos']; ?>"></div>
+                                        <div class="flex-1 rounded-t-sm bg-emerald-500/60 hover:bg-emerald-500/90 transition-colors cursor-default" style="height:<?php echo $h_res; ?>%" title="Resolvidos: <?php echo $m['resolvidos']; ?>"></div>
+                                    </div>
+                                    <span class="text-[9px] font-bold text-slate-600 uppercase"><?php echo htmlspecialchars($m['mes']); ?></span>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
                     </div>
-                </div>
-                <?php endif; ?>
+                    <?php endif; ?>
 
-            </div>
+                </div><!-- end right panel -->
+
+            </div><!-- end landscape body -->
         </div>
     </div>
 
