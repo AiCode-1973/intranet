@@ -156,6 +156,10 @@ $userName = explode(' ', $_SESSION['usuario_nome'])[0];
                         <p class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">TI Pendente</p>
                     </div>
                 </div>
+                <p class="mt-2 text-[10px] text-indigo-400 font-semibold group-hover:text-indigo-600 transition-colors">
+                    <i data-lucide="plus-circle" class="w-3 h-3 inline-block mr-0.5 -mt-0.5"></i>
+                    Clique para abrir um chamado de TI
+                </p>
             </a>
             <?php endif; ?>
         </div>
