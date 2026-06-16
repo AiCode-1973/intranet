@@ -558,7 +558,7 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
 
     <!-- Modal Dashboard de Estatísticas -->
     <div id="modalDashboard" class="modal">
-        <div class="bg-[#0d1117] rounded-2xl shadow-2xl w-full max-w-5xl mx-4 flex flex-col max-h-[90vh] border border-white/10 overflow-hidden">
+        <div class="bg-[#0d1117] rounded-2xl shadow-2xl flex flex-col border border-white/10 overflow-hidden" style="width:96vw;max-width:1280px;max-height:92vh">
 
             <!-- Accent bar -->
             <div class="h-1 w-full bg-gradient-to-r from-emerald-500 via-blue-500 to-violet-500 shrink-0"></div>
