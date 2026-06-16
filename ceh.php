@@ -161,6 +161,17 @@ while($row = $res->fetch_assoc()) {
     if (isset($stats[$row['status']])) $stats[$row['status']]++;
 }
 
+// Dados para o hash inicial do poll (mesma query do endpoint ?action=poll)
+$poll_where_init = [];
+if (!isAdmin()) $poll_where_init[] = 'c.usuario_id = ' . intval($usuario_id);
+if ($filtro_status) $poll_where_init[] = "c.status = '" . $conn->real_escape_string($filtro_status) . "'";
+$poll_cond_init = $poll_where_init ? 'WHERE ' . implode(' AND ', $poll_where_init) : '';
+$poll_hash_res = $conn->query("SELECT c.id, c.status,
+    (SELECT COUNT(*) FROM ceh_comentarios cc WHERE cc.chamado_id = c.id AND cc.lido_pelo_usuario = 0) as nao_lidos
+    FROM ceh_chamados c $poll_cond_init ORDER BY c.data_abertura DESC");
+$poll_hash_data = [];
+while ($ph = $poll_hash_res->fetch_assoc()) $poll_hash_data[] = $ph;
+
 $status_styles = [
     'Aberto' => ['bg' => 'bg-blue-100', 'text' => 'text-blue-600', 'dot' => 'bg-blue-500', 'icon' => 'clock'],
     'Em Atendimento' => ['bg' => 'bg-amber-100', 'text' => 'text-amber-600', 'dot' => 'bg-amber-500', 'icon' => 'play-circle'],
@@ -616,14 +627,7 @@ $prioridade_labels = [
                 return list.map(c => c.id + ':' + c.status + ':' + c.nao_lidos).sort().join('|');
             }
 
-            let lastHash = stateHash(
-                [...document.querySelectorAll('#ceh-tbody tr[data-id]')]
-                    .map(tr => ({
-                        id:        tr.dataset.id,
-                        status:    tr.dataset.status  || '',
-                        nao_lidos: tr.dataset.unread   || '0'
-                    }))
-            );
+            let lastHash = stateHash(<?php echo json_encode($poll_hash_data); ?>);
 
             function showToast(msg, autoReload) {
                 const old = document.getElementById('ceh-toast');
