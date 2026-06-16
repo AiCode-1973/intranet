@@ -20,11 +20,7 @@ $total_niver_hoje = $conn->query("SELECT COUNT(*) as total FROM usuarios WHERE d
 $mes_atual = date('m');
 $total_niver_mes = $conn->query("SELECT COUNT(*) as total FROM usuarios WHERE MONTH(data_nascimento) = '$mes_atual' AND ativo = 1")->fetch_assoc()['total'];
 
-if (isAdmin()) {
-    $total_chamados_pendentes = $conn->query("SELECT COUNT(*) as total FROM chamados WHERE status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
-} else {
-    $total_chamados_pendentes = $conn->query("SELECT COUNT(*) as total FROM chamados WHERE usuario_id = $uid AND status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
-}
+$total_chamados_pendentes = $conn->query("SELECT COUNT(*) as total FROM chamados WHERE usuario_id = $uid AND status IN ('Aberto', 'Em Atendimento', 'Aguardando Peça')")->fetch_assoc()['total'];
 
 // Total chamados manutenção pendentes
 if (isAdmin()) {
