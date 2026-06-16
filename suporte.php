@@ -93,8 +93,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
 if (isset($_GET['action']) && $_GET['action'] === 'poll') {
     header('Content-Type: application/json');
     $poll_where = [];
-    if (!isAdmin()) $poll_where[] = 'c.usuario_id = ' . intval($usuario_id);
     if (!empty($_GET['status'])) $poll_where[] = "c.status = '" . $conn->real_escape_string($_GET['status']) . "'";
+    $poll_where[] = 'c.usuario_id = ' . intval($usuario_id);
     $poll_cond = $poll_where ? 'WHERE ' . implode(' AND ', $poll_where) : '';
     $rows = $conn->query("SELECT c.id, c.status,
         (SELECT COUNT(*) FROM chamados_comentarios cc WHERE cc.chamado_id = c.id AND cc.lido_pelo_usuario = 0) as nao_lidos
@@ -147,9 +147,7 @@ if (isset($_GET['msg'])) {
 $filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $where_clauses = [];
 
-if (!isAdmin()) {
-    $where_clauses[] = "c.usuario_id = $usuario_id";
-}
+$where_clauses[] = "c.usuario_id = $usuario_id";
 
 if ($filtro_status) {
     $where_clauses[] = "c.status = '$filtro_status'";
