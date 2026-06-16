@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
 if (isset($_GET['action']) && $_GET['action'] === 'poll') {
     header('Content-Type: application/json');
     $poll_where = [];
-    if (!isAdmin()) $poll_where[] = 'm.usuario_id = ' . intval($usuario_id);
+    $poll_where[] = 'm.usuario_id = ' . intval($usuario_id);
     if (!empty($_GET['status'])) $poll_where[] = "m.status = '" . $conn->real_escape_string($_GET['status']) . "'";
     $poll_cond = $poll_where ? 'WHERE ' . implode(' AND ', $poll_where) : '';
     $rows = $conn->query("SELECT m.id, m.status,
@@ -118,9 +118,7 @@ if (isset($_GET['msg'])) {
 $filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $where_clauses = [];
 
-if (!isAdmin()) {
-    $where_clauses[] = "m.usuario_id = $usuario_id";
-}
+$where_clauses[] = "m.usuario_id = $usuario_id";
 
 if ($filtro_status) {
     $where_clauses[] = "m.status = '$filtro_status'";
@@ -160,7 +158,7 @@ while($row = $res->fetch_assoc()) {
 }
 
 // Contagens globais para os cards (sem filtro de status)
-$contagens_where = isAdmin() ? '' : "WHERE usuario_id = $usuario_id";
+$contagens_where = "WHERE usuario_id = $usuario_id";
 $contagens = ['Todos' => 0, 'Aberto' => 0, 'Em Atendimento' => 0, 'Aguardando Peça' => 0, 'Resolvido' => 0];
 $res_cont = $conn->query("SELECT status, COUNT(*) as total FROM manutencao $contagens_where GROUP BY status");
 if ($res_cont) {
