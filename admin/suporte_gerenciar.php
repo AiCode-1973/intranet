@@ -422,40 +422,6 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
             <script>setTimeout(function(){var m=document.getElementById('suporte-msg');if(m){m.style.opacity='0';setTimeout(function(){m.remove();},500);}},4000);</script>
         <?php endif; ?>
 
-        <?php if (!empty($ranking_tecnicos)): ?>
-        <!-- Ranking Técnicos -->
-        <div class="bg-white rounded-xl shadow-sm border border-border p-4 mb-6">
-            <button onclick="toggleRanking()" class="flex items-center justify-between w-full text-left group">
-                <div class="flex items-center gap-2">
-                    <i data-lucide="bar-chart-2" class="w-4 h-4 text-emerald-500"></i>
-                    <h3 class="text-xs font-black text-text uppercase tracking-widest">Chamados Resolvidos por Técnico</h3>
-                </div>
-                <i id="ranking-chevron" data-lucide="chevron-up" class="w-4 h-4 text-text-secondary transition-transform duration-200 group-hover:text-text"></i>
-            </button>
-            <div id="ranking-body" class="space-y-2.5 mt-4">
-                <?php foreach ($ranking_tecnicos as $i => $tec): ?>
-                <?php $pct = $max_resolvidos > 0 ? round(($tec['total_resolvidos'] / $max_resolvidos) * 100) : 0; ?>
-                <div class="flex items-center gap-3">
-                    <span class="text-[10px] font-black text-text-secondary w-4 text-right shrink-0"><?php echo $i + 1; ?></span>
-                    <span class="text-xs font-bold text-text shrink-0 min-w-[8rem]"><?php echo htmlspecialchars($tec['nome']); ?></span>
-                    <div class="flex-1 bg-background rounded-full h-2 overflow-hidden">
-                        <div class="h-2 rounded-full bg-emerald-400 transition-all" style="width:<?php echo $pct; ?>%"></div>
-                    </div>
-                    <span class="text-xs font-black text-emerald-600 w-6 text-right shrink-0"><?php echo $tec['total_resolvidos']; ?></span>
-                    <?php if ($tec['media_nota'] !== null): ?>
-                    <span class="text-[10px] font-bold text-amber-500 shrink-0 flex items-center gap-0.5">
-                        <i data-lucide="star" class="w-3 h-3 fill-amber-400 text-amber-400"></i>
-                        <?php echo $tec['media_nota']; ?>
-                    </span>
-                    <?php else: ?>
-                    <span class="w-10 shrink-0"></span>
-                    <?php endif; ?>
-                </div>
-                <?php endforeach; ?>
-            </div>
-        </div>
-        <?php endif; ?>
-
         <!-- Table (Slim Style) -->
         <div class="bg-white rounded-xl shadow-sm border border-border overflow-hidden">
             <div class="overflow-x-auto">
