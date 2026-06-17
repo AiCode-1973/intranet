@@ -1543,10 +1543,11 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
             const STATUS_EL = document.getElementById('suporte-poll-status');
 
             function stateHash(list) {
-                return list.map(c => c.id + ':' + c.status + ':' + c.nao_lidos).sort().join('|');
+                return list.map(c => String(c.id) + ':' + c.status + ':' + String(c.nao_lidos)).sort().join('|');
             }
 
-            let lastHash = stateHash(<?php echo json_encode($poll_hash_data); ?>);
+            let lastHash = null; // será inicializado na primeira chamada do poll
+            let firstPoll = true;
 
             function showToast(msg, autoReload) {
                 const old = document.getElementById('suporte-toast');
@@ -1591,6 +1592,13 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                             nao_lidos: String(c.nao_lidos)
                         }))
                     );
+
+                    if (firstPoll) {
+                        // Primeira execução: apenas inicializa o hash sem disparar reload
+                        lastHash = currentHash;
+                        firstPoll = false;
+                        return;
+                    }
 
                     if (currentHash !== lastHash) {
                         lastHash = currentHash;
