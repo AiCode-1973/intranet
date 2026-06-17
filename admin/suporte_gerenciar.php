@@ -289,7 +289,17 @@ while ($c = $cats_res->fetch_assoc()) $categorias_lista[] = $c;
 
 // Filtro por status via GET
 $filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
-$where_sql = $filtro_status ? "WHERE c.status = '$filtro_status'" : '';
+$busca = isset($_GET['busca']) ? trim($_GET['busca']) : '';
+$busca_sql = '';
+if ($busca !== '') {
+    $b = $conn->real_escape_string($busca);
+    $busca_sql = "(c.titulo LIKE '%$b%' OR c.descricao LIKE '%$b%' OR u.nome LIKE '%$b%' OR CAST(c.id AS CHAR) LIKE '%$b%' OR c.categoria LIKE '%$b%')";
+}
+
+$conds = [];
+if ($filtro_status) $conds[] = "c.status = '" . $conn->real_escape_string($filtro_status) . "'";
+if ($busca_sql) $conds[] = $busca_sql;
+$where_sql = $conds ? 'WHERE ' . implode(' AND ', $conds) : '';
 
 // Paginação
 $por_pagina      = 15;
@@ -527,6 +537,27 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
             </div>
         </div>
 
+        <!-- Barra de Pesquisa -->
+        <form method="GET" action="" class="mb-4 flex gap-2">
+            <?php if ($filtro_status): ?>
+            <input type="hidden" name="status" value="<?php echo htmlspecialchars($filtro_status); ?>">
+            <?php endif; ?>
+            <div class="relative flex-grow max-w-md">
+                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-text-secondary/50 pointer-events-none"></i>
+                <input type="text" name="busca" value="<?php echo htmlspecialchars($busca); ?>"
+                       placeholder="Pesquisar por ID, título, solicitante, categoria..."
+                       class="w-full pl-8 pr-4 py-2 bg-white border border-border rounded-lg text-xs font-bold text-text placeholder-text-secondary/40 focus:outline-none focus:border-primary transition-all shadow-sm">
+            </div>
+            <button type="submit" class="px-4 py-2 bg-primary text-white rounded-lg text-xs font-bold shadow-md hover:bg-primary-hover transition-all active:scale-95 uppercase tracking-wider flex items-center gap-1.5">
+                <i data-lucide="search" class="w-3.5 h-3.5"></i> Buscar
+            </button>
+            <?php if ($busca !== ''): ?>
+            <a href="?status=<?php echo urlencode($filtro_status); ?>" class="px-3 py-2 bg-white border border-border rounded-lg text-xs font-bold text-text-secondary hover:text-rose-500 hover:border-rose-300 transition-all flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="x" class="w-3.5 h-3.5"></i> Limpar
+            </a>
+            <?php endif; ?>
+        </form>
+
         <!-- Cards de Filtro por Status -->
         <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
             <?php foreach ($cards_suporte as $card): ?>
@@ -654,7 +685,7 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                     Exibindo <?php echo $offset + 1; ?>–<?php echo min($offset + $por_pagina, $total_registros); ?> de <strong><?php echo $total_registros; ?></strong> chamados
                 </p>
                 <nav class="flex items-center gap-1">
-                    <a href="?status=<?php echo urlencode($filtro_status); ?>&page=<?php echo $pagina_atual - 1; ?>"
+                    <a href="?status=<?php echo urlencode($filtro_status); ?>&busca=<?php echo urlencode($busca); ?>&page=<?php echo $pagina_atual - 1; ?>"
                        class="px-2.5 py-1.5 rounded-lg border border-border text-[10px] font-black text-text-secondary transition-all hover:bg-background hover:text-primary <?php echo $pagina_atual <= 1 ? 'pointer-events-none opacity-30' : ''; ?>">
                         <i data-lucide="chevron-left" class="w-3.5 h-3.5"></i>
                     </a>
@@ -664,7 +695,7 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                     for ($p = 1; $p <= $total_paginas; $p++):
                         if ($p == 1 || $p == $total_paginas || ($p >= $pagina_atual - $janela && $p <= $pagina_atual + $janela)):
                     ?>
-                    <a href="?status=<?php echo urlencode($filtro_status); ?>&page=<?php echo $p; ?>"
+                    <a href="?status=<?php echo urlencode($filtro_status); ?>&busca=<?php echo urlencode($busca); ?>&page=<?php echo $p; ?>"
                        class="px-3 py-1.5 rounded-lg border text-[10px] font-black transition-all <?php echo $p == $pagina_atual ? 'bg-primary text-white border-primary shadow-sm' : 'border-border text-text-secondary hover:bg-background hover:text-primary'; ?>">
                         <?php echo $p; ?>
                     </a>
@@ -675,7 +706,7 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                     endfor;
                     ?>
 
-                    <a href="?status=<?php echo urlencode($filtro_status); ?>&page=<?php echo $pagina_atual + 1; ?>"
+                    <a href="?status=<?php echo urlencode($filtro_status); ?>&busca=<?php echo urlencode($busca); ?>&page=<?php echo $pagina_atual + 1; ?>"
                        class="px-2.5 py-1.5 rounded-lg border border-border text-[10px] font-black text-text-secondary transition-all hover:bg-background hover:text-primary <?php echo $pagina_atual >= $total_paginas ? 'pointer-events-none opacity-30' : ''; ?>">
                         <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
                     </a>
