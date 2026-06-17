@@ -360,7 +360,8 @@ while ($row = $res_chamados->fetch_assoc()) {
 // Dados para o hash inicial do poll (todos os chamados, não só a página atual)
 $poll_hash_res = $conn->query("SELECT c.id, c.status,
     (SELECT COUNT(*) FROM chamados_comentarios cc WHERE cc.chamado_id = c.id AND cc.lido_pelo_tecnico = 0) as nao_lidos
-    FROM chamados c $where_sql ORDER BY c.data_abertura DESC");
+    FROM chamados c JOIN usuarios u ON c.usuario_id = u.id LEFT JOIN setores s ON u.setor_id = s.id
+    $where_sql ORDER BY c.data_abertura DESC");
 $poll_hash_data = [];
 while ($ph = $poll_hash_res->fetch_assoc()) $poll_hash_data[] = $ph;
 
