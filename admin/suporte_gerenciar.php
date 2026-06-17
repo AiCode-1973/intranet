@@ -25,6 +25,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $resolucao = $_POST['resolucao'] ?? '';
     $tecnico_id = !empty($_POST['tecnico_id']) ? intval($_POST['tecnico_id']) : null;
     $data_fechamento = ($status == 'Resolvido' || $status == 'Cancelado') ? date('Y-m-d H:i:s') : null;
+    // Verificar se o status selecionado tem fecha_chamado = 1 no banco
+    $st_check = $conn->query("SELECT fecha_chamado FROM suporte_status WHERE nome = '" . $conn->real_escape_string($status) . "' LIMIT 1");
+    if ($st_check && $r_st = $st_check->fetch_assoc()) {
+        $data_fechamento = $r_st['fecha_chamado'] ? date('Y-m-d H:i:s') : null;
+    }
 
     $stmt = $conn->prepare("UPDATE chamados SET status = ?, prioridade = ?, categoria = ?, resolucao = ?, tecnico_id = ?, data_fechamento = ? WHERE id = ?");
     $stmt->bind_param("ssssisi", $status, $prioridade, $categoria, $resolucao, $tecnico_id, $data_fechamento, $id);
@@ -293,6 +298,82 @@ $cats_res = $conn->query("SELECT * FROM suporte_categorias ORDER BY ordem, nome"
 $categorias_lista = [];
 while ($c = $cats_res->fetch_assoc()) $categorias_lista[] = $c;
 
+// ── GERENCIAR STATUS DE SUPORTE ──────────────────────────────────────────────
+$conn->query("CREATE TABLE IF NOT EXISTS suporte_status (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    cor VARCHAR(80) NOT NULL DEFAULT 'bg-gray-50 text-gray-600 border-gray-100',
+    icone VARCHAR(60) NOT NULL DEFAULT 'circle',
+    fecha_chamado TINYINT(1) NOT NULL DEFAULT 0,
+    ativo TINYINT(1) NOT NULL DEFAULT 1,
+    ordem INT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+if ((int)$conn->query("SELECT COUNT(*) FROM suporte_status")->fetch_row()[0] === 0) {
+    $conn->query("INSERT INTO suporte_status (nome, cor, icone, fecha_chamado, ordem) VALUES
+        ('Aberto',          'bg-blue-50 text-blue-600 border-blue-100',      'inbox',        0, 1),
+        ('Em Atendimento',  'bg-amber-50 text-amber-600 border-amber-100',   'wrench',       0, 2),
+        ('Aguardando Peça', 'bg-purple-50 text-purple-600 border-purple-100','package',      0, 3),
+        ('Resolvido',       'bg-emerald-50 text-emerald-600 border-emerald-100','check-circle',1, 4),
+        ('Cancelado',       'bg-gray-50 text-gray-400 border-gray-100',      'x-circle',     1, 5)");
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'criar_status') {
+    $nome_st = sanitize($_POST['nome_st'] ?? '');
+    $fecha   = isset($_POST['fecha_chamado_st']) ? 1 : 0;
+    if (!empty($nome_st)) {
+        $stmt = $conn->prepare("INSERT INTO suporte_status (nome, fecha_chamado) VALUES (?, ?)");
+        $stmt->bind_param("si", $nome_st, $fecha);
+        $stmt->execute();
+        $stmt->close();
+        registrarLog($conn, "Criou status de suporte: $nome_st");
+    }
+    header('Location: suporte_gerenciar.php?st=1');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'editar_status') {
+    $id_st   = intval($_POST['st_id'] ?? 0);
+    $nome_st = sanitize($_POST['nome_st'] ?? '');
+    $fecha   = isset($_POST['fecha_chamado_st']) ? 1 : 0;
+    if ($id_st > 0 && !empty($nome_st)) {
+        $stmt = $conn->prepare("UPDATE suporte_status SET nome = ?, fecha_chamado = ? WHERE id = ?");
+        $stmt->bind_param("sii", $nome_st, $fecha, $id_st);
+        $stmt->execute();
+        $stmt->close();
+        registrarLog($conn, "Editou status de suporte ID $id_st → $nome_st");
+    }
+    header('Location: suporte_gerenciar.php?st=1');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'excluir_status') {
+    $id_st = intval($_POST['st_id'] ?? 0);
+    if ($id_st > 0) {
+        $stmt = $conn->prepare("DELETE FROM suporte_status WHERE id = ?");
+        $stmt->bind_param("i", $id_st);
+        $stmt->execute();
+        $stmt->close();
+        registrarLog($conn, "Excluiu status de suporte ID $id_st");
+    }
+    header('Location: suporte_gerenciar.php?st=1');
+    exit;
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'toggle_status') {
+    $id_st      = intval($_POST['st_id'] ?? 0);
+    $ativo_atual = intval($_POST['ativo_atual'] ?? 1);
+    $novo       = $ativo_atual == 1 ? 0 : 1;
+    if ($id_st > 0) $conn->query("UPDATE suporte_status SET ativo = $novo WHERE id = $id_st");
+    header('Location: suporte_gerenciar.php?st=1');
+    exit;
+}
+
+$status_res = $conn->query("SELECT * FROM suporte_status ORDER BY ordem, nome");
+$status_lista = [];
+while ($s = $status_res->fetch_assoc()) $status_lista[] = $s;
+
 // Filtro por status via GET
 $filtro_status = isset($_GET['status']) ? sanitize($_GET['status']) : '';
 $busca = isset($_GET['busca']) ? trim($_GET['busca']) : '';
@@ -374,13 +455,11 @@ while ($ph = $poll_hash_res->fetch_assoc()) $poll_hash_data[] = $ph;
 // Buscar lista de técnicos (Filtra especificamente pelo atributo is_tecnico = TI)
 $tecnicos = $conn->query("SELECT id, nome FROM usuarios WHERE is_tecnico = 1 AND ativo = 1 ORDER BY nome ASC");
 
-$status_styles = [
-    'Aberto' => 'bg-blue-50 text-blue-600 border-blue-100',
-    'Em Atendimento' => 'bg-amber-50 text-amber-600 border-amber-100',
-    'Aguardando Peça' => 'bg-purple-50 text-purple-600 border-purple-100',
-    'Resolvido' => 'bg-emerald-50 text-emerald-600 border-emerald-100',
-    'Cancelado' => 'bg-gray-50 text-gray-400 border-gray-100'
-];
+// Mapa de estilos a partir do banco (fallback para desconhecidos)
+$status_styles = [];
+foreach ($status_lista as $s) {
+    $status_styles[$s['nome']] = $s['cor'];
+}
 
 $prioridade_styles = [
     'Baixa' => 'text-gray-400',
@@ -390,7 +469,8 @@ $prioridade_styles = [
 ];
 
 // Contagens por status para os cards de filtro
-$contagens = ['Todos' => 0, 'Aberto' => 0, 'Em Atendimento' => 0, 'Aguardando Peça' => 0, 'Resolvido' => 0];
+$contagens = ['Todos' => 0];
+foreach ($status_lista as $s) { $contagens[$s['nome']] = 0; }
 $res_cont = $conn->query("SELECT status, COUNT(*) as total FROM chamados GROUP BY status");
 if ($res_cont) {
     while ($rc = $res_cont->fetch_assoc()) {
@@ -399,13 +479,38 @@ if ($res_cont) {
     }
 }
 
-$cards_suporte = [
-    ['status' => '',                'label' => 'Todos',           'count' => $contagens['Todos'],              'icon' => 'layout-list',   'color' => 'border-gray-400',    'bg' => 'bg-gray-50',    'text' => 'text-gray-600'],
-    ['status' => 'Aberto',          'label' => 'Aberto',          'count' => $contagens['Aberto'],             'icon' => 'inbox',         'color' => 'border-blue-400',    'bg' => 'bg-blue-50',    'text' => 'text-blue-600'],
-    ['status' => 'Em Atendimento',  'label' => 'Em Atendimento',  'count' => $contagens['Em Atendimento'],     'icon' => 'wrench',        'color' => 'border-amber-400',   'bg' => 'bg-amber-50',   'text' => 'text-amber-600'],
-    ['status' => 'Aguardando Peça', 'label' => 'Aguardando Peça', 'count' => $contagens['Aguardando Peça'],    'icon' => 'package',       'color' => 'border-purple-400',  'bg' => 'bg-purple-50',  'text' => 'text-purple-600'],
-    ['status' => 'Resolvido',       'label' => 'Resolvido',       'count' => $contagens['Resolvido'],          'icon' => 'check-circle',  'color' => 'border-emerald-400', 'bg' => 'bg-emerald-50', 'text' => 'text-emerald-600'],
-];
+// Mapa de cor de borda para os cards (derivado da cor do status)
+function corBorda($cor) {
+    if (strpos($cor,'blue')   !== false) return 'border-blue-400';
+    if (strpos($cor,'amber')  !== false) return 'border-amber-400';
+    if (strpos($cor,'purple') !== false) return 'border-purple-400';
+    if (strpos($cor,'emerald')!== false) return 'border-emerald-400';
+    if (strpos($cor,'rose')   !== false) return 'border-rose-400';
+    if (strpos($cor,'green')  !== false) return 'border-green-400';
+    return 'border-gray-400';
+}
+function bgCard($cor) {
+    preg_match('/bg-(\w+)-\d+/', $cor, $m);
+    return isset($m[1]) ? 'bg-' . $m[1] . '-50' : 'bg-gray-50';
+}
+function textCard($cor) {
+    preg_match('/text-(\w+-\d+)/', $cor, $m);
+    return isset($m[1]) ? 'text-' . $m[1] : 'text-gray-600';
+}
+
+$cards_suporte = [['status' => '', 'label' => 'Todos', 'count' => $contagens['Todos'], 'icon' => 'layout-list', 'color' => 'border-gray-400', 'bg' => 'bg-gray-50', 'text' => 'text-gray-600']];
+foreach ($status_lista as $s) {
+    if (!$s['ativo']) continue;
+    $cards_suporte[] = [
+        'status' => $s['nome'],
+        'label'  => $s['nome'],
+        'count'  => $contagens[$s['nome']] ?? 0,
+        'icon'   => $s['icone'],
+        'color'  => corBorda($s['cor']),
+        'bg'     => bgCard($s['cor']),
+        'text'   => textCard($s['cor']),
+    ];
+}
 
 // Ranking de chamados resolvidos por técnico
 $ranking_tecnicos = [];
@@ -520,6 +625,10 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                 <button onclick="abrirModalCategorias()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="tag" class="w-3.5 h-3.5 text-violet-500"></i>
                     Categorias
+                </button>
+                <button onclick="abrirModalStatus()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="git-branch" class="w-3.5 h-3.5 text-sky-500"></i>
+                    Status
                 </button>
                 <button onclick="abrirModalMsgsRapidas()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
@@ -1087,6 +1196,109 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
         </div>
     </div>
 
+    <!-- Modal Status de Suporte -->
+    <div id="modalStatus" class="modal <?php echo isset($_GET['st']) ? 'active' : ''; ?>">
+        <div class="bg-white w-full max-w-lg mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150 flex flex-col max-h-[90vh]">
+            <div class="bg-sky-600 px-5 py-4 text-white flex justify-between items-center shrink-0">
+                <div>
+                    <h2 class="text-base font-bold flex items-center gap-2">
+                        <i data-lucide="git-branch" class="w-4 h-4"></i> Status de Suporte
+                    </h2>
+                    <p class="text-white/70 text-[10px] uppercase font-bold tracking-widest mt-0.5">Gerencie os status disponíveis</p>
+                </div>
+                <button onclick="fecharModalStatus()" class="p-1.5 hover:bg-white/10 rounded-lg transition-colors">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="overflow-y-auto flex-grow">
+                <div class="p-4 space-y-2">
+                    <?php if (empty($status_lista)): ?>
+                    <p class="text-center text-xs text-text-secondary py-6 italic">Nenhum status cadastrado.</p>
+                    <?php endif; ?>
+                    <?php foreach ($status_lista as $st): ?>
+                    <div class="flex items-center justify-between p-3 bg-background rounded-xl border border-border <?php echo !$st['ativo'] ? 'opacity-50' : ''; ?>">
+                        <div class="flex items-center gap-2.5">
+                            <div class="w-7 h-7 rounded-lg bg-sky-500/10 flex items-center justify-center shrink-0">
+                                <i data-lucide="<?php echo htmlspecialchars($st['icone']); ?>" class="w-3.5 h-3.5 text-sky-500"></i>
+                            </div>
+                            <div>
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase border <?php echo htmlspecialchars($st['cor']); ?>">
+                                    <?php echo htmlspecialchars($st['nome']); ?>
+                                </span>
+                                <?php if ($st['fecha_chamado']): ?>
+                                    <span class="ml-1 text-[8px] font-black text-emerald-500 uppercase tracking-wider">fecha</span>
+                                <?php endif; ?>
+                                <?php if (!$st['ativo']): ?>
+                                    <span class="ml-1 text-[8px] font-black text-red-400 uppercase tracking-wider">(inativo)</span>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-1">
+                            <form method="POST" class="inline">
+                                <input type="hidden" name="acao" value="toggle_status">
+                                <input type="hidden" name="st_id" value="<?php echo $st['id']; ?>">
+                                <input type="hidden" name="ativo_atual" value="<?php echo $st['ativo']; ?>">
+                                <button type="submit" title="<?php echo $st['ativo'] ? 'Desativar' : 'Ativar'; ?>" class="p-1.5 rounded-lg transition-all <?php echo $st['ativo'] ? 'text-amber-500 hover:bg-amber-50' : 'text-emerald-500 hover:bg-emerald-50'; ?>">
+                                    <i data-lucide="<?php echo $st['ativo'] ? 'eye-off' : 'eye'; ?>" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </form>
+                            <button onclick="abrirEdicaoStatus(<?php echo $st['id']; ?>, '<?php echo htmlspecialchars(addslashes($st['nome'])); ?>', <?php echo $st['fecha_chamado']; ?>)"
+                                    class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
+                                <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
+                            </button>
+                            <form method="POST" class="inline" onsubmit="return confirm('Excluir o status \"<?php echo htmlspecialchars(addslashes($st['nome'])); ?>\"? Chamados com este status não serão alterados.')">
+                                <input type="hidden" name="acao" value="excluir_status">
+                                <input type="hidden" name="st_id" value="<?php echo $st['id']; ?>">
+                                <button type="submit" class="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-all">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+
+                <!-- Formulário de edição inline -->
+                <div id="formEdicaoStatus" class="hidden px-4 pb-3">
+                    <form method="POST" class="p-3 bg-sky-50 border border-sky-200 rounded-xl space-y-2">
+                        <input type="hidden" name="acao" value="editar_status">
+                        <input type="hidden" name="st_id" id="editStId">
+                        <label class="block text-[10px] font-black text-sky-700 uppercase tracking-widest">Editando</label>
+                        <div class="flex gap-2">
+                            <input type="text" name="nome_st" id="editStNome" required
+                                   class="flex-grow p-2 bg-white border border-sky-200 rounded-lg text-xs font-bold focus:outline-none focus:border-sky-400">
+                            <button type="submit" class="px-3 py-2 bg-sky-600 text-white rounded-lg text-[10px] font-black uppercase hover:bg-sky-700 transition-all shrink-0">Salvar</button>
+                            <button type="button" onclick="cancelarEdicaoStatus()" class="px-3 py-2 bg-white border border-border text-text-secondary rounded-lg text-[10px] font-black uppercase hover:bg-gray-50 transition-all shrink-0">Cancelar</button>
+                        </div>
+                        <label class="flex items-center gap-2 cursor-pointer">
+                            <input type="checkbox" name="fecha_chamado_st" id="editStFecha" class="rounded border-border text-sky-600 focus:ring-sky-500">
+                            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Fecha o chamado ao selecionar</span>
+                        </label>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Adicionar novo status -->
+            <div class="p-4 border-t border-border bg-white shrink-0">
+                <form method="POST" class="space-y-2">
+                    <input type="hidden" name="acao" value="criar_status">
+                    <div class="flex gap-2">
+                        <input type="text" name="nome_st" placeholder="Nome do novo status..." required
+                               class="flex-grow p-2.5 bg-background border border-border rounded-xl text-xs font-bold focus:outline-none focus:border-primary transition-all">
+                        <button type="submit" class="px-4 py-2.5 bg-sky-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-sky-700 transition-all active:scale-95 flex items-center gap-1.5 shrink-0">
+                            <i data-lucide="plus" class="w-3.5 h-3.5"></i> Adicionar
+                        </button>
+                    </div>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" name="fecha_chamado_st" class="rounded border-border text-sky-600 focus:ring-sky-500">
+                        <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Fecha o chamado ao selecionar</span>
+                    </label>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal Categorias de Suporte -->
     <div id="modalCategorias" class="modal <?php echo isset($_GET['cat']) ? 'active' : ''; ?>">
         <div class="bg-white w-full max-w-lg mx-4 rounded-xl shadow-2xl border border-border overflow-hidden animate-in zoom-in duration-150 flex flex-col max-h-[90vh]">
@@ -1259,11 +1471,9 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                             <div>
                                 <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest">Avançar Status</label>
                                 <select name="status" id="form_status" class="w-full p-2.5 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all">
-                                    <option value="Aberto">Aberto</option>
-                                    <option value="Em Atendimento">Em Atendimento</option>
-                                    <option value="Aguardando Peça">Aguardando Peça</option>
-                                    <option value="Resolvido">Resolvido ✅</option>
-                                    <option value="Cancelado">Cancelado ❌</option>
+                                    <?php foreach ($status_lista as $st): if (!$st['ativo']) continue; ?>
+                                    <option value="<?php echo htmlspecialchars($st['nome']); ?>"><?php echo htmlspecialchars($st['nome']); ?><?php echo $st['fecha_chamado'] ? ' ✅' : ''; ?></option>
+                                    <?php endforeach; ?>
                                 </select>
                             </div>
                             <div>
@@ -1634,6 +1844,27 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
             const url = new URL(window.location);
             url.searchParams.delete('cat');
             window.history.replaceState({}, '', url);
+        }
+
+        function abrirModalStatus() {
+            document.getElementById('modalStatus').classList.add('active');
+            lucide.createIcons();
+        }
+        function fecharModalStatus() {
+            document.getElementById('modalStatus').classList.remove('active');
+            const url = new URL(window.location);
+            url.searchParams.delete('st');
+            window.history.replaceState({}, '', url);
+        }
+        function abrirEdicaoStatus(id, nome, fecha) {
+            document.getElementById('editStId').value = id;
+            document.getElementById('editStNome').value = nome;
+            document.getElementById('editStFecha').checked = fecha == 1;
+            document.getElementById('formEdicaoStatus').classList.remove('hidden');
+            document.getElementById('editStNome').focus();
+        }
+        function cancelarEdicaoStatus() {
+            document.getElementById('formEdicaoStatus').classList.add('hidden');
         }
         function abrirEdicaoCategoria(id, nome) {
             document.getElementById('editCatId').value = id;
