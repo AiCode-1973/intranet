@@ -30,6 +30,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $stmt->bind_param("ssssisi", $status, $prioridade, $categoria, $resolucao, $tecnico_id, $data_fechamento, $id);
 
     if ($stmt->execute()) {
+        // Processar anexos enviados pelo técnico
+        if (isset($_FILES['anexo_tecnico']) && $_FILES['anexo_tecnico']['error'] === UPLOAD_ERR_OK) {
+            $diretorio_anexos = '../uploads/suporte/';
+            if (!is_dir($diretorio_anexos)) {
+                mkdir($diretorio_anexos, 0777, true);
+            }
+            $nome_original = basename($_FILES['anexo_tecnico']['name']);
+            $extensao = strtolower(pathinfo($nome_original, PATHINFO_EXTENSION));
+            $extensoes_permitidas = ['jpg','jpeg','png','gif','pdf','doc','docx','xls','xlsx','txt','zip','rar'];
+            if (in_array($extensao, $extensoes_permitidas) && $_FILES['anexo_tecnico']['size'] <= 10485760) {
+                $nome_arquivo = 'tec_' . $id . '_' . time() . '.' . $extensao;
+                $caminho_final = $diretorio_anexos . $nome_arquivo;
+                if (move_uploaded_file($_FILES['anexo_tecnico']['tmp_name'], $caminho_final)) {
+                    $caminho_db = 'uploads/suporte/' . $nome_arquivo;
+                    $tipo_arquivo = $_FILES['anexo_tecnico']['type'];
+                    $stmt_a = $conn->prepare("INSERT INTO chamados_anexos (chamado_id, caminho_arquivo, nome_original, tipo_arquivo) VALUES (?, ?, ?, ?)");
+                    $stmt_a->bind_param("isss", $id, $caminho_db, $nome_original, $tipo_arquivo);
+                    $stmt_a->execute();
+                    $stmt_a->close();
+                }
+            }
+        }
         registrarLog($conn, "Atualizou chamado #$id para status: $status");
         header("Location: suporte_gerenciar.php?msg=sucesso&id=$id");
         exit;
@@ -1175,7 +1197,7 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                         <p id="feedback_texto" class="text-[10px] text-amber-800 italic leading-relaxed">---</p>
                     </div>
 
-                    <form method="POST" action="" class="p-5 flex flex-col flex-grow">
+                    <form method="POST" action="" enctype="multipart/form-data" class="p-5 flex flex-col flex-grow">
                         <input type="hidden" name="acao" value="atualizar_chamado">
                         <input type="hidden" name="id" id="form_id">
                         
@@ -1245,7 +1267,23 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                                       class="flex-grow w-full p-3 bg-background border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all min-h-[150px]"></textarea>
                         </div>
 
-                        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border shrink-0">
+                        <!-- Anexo do Técnico -->
+                        <div class="mt-4 shrink-0">
+                            <label class="block text-[9px] font-black text-text-secondary mb-1 uppercase tracking-widest flex items-center gap-1.5">
+                                <i data-lucide="paperclip" class="w-3 h-3"></i>
+                                Anexar Arquivo (opcional)
+                            </label>
+                            <label class="flex items-center gap-2 w-full cursor-pointer border border-dashed border-border rounded-lg px-3 py-2 bg-background hover:border-primary hover:bg-primary/5 transition-all group">
+                                <i data-lucide="upload" class="w-3.5 h-3.5 text-text-secondary group-hover:text-primary transition-colors shrink-0"></i>
+                                <span id="anexo_tecnico_label" class="text-[10px] font-bold text-text-secondary group-hover:text-primary transition-colors truncate">Clique para selecionar...</span>
+                                <input type="file" name="anexo_tecnico" id="anexo_tecnico" class="hidden"
+                                       accept=".jpg,.jpeg,.png,.gif,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip,.rar"
+                                       onchange="document.getElementById('anexo_tecnico_label').textContent = this.files[0] ? this.files[0].name : 'Clique para selecionar...'">
+                            </label>
+                            <p class="text-[9px] text-text-secondary/50 mt-1">Máx. 10 MB &bull; JPG, PNG, PDF, DOC, XLS, TXT, ZIP, RAR</p>
+                        </div>
+
+                        <div class="flex justify-end gap-3 mt-4 pt-4 border-t border-border shrink-0">
                             <button type="button" onclick="fecharModal()" class="px-4 py-2 text-[10px] font-bold text-text-secondary hover:text-text transition-colors uppercase">Cancelar</button>
                             <button type="submit" class="bg-primary hover:bg-primary-hover text-white px-8 py-2 rounded-lg text-[10px] font-bold shadow-md transition-all active:scale-95 uppercase tracking-widest">Salvar Alterações</button>
                         </div>
@@ -1393,7 +1431,11 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
             document.getElementById('modalAtender').classList.add('active');
             lucide.createIcons();
         }
-        function fecharModal() { document.getElementById('modalAtender').classList.remove('active'); }
+        function fecharModal() {
+            document.getElementById('modalAtender').classList.remove('active');
+            const inputAnexo = document.getElementById('anexo_tecnico');
+            if (inputAnexo) { inputAnexo.value = ''; document.getElementById('anexo_tecnico_label').textContent = 'Clique para selecionar...'; }
+        }
 
         function excluirChamado(id) {
             if (confirm('Tem certeza que deseja excluir permanentemente este chamado? Esta ação não pode ser desfeita.')) {
