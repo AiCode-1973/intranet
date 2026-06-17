@@ -80,6 +80,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     }
 }
 
+// Excluir Anexo (AJAX)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'excluir_anexo') {
+    header('Content-Type: application/json');
+    $anexo_id = intval($_POST['anexo_id']);
+    $res = $conn->query("SELECT caminho_arquivo FROM chamados_anexos WHERE id = $anexo_id");
+    if ($res && $row_a = $res->fetch_assoc()) {
+        $caminho = '../' . $row_a['caminho_arquivo'];
+        if (file_exists($caminho)) @unlink($caminho);
+        $conn->query("DELETE FROM chamados_anexos WHERE id = $anexo_id");
+        echo json_encode(['ok' => true]);
+    } else {
+        echo json_encode(['ok' => false, 'erro' => 'Anexo não encontrado']);
+    }
+    exit;
+}
+
 // Processar Marcação de Leitura pelo Técnico (AJAX)
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'marcar_lido_tecnico') {
     $chamado_id = intval($_POST['chamado_id']);
@@ -1391,12 +1407,26 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                     const ext = anexo.nome_original.split('.').pop().toLowerCase();
                     const isImg = ['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext);
                     
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'flex items-center gap-1 group/anexo';
+                    wrapper.dataset.anexoId = anexo.id;
+
                     item.innerHTML = `
-                        <i data-lucide="${isImg ? 'image' : 'file-text'}" class="w-3.5 h-3.5"></i>
-                        <span>${anexo.nome_original}</span>
-                        <i data-lucide="download" class="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                        <i data-lucide="${isImg ? 'image' : 'file-text'}" class="w-3.5 h-3.5 shrink-0"></i>
+                        <span class="max-w-[140px] truncate">${anexo.nome_original}</span>
+                        <i data-lucide="download" class="w-3 h-3 ml-0.5 opacity-0 group-hover:opacity-60 transition-opacity shrink-0"></i>
                     `;
-                    anexoList.appendChild(item);
+
+                    const btnDel = document.createElement('button');
+                    btnDel.type = 'button';
+                    btnDel.title = 'Excluir anexo';
+                    btnDel.className = 'flex items-center justify-center w-5 h-5 rounded-md bg-rose-50 border border-rose-200 text-rose-400 hover:bg-rose-500 hover:text-white hover:border-rose-500 transition-all opacity-0 group-hover/anexo:opacity-100 shrink-0';
+                    btnDel.innerHTML = '<i data-lucide="x" class="w-3 h-3"></i>';
+                    btnDel.addEventListener('click', (e) => { e.preventDefault(); excluirAnexo(anexo.id, wrapper); });
+
+                    wrapper.appendChild(item);
+                    wrapper.appendChild(btnDel);
+                    anexoList.appendChild(wrapper);
                 });
             } else {
                 anexoContainer.classList.add('hidden');
@@ -1435,6 +1465,25 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
             document.getElementById('modalAtender').classList.remove('active');
             const inputAnexo = document.getElementById('anexo_tecnico');
             if (inputAnexo) { inputAnexo.value = ''; document.getElementById('anexo_tecnico_label').textContent = 'Clique para selecionar...'; }
+        }
+
+        function excluirAnexo(anexoId, wrapperEl) {
+            if (!confirm('Excluir este anexo permanentemente?')) return;
+            const fd = new FormData();
+            fd.append('acao', 'excluir_anexo');
+            fd.append('anexo_id', anexoId);
+            fetch('suporte_gerenciar.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(data => {
+                    if (data.ok) {
+                        wrapperEl.remove();
+                        const lista = document.getElementById('view_anexos_list');
+                        if (!lista.children.length) document.getElementById('container_anexos_view').classList.add('hidden');
+                        lucide.createIcons();
+                    } else {
+                        alert('Erro ao excluir: ' + (data.erro || 'desconhecido'));
+                    }
+                });
         }
 
         function excluirChamado(id) {
