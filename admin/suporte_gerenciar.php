@@ -106,10 +106,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
 // Poll endpoint para auto-refresh
 if (isset($_GET['action']) && $_GET['action'] === 'poll') {
     header('Content-Type: application/json');
-    $poll_cond = !empty($_GET['status']) ? "WHERE c.status = '" . $conn->real_escape_string($_GET['status']) . "'" : '';
+    $conds_poll = [];
+    if (!empty($_GET['status'])) $conds_poll[] = "c.status = '" . $conn->real_escape_string($_GET['status']) . "'";
+    if (!empty($_GET['busca'])) {
+        $b_poll = $conn->real_escape_string(trim($_GET['busca']));
+        $conds_poll[] = "(c.titulo LIKE '%$b_poll%' OR c.descricao LIKE '%$b_poll%' OR u.nome LIKE '%$b_poll%' OR CAST(c.id AS CHAR) LIKE '%$b_poll%' OR c.categoria LIKE '%$b_poll%')";
+    }
+    $poll_where = $conds_poll ? 'WHERE ' . implode(' AND ', $conds_poll) : '';
     $rows = $conn->query("SELECT c.id, c.status,
         (SELECT COUNT(*) FROM chamados_comentarios cc WHERE cc.chamado_id = c.id AND cc.lido_pelo_tecnico = 0) as nao_lidos
-        FROM chamados c $poll_cond ORDER BY c.data_abertura DESC");
+        FROM chamados c JOIN usuarios u ON c.usuario_id = u.id $poll_where ORDER BY c.data_abertura DESC");
     $result = [];
     while ($r = $rows->fetch_assoc()) $result[] = $r;
     echo json_encode(['chamados' => $result]);
@@ -1567,8 +1573,13 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
 
             async function poll() {
                 try {
-                    const _pollStatus = new URLSearchParams(window.location.search).get('status') || '';
-                    const res = await fetch('suporte_gerenciar.php?action=poll' + (_pollStatus ? '&status=' + encodeURIComponent(_pollStatus) : ''), { cache: 'no-store' });
+                    const params = new URLSearchParams(window.location.search);
+                    const _pollStatus = params.get('status') || '';
+                    const _pollBusca  = params.get('busca')  || '';
+                    let pollUrl = 'suporte_gerenciar.php?action=poll';
+                    if (_pollStatus) pollUrl += '&status=' + encodeURIComponent(_pollStatus);
+                    if (_pollBusca)  pollUrl += '&busca='  + encodeURIComponent(_pollBusca);
+                    const res = await fetch(pollUrl, { cache: 'no-store' });
                     if (!res.ok) { pulse(false); return; }
                     const data = await res.json();
                     pulse(true);
