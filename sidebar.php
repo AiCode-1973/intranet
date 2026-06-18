@@ -53,6 +53,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             ['icon' => 'hard-hat', 'label' => 'Segurança do Trabalho', 'link' => $root_path . 'seguranca_trabalho.php', 'slug' => 'seguranca_trabalho'],
             ['icon' => 'files', 'label' => 'Documentos & Biblioteca', 'link' => $root_path . 'biblioteca.php', 'slug' => 'biblioteca'],
             ['icon' => 'graduation-cap', 'label' => 'Educação Permanente', 'link' => $root_path . 'educacao.php', 'slug' => 'educacao'],
+            ['icon' => 'book-open', 'label' => 'Normas e Procedimentos', 'link' => $root_path . 'normas.php', 'slug' => 'normas'],
             ['icon' => 'monitor-dot', 'label' => 'Suporte de TI', 'link' => $root_path . 'suporte.php', 'slug' => 'suporte'],
             ['icon' => 'phone', 'label' => 'Ramais & Telefones', 'link' => $root_path . 'telefones.php', 'slug' => 'telefones'],
             ['icon' => 'info', 'label' => 'Informações & Saúde', 'link' => '#', 'slug' => 'informacoes'],

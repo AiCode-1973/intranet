@@ -10,7 +10,17 @@ function isAdmin() {
 }
 
 function isRHAdmin() {
-    return isAdmin() || (isset($_SESSION['setor_id']) && $_SESSION['setor_id'] == 2);
+    global $conn;
+    if (isAdmin()) return true;
+    if (!isset($_SESSION['setor_id'])) return false;
+    // Verifica permissão de editar/criar no módulo rh ou se é setor hardcoded (legado)
+    if (isset($_SESSION['setor_id']) && $_SESSION['setor_id'] == 2) return true;
+    if (isset($conn) && $conn instanceof mysqli) {
+        $sid = intval($_SESSION['setor_id']);
+        $r = $conn->query("SELECT p.pode_criar FROM permissoes p INNER JOIN modulos m ON p.modulo_id = m.id WHERE p.setor_id = $sid AND m.slug = 'rh' AND p.pode_criar = 1 LIMIT 1");
+        if ($r && $r->num_rows > 0) return true;
+    }
+    return false;
 }
 
 function isEduAdmin() {
