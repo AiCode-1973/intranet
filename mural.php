@@ -60,7 +60,7 @@ $categorias = [
                 <p class="text-text-secondary text-xs mt-1">Comunicados e notícias institucionais da unidade</p>
             </div>
 
-            <?php if (isAdmin()): ?>
+            <?php if (isAdmin() || temPermissao($conn, $_SESSION['setor_id'], 'mural', 'criar') || temPermissao($conn, $_SESSION['setor_id'], 'mural', 'editar')): ?>
             <a href="admin/mural_gerenciar.php" class="bg-white hover:bg-gray-50 text-text p-2 rounded-lg border border-border shadow-sm transition-all flex items-center gap-2 text-[11px] font-bold">
                 <i data-lucide="settings" class="w-4 h-4"></i>
                 Gerenciar Mural

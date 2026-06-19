@@ -2,7 +2,15 @@
 require_once '../config.php';
 require_once '../functions.php';
 
-requireAdmin();
+requireLogin();
+$setor_id_sess = $_SESSION['setor_id'] ?? 0;
+$pode_criar_mural   = isAdmin() || temPermissao($conn, $setor_id_sess, 'mural', 'criar');
+$pode_editar_mural  = isAdmin() || temPermissao($conn, $setor_id_sess, 'mural', 'editar');
+$pode_excluir_mural = isAdmin() || temPermissao($conn, $setor_id_sess, 'mural', 'excluir');
+if (!$pode_criar_mural && !$pode_editar_mural && !$pode_excluir_mural) {
+    header('Location: ../mural.php');
+    exit;
+}
 
 $mensagem = '';
 $tipo_mensagem = '';
@@ -12,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['acao'])) {
         $acao = $_POST['acao'];
         
-        if ($acao == 'criar' || $acao == 'editar') {
+        if (($acao == 'criar' || $acao == 'editar') && ($acao == 'criar' ? $pode_criar_mural : $pode_editar_mural)) {
             $titulo = sanitize($_POST['titulo']);
             $conteudo = $_POST['conteudo']; 
             $categoria = sanitize($_POST['categoria']);
@@ -39,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $tipo_mensagem = 'danger';
             }
             $stmt->close();
-        } elseif ($acao == 'excluir') {
+        } elseif ($acao == 'excluir' && $pode_excluir_mural) {
             $id = intval($_POST['id']);
             $stmt = $conn->prepare("DELETE FROM mural WHERE id = ?");
             $stmt->bind_param("i", $id);

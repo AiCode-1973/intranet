@@ -82,7 +82,7 @@ $meses_pt = [
                         </button>
                     </form>
                 </div>
-                <?php if (isAdmin()): ?>
+                <?php if (isAdmin() || temPermissao($conn, $_SESSION['setor_id'], 'agenda', 'criar') || temPermissao($conn, $_SESSION['setor_id'], 'agenda', 'editar')): ?>
                     <a href="admin/agenda_gerenciar.php" class="bg-white hover:bg-gray-50 text-text p-2 rounded-lg border border-border shadow-sm transition-all flex items-center gap-2 text-[11px] font-bold">
                         <i data-lucide="settings" class="w-4 h-4"></i>
                         Gerenciar

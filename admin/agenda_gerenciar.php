@@ -2,7 +2,15 @@
 require_once '../config.php';
 require_once '../functions.php';
 
-requireAdmin();
+requireLogin();
+$setor_id_sess = $_SESSION['setor_id'] ?? 0;
+$pode_criar_agenda   = isAdmin() || temPermissao($conn, $setor_id_sess, 'agenda', 'criar');
+$pode_editar_agenda  = isAdmin() || temPermissao($conn, $setor_id_sess, 'agenda', 'editar');
+$pode_excluir_agenda = isAdmin() || temPermissao($conn, $setor_id_sess, 'agenda', 'excluir');
+if (!$pode_criar_agenda && !$pode_editar_agenda && !$pode_excluir_agenda) {
+    header('Location: ../agenda.php');
+    exit;
+}
 
 $mensagem = '';
 $tipo_mensagem = '';
@@ -11,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['acao'])) {
         $acao = $_POST['acao'];
         
-        if ($acao == 'criar' || $acao == 'editar') {
+        if (($acao == 'criar' || $acao == 'editar') && ($acao == 'criar' ? $pode_criar_agenda : $pode_editar_agenda)) {
             $titulo = sanitize($_POST['titulo']);
             $descricao = $_POST['descricao'];
             $data_evento = $_POST['data_evento'];
@@ -73,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $tipo_mensagem = 'danger';
             }
             $stmt->close();
-        } elseif ($acao == 'excluir') {
+        } elseif ($acao == 'excluir' && $pode_excluir_agenda) {
             $id = intval($_POST['id']);
             $stmt = $conn->prepare("DELETE FROM agenda WHERE id = ?");
             $stmt->bind_param("i", $id);
