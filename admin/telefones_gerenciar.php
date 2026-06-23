@@ -73,6 +73,13 @@ $telefones = $conn->query("
     <style>
         .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
         .modal.active { display: flex; align-items: center; justify-content: center; }
+
+        @media print {
+            body * { visibility: hidden; }
+            #print-area, #print-area * { visibility: visible; }
+            #print-area { position: absolute; inset: 0; padding: 24px; }
+            .no-print { display: none !important; }
+        }
     </style>
 </head>
 <body class="bg-background text-text font-sans">
@@ -90,6 +97,9 @@ $telefones = $conn->query("
             
             <div class="flex items-center gap-2">
                 <a href="index.php" class="px-3 py-1.5 bg-white border border-border text-text-secondary rounded-lg text-xs font-bold shadow-sm">Voltar</a>
+                <button onclick="imprimirRamais()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold shadow-sm flex items-center gap-1.5 transition-all">
+                    <i data-lucide="printer" class="w-3.5 h-3.5"></i> Imprimir
+                </button>
                 <button onclick="abrirModal()" class="bg-primary text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md flex items-center gap-2">
                     <i data-lucide="plus" class="w-4 h-4"></i> Novo Registro
                 </button>
@@ -162,6 +172,53 @@ $telefones = $conn->query("
                     <?php endwhile; ?>
                 </tbody>
             </table>
+        </div>
+    </div>
+
+    <!-- Área de impressão (oculta na tela) -->
+    <div id="print-area" class="hidden">
+        <div style="font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto;">
+            <div style="text-align:center; margin-bottom: 20px; border-bottom: 2px solid #1d4ed8; padding-bottom: 12px;">
+                <h1 style="font-size: 18px; font-weight: 900; color: #1d4ed8; margin: 0;">Lista de Ramais & Telefones</h1>
+                <p style="font-size: 11px; color: #6b7280; margin: 4px 0 0;">Emitido em: <?php echo date('d/m/Y H:i'); ?></p>
+            </div>
+            <?php
+            $conn->query("SET @prev_grupo = ''");
+            $tel_print = $conn->query("SELECT t.*, s.nome as setor_nome FROM telefones t LEFT JOIN setores s ON t.setor_id = s.id ORDER BY t.unidade, t.tipo, t.ordem, t.nome");
+            $grupos = [];
+            while ($tp = $tel_print->fetch_assoc()) {
+                $grupo = ($tp['unidade'] ?: 'Hospital') . ' — ' . ucfirst($tp['tipo'] ?: 'Setor');
+                $grupos[$grupo][] = $tp;
+            }
+            foreach ($grupos as $grupo_nome => $itens):
+            ?>
+            <div style="margin-bottom: 20px; break-inside: avoid;">
+                <div style="background: #eff6ff; border-left: 4px solid #1d4ed8; padding: 6px 12px; margin-bottom: 8px;">
+                    <span style="font-size: 11px; font-weight: 900; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.05em;"><?php echo htmlspecialchars($grupo_nome); ?></span>
+                </div>
+                <table style="width: 100%; border-collapse: collapse; font-size: 11px;">
+                    <thead>
+                        <tr style="background: #f9fafb;">
+                            <th style="padding: 5px 8px; text-align:left; border: 1px solid #e5e7eb; font-weight: 800; color: #374151;">Nome / Descrição</th>
+                            <th style="padding: 5px 8px; text-align:left; border: 1px solid #e5e7eb; font-weight: 800; color: #374151;">Ramal</th>
+                            <th style="padding: 5px 8px; text-align:left; border: 1px solid #e5e7eb; font-weight: 800; color: #374151;">Telefone</th>
+                            <th style="padding: 5px 8px; text-align:left; border: 1px solid #e5e7eb; font-weight: 800; color: #374151;">Setor</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($itens as $i => $tp): ?>
+                        <tr style="background: <?php echo $i % 2 == 0 ? '#fff' : '#f9fafb'; ?>">
+                            <td style="padding: 5px 8px; border: 1px solid #e5e7eb;"><?php echo htmlspecialchars($tp['nome']); ?></td>
+                            <td style="padding: 5px 8px; border: 1px solid #e5e7eb; font-family: monospace; font-weight: 700; color: #1d4ed8;"><?php echo htmlspecialchars($tp['ramal'] ?: '-'); ?></td>
+                            <td style="padding: 5px 8px; border: 1px solid #e5e7eb;"><?php echo htmlspecialchars($tp['telefone'] ?: '-'); ?></td>
+                            <td style="padding: 5px 8px; border: 1px solid #e5e7eb; font-size: 10px; color: #6b7280;"><?php echo htmlspecialchars($tp['setor_nome'] ?: '-'); ?></td>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <?php endforeach; ?>
+            <p style="font-size: 9px; color: #9ca3af; text-align: right; margin-top: 16px;">APAS Intranet — Lista Telefônica Interna</p>
         </div>
     </div>
 
@@ -261,6 +318,11 @@ $telefones = $conn->query("
                 document.body.appendChild(f);
                 f.submit();
             }
+        }
+        function imprimirRamais() {
+            document.getElementById('print-area').classList.remove('hidden');
+            window.print();
+            document.getElementById('print-area').classList.add('hidden');
         }
     </script>
     <?php include '../footer.php'; ?>
