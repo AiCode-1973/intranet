@@ -187,9 +187,10 @@ $telefones = $conn->query("
                 $grupo = ($tp['unidade'] ?: 'Hospital') . ' — ' . ucfirst($tp['tipo'] ?: 'Setor');
                 $grupos[$grupo][] = $tp;
             }
+            $loop_first = true;
             foreach ($grupos as $grupo_nome => $itens):
             ?>
-            <div style="margin-bottom: 20px; break-inside: avoid;">
+            <div style="margin-bottom: 16px;"><?php if (!$loop_first): ?><div style="break-before: auto;"></div><?php endif; $loop_first = false; ?>
                 <div style="background: #eff6ff; border-left: 4px solid #1d4ed8; padding: 6px 12px; margin-bottom: 8px;">
                     <span style="font-size: 11px; font-weight: 900; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.05em;"><?php echo htmlspecialchars($grupo_nome); ?></span>
                 </div>
@@ -326,8 +327,10 @@ $telefones = $conn->query("
     <title>Lista de Ramais - APAS Intranet</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: Arial, sans-serif; padding: 20px; color: #111; }
-        @page { margin: 15mm; size: A4 portrait; }
+        body { font-family: Arial, sans-serif; padding: 15px; color: #111; }
+        table { page-break-inside: auto; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+        @page { margin: 12mm; size: A4 portrait; }
         @media print { body { padding: 0; } }
     </style>
 </head>
