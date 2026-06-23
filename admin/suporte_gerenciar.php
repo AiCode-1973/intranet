@@ -622,35 +622,44 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                     <span id="suporte-poll-status" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     <span class="text-[9px] font-black text-text-secondary uppercase tracking-widest">Ao Vivo</span>
                 </div>
-                <button onclick="abrirModalCategorias()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
-                    <i data-lucide="tag" class="w-3.5 h-3.5 text-violet-500"></i>
-                    Categorias
-                </button>
-                <button onclick="abrirModalStatus()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
-                    <i data-lucide="git-branch" class="w-3.5 h-3.5 text-sky-500"></i>
-                    Status
-                </button>
-                <button onclick="abrirModalMsgsRapidas()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
-                    <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i>
-                    Msgs. Rápidas
-                </button>
+
+                <!-- Dropdown Configurações -->
+                <div class="relative" id="dropdownConfigWrapper">
+                    <button onclick="toggleDropdownConfig()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                        <i data-lucide="settings-2" class="w-3.5 h-3.5 text-gray-500"></i>
+                        Configurações
+                        <i data-lucide="chevron-down" class="w-3 h-3 ml-0.5"></i>
+                    </button>
+                    <div id="dropdownConfig" class="hidden absolute right-0 mt-1 w-48 bg-white border border-border rounded-xl shadow-xl z-50 py-1 overflow-hidden">
+                        <button onclick="abrirModalCategorias(); toggleDropdownConfig()" class="w-full px-4 py-2 text-left text-xs font-bold text-text-secondary hover:bg-background hover:text-primary flex items-center gap-2 transition-colors">
+                            <i data-lucide="tag" class="w-3.5 h-3.5 text-violet-500"></i> Categorias
+                        </button>
+                        <button onclick="abrirModalStatus(); toggleDropdownConfig()" class="w-full px-4 py-2 text-left text-xs font-bold text-text-secondary hover:bg-background hover:text-primary flex items-center gap-2 transition-colors">
+                            <i data-lucide="git-branch" class="w-3.5 h-3.5 text-sky-500"></i> Status
+                        </button>
+                        <button onclick="abrirModalMsgsRapidas(); toggleDropdownConfig()" class="w-full px-4 py-2 text-left text-xs font-bold text-text-secondary hover:bg-background hover:text-primary flex items-center gap-2 transition-colors">
+                            <i data-lucide="zap" class="w-3.5 h-3.5 text-amber-500"></i> Msgs. Rápidas
+                        </button>
+                        <div class="border-t border-border my-1"></div>
+                        <a href="email_chamados.php" class="w-full px-4 py-2 text-left text-xs font-bold text-text-secondary hover:bg-background hover:text-primary flex items-center gap-2 transition-colors">
+                            <i data-lucide="mail" class="w-3.5 h-3.5 text-blue-500"></i> E-mail → Chamado
+                        </a>
+                    </div>
+                </div>
+
                 <button onclick="abrirDashboard()" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-primary rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="bar-chart-2" class="w-3.5 h-3.5 text-emerald-500"></i>
                     Dashboard
                 </button>
-                <a href="email_chamados.php" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
-                    <i data-lucide="mail" class="w-3.5 h-3.5 text-blue-500"></i>
-                    E-mail → Chamado
-                </a>
                 <a href="https://tistock.aicode.dev.br" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="package" class="w-3.5 h-3.5 text-orange-500"></i>
                     TI Stock
                 </a>
                 <a href="../suporte.php" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
-                    <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
+                    <i data-lucide="layout-grid" class="w-3.5 h-3.5 text-indigo-400"></i>
                     Visão Usuário
                 </a>
-                <a href="../suporte.php" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                <a href="index.php" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
                     Voltar
                 </a>
@@ -1839,6 +1848,16 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
         function fecharDashboard() {
             document.getElementById('modalDashboard').classList.remove('active');
         }
+
+        function toggleDropdownConfig() {
+            document.getElementById('dropdownConfig').classList.toggle('hidden');
+        }
+        document.addEventListener('click', function(e) {
+            const wrapper = document.getElementById('dropdownConfigWrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                document.getElementById('dropdownConfig').classList.add('hidden');
+            }
+        });
 
         function abrirModalCategorias() {
             document.getElementById('modalCategorias').classList.add('active');
