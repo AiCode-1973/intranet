@@ -75,10 +75,9 @@ $telefones = $conn->query("
         .modal.active { display: flex; align-items: center; justify-content: center; }
 
         @media print {
-            body * { visibility: hidden; }
-            #print-area, #print-area * { visibility: visible; }
-            #print-area { position: absolute; inset: 0; padding: 24px; }
-            .no-print { display: none !important; }
+            body > *:not(#print-area) { display: none !important; }
+            #print-area { display: block !important; position: static; padding: 0; margin: 0; }
+            @page { margin: 15mm; size: A4 portrait; }
         }
     </style>
 </head>
