@@ -642,6 +642,10 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                     <i data-lucide="mail" class="w-3.5 h-3.5 text-blue-500"></i>
                     E-mail → Chamado
                 </a>
+                <a href="https://tistock.aicode.dev.br" target="_blank" rel="noopener noreferrer" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
+                    <i data-lucide="package" class="w-3.5 h-3.5 text-orange-500"></i>
+                    TI Stock
+                </a>
                 <a href="../suporte.php" class="px-3 py-1.5 bg-white border border-border text-text-secondary hover:text-text rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm">
                     <i data-lucide="layout-grid" class="w-3.5 h-3.5"></i>
                     Visão Usuário
