@@ -75,9 +75,7 @@ $telefones = $conn->query("
         .modal.active { display: flex; align-items: center; justify-content: center; }
 
         @media print {
-            body > *:not(#print-area) { display: none !important; }
-            #print-area { display: block !important; position: static; padding: 0; margin: 0; }
-            @page { margin: 15mm; size: A4 portrait; }
+            body { margin: 0; }
         }
     </style>
 </head>
@@ -319,9 +317,25 @@ $telefones = $conn->query("
             }
         }
         function imprimirRamais() {
-            document.getElementById('print-area').classList.remove('hidden');
-            window.print();
-            document.getElementById('print-area').classList.add('hidden');
+            const conteudo = document.getElementById('print-area').innerHTML;
+            const janela = window.open('', '_blank', 'width=900,height=700');
+            janela.document.write(`<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <title>Lista de Ramais - APAS Intranet</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: Arial, sans-serif; padding: 20px; color: #111; }
+        @page { margin: 15mm; size: A4 portrait; }
+        @media print { body { padding: 0; } }
+    </style>
+</head>
+<body>${conteudo}</body>
+</html>`);
+            janela.document.close();
+            janela.focus();
+            janela.onload = function() { janela.print(); janela.close(); };
         }
     </script>
     <?php include '../footer.php'; ?>
