@@ -475,7 +475,7 @@ $res_cont = $conn->query("SELECT status, COUNT(*) as total FROM chamados GROUP B
 if ($res_cont) {
     while ($rc = $res_cont->fetch_assoc()) {
         if (isset($contagens[$rc['status']])) $contagens[$rc['status']] = $rc['total'];
-        $contagens['Todos'] += $rc['total'];
+        $contagens['Todos'] += $rc['total']; // soma todos, mesmo status não mapeados
     }
 }
 
@@ -688,7 +688,8 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
         </form>
 
         <!-- Cards de Filtro por Status -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+        <?php $n_cards = count($cards_suporte); $cols = min($n_cards, 6); ?>
+        <div class="grid grid-cols-2 <?php echo $cols <= 4 ? 'md:grid-cols-' . $cols : ($cols == 5 ? 'md:grid-cols-5' : 'md:grid-cols-6 lg:grid-cols-' . $cols); ?> gap-3 mb-6">
             <?php foreach ($cards_suporte as $card): ?>
             <?php $ativo = ($filtro_status === $card['status']); ?>
             <a href="?status=<?php echo urlencode($card['status']); ?>" 
