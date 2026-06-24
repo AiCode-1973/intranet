@@ -299,6 +299,16 @@ $categorias_lista = [];
 while ($c = $cats_res->fetch_assoc()) $categorias_lista[] = $c;
 
 // ── GERENCIAR STATUS DE SUPORTE ──────────────────────────────────────────────
+// Migrar coluna status de ENUM para VARCHAR se necessário
+$col_check = $conn->query("SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'chamados' AND COLUMN_NAME = 'status'");
+if ($col_check && $col_row = $col_check->fetch_assoc()) {
+    if (stripos($col_row['COLUMN_TYPE'], 'enum') !== false) {
+        $conn->query("ALTER TABLE chamados MODIFY COLUMN status VARCHAR(100) NOT NULL DEFAULT 'Aberto'");
+        // Corrigir registros com status vazio (tentativas anteriores de salvar status inválido)
+        $conn->query("UPDATE chamados SET status = 'Aberto' WHERE status = '' OR status IS NULL");
+    }
+}
+
 $conn->query("CREATE TABLE IF NOT EXISTS suporte_status (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
