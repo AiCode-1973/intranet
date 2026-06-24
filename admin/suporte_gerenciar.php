@@ -322,9 +322,12 @@ if ((int)$conn->query("SELECT COUNT(*) FROM suporte_status")->fetch_row()[0] ===
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['acao'] == 'criar_status') {
     $nome_st = sanitize($_POST['nome_st'] ?? '');
     $fecha   = isset($_POST['fecha_chamado_st']) ? 1 : 0;
+    $cor_st  = sanitize($_POST['cor_st'] ?? '');
+    $cores_validas_st = ['bg-blue-50 text-blue-600 border-blue-100','bg-sky-50 text-sky-600 border-sky-100','bg-amber-50 text-amber-600 border-amber-100','bg-orange-50 text-orange-600 border-orange-100','bg-purple-50 text-purple-600 border-purple-100','bg-pink-50 text-pink-600 border-pink-100','bg-red-50 text-red-600 border-red-100','bg-emerald-50 text-emerald-600 border-emerald-100','bg-teal-50 text-teal-600 border-teal-100','bg-gray-50 text-gray-600 border-gray-100'];
+    $cor_st = in_array($cor_st, $cores_validas_st) ? $cor_st : 'bg-blue-50 text-blue-600 border-blue-100';
     if (!empty($nome_st)) {
-        $stmt = $conn->prepare("INSERT INTO suporte_status (nome, fecha_chamado) VALUES (?, ?)");
-        $stmt->bind_param("si", $nome_st, $fecha);
+        $stmt = $conn->prepare("INSERT INTO suporte_status (nome, cor, fecha_chamado) VALUES (?, ?, ?)");
+        $stmt->bind_param("ssi", $nome_st, $cor_st, $fecha);
         $stmt->execute();
         $stmt->close();
         registrarLog($conn, "Criou status de suporte: $nome_st");
@@ -337,9 +340,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $id_st   = intval($_POST['st_id'] ?? 0);
     $nome_st = sanitize($_POST['nome_st'] ?? '');
     $fecha   = isset($_POST['fecha_chamado_st']) ? 1 : 0;
+    $cor_st  = sanitize($_POST['cor_st'] ?? '');
+    $cores_validas_st = ['bg-blue-50 text-blue-600 border-blue-100','bg-sky-50 text-sky-600 border-sky-100','bg-amber-50 text-amber-600 border-amber-100','bg-orange-50 text-orange-600 border-orange-100','bg-purple-50 text-purple-600 border-purple-100','bg-pink-50 text-pink-600 border-pink-100','bg-red-50 text-red-600 border-red-100','bg-emerald-50 text-emerald-600 border-emerald-100','bg-teal-50 text-teal-600 border-teal-100','bg-gray-50 text-gray-600 border-gray-100'];
+    $cor_st = in_array($cor_st, $cores_validas_st) ? $cor_st : 'bg-blue-50 text-blue-600 border-blue-100';
     if ($id_st > 0 && !empty($nome_st)) {
-        $stmt = $conn->prepare("UPDATE suporte_status SET nome = ?, fecha_chamado = ? WHERE id = ?");
-        $stmt->bind_param("sii", $nome_st, $fecha, $id_st);
+        $stmt = $conn->prepare("UPDATE suporte_status SET nome = ?, cor = ?, fecha_chamado = ? WHERE id = ?");
+        $stmt->bind_param("ssii", $nome_st, $cor_st, $fecha, $id_st);
         $stmt->execute();
         $stmt->close();
         registrarLog($conn, "Editou status de suporte ID $id_st → $nome_st");
@@ -1263,7 +1269,7 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                                     <i data-lucide="<?php echo $st['ativo'] ? 'eye-off' : 'eye'; ?>" class="w-3.5 h-3.5"></i>
                                 </button>
                             </form>
-                            <button onclick="abrirEdicaoStatus(<?php echo $st['id']; ?>, '<?php echo htmlspecialchars(addslashes($st['nome'])); ?>', <?php echo $st['fecha_chamado']; ?>)"
+                            <button onclick="abrirEdicaoStatus(<?php echo $st['id']; ?>, '<?php echo htmlspecialchars(addslashes($st['nome'])); ?>', <?php echo $st['fecha_chamado']; ?>, '<?php echo htmlspecialchars(addslashes($st['cor'])); ?>')"
                                     class="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-all">
                                 <i data-lucide="pencil" class="w-3.5 h-3.5"></i>
                             </button>
@@ -1295,6 +1301,21 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                             <input type="checkbox" name="fecha_chamado_st" id="editStFecha" class="rounded border-border text-sky-600 focus:ring-sky-500">
                             <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Fecha o chamado ao selecionar</span>
                         </label>
+                        <div class="flex items-center gap-2">
+                            <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider shrink-0">Cor:</span>
+                            <div class="flex flex-wrap gap-1.5" id="editCorSwatches">
+                                <label class="cursor-pointer" title="Azul"><input type="radio" name="cor_st" value="bg-blue-50 text-blue-600 border-blue-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-blue-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-blue-500 transition-all"></div></label>
+                                <label class="cursor-pointer" title="Celeste"><input type="radio" name="cor_st" value="bg-sky-50 text-sky-600 border-sky-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-sky-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-sky-500 transition-all"></div></label>
+                                <label class="cursor-pointer" title="Âmbar"><input type="radio" name="cor_st" value="bg-amber-50 text-amber-600 border-amber-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-amber-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-amber-500 transition-all"></div></label>
+                                <label class="cursor-pointer" title="Laranja"><input type="radio" name="cor_st" value="bg-orange-50 text-orange-600 border-orange-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-orange-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-orange-500 transition-all"></div></label>
+                                <label class="cursor-pointer" title="Roxo"><input type="radio" name="cor_st" value="bg-purple-50 text-purple-600 border-purple-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-purple-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-purple-500 transition-all"></div></label>
+                                <label class="cursor-pointer" title="Rosa"><input type="radio" name="cor_st" value="bg-pink-50 text-pink-600 border-pink-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-pink-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-pink-500 transition-all"></div></label>
+                                <label class="cursor-pointer" title="Vermelho"><input type="radio" name="cor_st" value="bg-red-50 text-red-600 border-red-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-red-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-red-500 transition-all"></div></label>
+                                <label class="cursor-pointer" title="Verde"><input type="radio" name="cor_st" value="bg-emerald-50 text-emerald-600 border-emerald-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-emerald-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-emerald-500 transition-all"></div></label>
+                                <label class="cursor-pointer" title="Turquesa"><input type="radio" name="cor_st" value="bg-teal-50 text-teal-600 border-teal-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-teal-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-teal-500 transition-all"></div></label>
+                                <label class="cursor-pointer" title="Cinza"><input type="radio" name="cor_st" value="bg-gray-50 text-gray-600 border-gray-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-gray-400 ring-2 ring-offset-1 ring-transparent peer-checked:ring-gray-400 transition-all"></div></label>
+                            </div>
+                        </div>
                     </form>
                 </div>
             </div>
@@ -1314,6 +1335,21 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                         <input type="checkbox" name="fecha_chamado_st" class="rounded border-border text-sky-600 focus:ring-sky-500">
                         <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider">Fecha o chamado ao selecionar</span>
                     </label>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] font-bold text-text-secondary uppercase tracking-wider shrink-0">Cor:</span>
+                        <div class="flex flex-wrap gap-1.5">
+                            <label class="cursor-pointer" title="Azul"><input type="radio" name="cor_st" value="bg-blue-50 text-blue-600 border-blue-100" class="sr-only peer" checked><div class="w-5 h-5 rounded-full bg-blue-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-blue-500 transition-all"></div></label>
+                            <label class="cursor-pointer" title="Celeste"><input type="radio" name="cor_st" value="bg-sky-50 text-sky-600 border-sky-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-sky-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-sky-500 transition-all"></div></label>
+                            <label class="cursor-pointer" title="Âmbar"><input type="radio" name="cor_st" value="bg-amber-50 text-amber-600 border-amber-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-amber-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-amber-500 transition-all"></div></label>
+                            <label class="cursor-pointer" title="Laranja"><input type="radio" name="cor_st" value="bg-orange-50 text-orange-600 border-orange-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-orange-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-orange-500 transition-all"></div></label>
+                            <label class="cursor-pointer" title="Roxo"><input type="radio" name="cor_st" value="bg-purple-50 text-purple-600 border-purple-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-purple-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-purple-500 transition-all"></div></label>
+                            <label class="cursor-pointer" title="Rosa"><input type="radio" name="cor_st" value="bg-pink-50 text-pink-600 border-pink-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-pink-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-pink-500 transition-all"></div></label>
+                            <label class="cursor-pointer" title="Vermelho"><input type="radio" name="cor_st" value="bg-red-50 text-red-600 border-red-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-red-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-red-500 transition-all"></div></label>
+                            <label class="cursor-pointer" title="Verde"><input type="radio" name="cor_st" value="bg-emerald-50 text-emerald-600 border-emerald-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-emerald-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-emerald-500 transition-all"></div></label>
+                            <label class="cursor-pointer" title="Turquesa"><input type="radio" name="cor_st" value="bg-teal-50 text-teal-600 border-teal-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-teal-500 ring-2 ring-offset-1 ring-transparent peer-checked:ring-teal-500 transition-all"></div></label>
+                            <label class="cursor-pointer" title="Cinza"><input type="radio" name="cor_st" value="bg-gray-50 text-gray-600 border-gray-100" class="sr-only peer"><div class="w-5 h-5 rounded-full bg-gray-400 ring-2 ring-offset-1 ring-transparent peer-checked:ring-gray-400 transition-all"></div></label>
+                        </div>
+                    </div>
                 </form>
             </div>
         </div>
@@ -1886,10 +1922,18 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
             url.searchParams.delete('st');
             window.history.replaceState({}, '', url);
         }
-        function abrirEdicaoStatus(id, nome, fecha) {
+        function abrirEdicaoStatus(id, nome, fecha, cor) {
             document.getElementById('editStId').value = id;
             document.getElementById('editStNome').value = nome;
             document.getElementById('editStFecha').checked = fecha == 1;
+            // Selecionar a cor atual nos swatches
+            const radios = document.querySelectorAll('#editCorSwatches input[type="radio"]');
+            let found = false;
+            radios.forEach(r => {
+                if (r.value === cor) { r.checked = true; found = true; }
+                else r.checked = false;
+            });
+            if (!found && radios.length > 0) radios[0].checked = true;
             document.getElementById('formEdicaoStatus').classList.remove('hidden');
             document.getElementById('editStNome').focus();
         }
