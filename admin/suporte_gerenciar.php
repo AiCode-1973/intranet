@@ -397,6 +397,13 @@ $total_paginas   = max(1, (int) ceil($total_registros / $por_pagina));
 $pagina_atual    = min($pagina_atual, $total_paginas);
 $offset          = ($pagina_atual - 1) * $por_pagina;
 
+// ORDER BY dinâmico baseado na ordem dos status no banco
+$order_case_parts = [];
+foreach ($status_lista as $i => $s) {
+    $order_case_parts[] = "WHEN c.status = '" . $conn->real_escape_string($s['nome']) . "' THEN " . ($i + 1);
+}
+$order_case = $order_case_parts ? 'CASE ' . implode(' ', $order_case_parts) . ' ELSE ' . (count($status_lista) + 1) . ' END' : 'c.data_abertura';
+
 // Buscar chamados da página atual com detalhes
 $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante,
                c.satisfacao_nota, c.satisfacao_comentario,
@@ -409,12 +416,7 @@ $sql = "SELECT c.*, u.nome as solicitante, t.nome as tecnico_nome, s.nome as set
         LEFT JOIN usuarios t ON c.tecnico_id = t.id 
         $where_sql
         ORDER BY 
-            CASE 
-                WHEN c.status = 'Aberto' THEN 1 
-                WHEN c.status = 'Em Atendimento' THEN 2 
-                WHEN c.status = 'Aguardando Peça' THEN 3 
-                ELSE 4 
-            END, 
+            $order_case,
             c.prioridade DESC, 
             c.data_abertura ASC
         LIMIT $por_pagina OFFSET $offset";
@@ -457,9 +459,13 @@ $tecnicos = $conn->query("SELECT id, nome FROM usuarios WHERE is_tecnico = 1 AND
 
 // Mapa de estilos a partir do banco (fallback para desconhecidos)
 $status_styles = [];
+$status_fecha_nomes = []; // nomes de status que fecham o chamado (para dimming na tabela)
 foreach ($status_lista as $s) {
     $status_styles[$s['nome']] = $s['cor'];
+    if ($s['fecha_chamado']) $status_fecha_nomes[] = $s['nome'];
 }
+// Fallback para status sem cor definida
+$status_style_fallback = 'bg-slate-100 text-slate-600 border-slate-300';
 
 $prioridade_styles = [
     'Baixa' => 'text-gray-400',
@@ -730,7 +736,7 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                     </thead>
                     <tbody id="suporte-tbody" class="divide-y divide-border text-xs">
                         <?php foreach ($chamados_lista as $chamado): ?>
-                        <tr data-id="<?php echo $chamado['id']; ?>" data-status="<?php echo htmlspecialchars($chamado['status']); ?>" data-unread="<?php echo $chamado['tem_novidade'] ? '1' : '0'; ?>" onclick='abrirAtendimento(<?php echo htmlspecialchars(json_encode($chamado, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE), ENT_QUOTES); ?>)' class="hover:bg-background/30 transition-colors group cursor-pointer <?php echo in_array($chamado['status'], ['Resolvido', 'Cancelado']) ? 'opacity-40' : ''; ?>">
+                        <tr data-id="<?php echo $chamado['id']; ?>" data-status="<?php echo htmlspecialchars($chamado['status']); ?>" data-unread="<?php echo $chamado['tem_novidade'] ? '1' : '0'; ?>" onclick='abrirAtendimento(<?php echo htmlspecialchars(json_encode($chamado, JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE), ENT_QUOTES); ?>)' class="hover:bg-background/30 transition-colors group cursor-pointer <?php echo in_array($chamado['status'], $status_fecha_nomes) ? 'opacity-40' : ''; ?>">
                             <td class="p-3">
                                 <div class="flex items-center gap-2">
                                     <div class="relative">
@@ -760,7 +766,7 @@ $max_men = !empty($stats_mensal)     ? max(array_column($stats_mensal,     'aber
                                 </span>
                             </td>
                             <td class="p-3 text-center">
-                                <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase border <?php echo $status_styles[$chamado['status']]; ?>">
+                                <span class="px-2 py-0.5 rounded-md text-[9px] font-black uppercase border <?php echo $status_styles[$chamado['status']] ?? $status_style_fallback; ?>">
                                     <?php echo $chamado['status']; ?>
                                 </span>
                             </td>
