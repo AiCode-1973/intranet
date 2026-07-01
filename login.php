@@ -179,7 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
 
                 <div id="dev-info" class="hidden mt-3 p-4 bg-white border border-border rounded-xl text-left animate-in fade-in duration-300">
-                     <p class="text-[10px] font-mono text-text-secondary italic">CPF: 000.000.000-00 | Senha: admin123</p>
+                     <p class="text-[10px] font-mono text-text-secondary italic"></p>
                 </div>
             </div>
         </div>
