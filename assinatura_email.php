@@ -370,14 +370,14 @@ $cfg = array_merge([
             return `
 <table cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-family:${fontFamily};">
   <tr>
-    <td style="vertical-align:top;padding-right:14px;border-right:3px solid ${cor};">
+    <td style="vertical-align:middle;padding-right:16px;border-right:3px solid ${cor};">
       ${logoHTML}
-      <div style="margin-top:4px;">
+    </td>
+    <td style="width:14px;"></td>
+    <td style="vertical-align:top;">
+      <div style="margin-bottom:4px;">
         <span style="font-size:14px;font-weight:900;color:#222;font-family:${fontFamily};">${escHtml(nome)}</span>
       </div>
-    </td>
-    <td style="width:12px;"></td>
-    <td style="vertical-align:top;">
       <div style="margin-bottom:4px;">${infoLines.join('<br>')}</div>
       <div style="display:flex;flex-direction:column;gap:2px;">${contactLines.join('<br>')}</div>
     </td>
