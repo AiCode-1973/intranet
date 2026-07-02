@@ -37,12 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar'])) {
         $file     = $_FILES['logo_upload'];
         $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
         $allowed  = ['jpg','jpeg','png','gif','svg','webp'];
-        $max_size = 2 * 1024 * 1024; // 2 MB
+        $max_size = 10 * 1024 * 1024; // 10 MB
 
         if (!in_array($ext, $allowed)) {
             $erro = 'Formato inválido. Use JPG, PNG, GIF, SVG ou WebP.';
         } elseif ($file['size'] > $max_size) {
-            $erro = 'Arquivo muito grande. Máximo permitido: 2 MB.';
+            $erro = 'Arquivo muito grande. Máximo permitido: 10 MB.';
         } elseif ($file['error'] !== UPLOAD_ERR_OK) {
             $erro = 'Erro no upload do arquivo.';
         } else {
@@ -182,7 +182,7 @@ $cfg = array_merge([
                                 <img id="logo-preview" src="#" alt="Pré-visualização" class="hidden h-16 object-contain mb-3 rounded">
                                 <i data-lucide="upload-cloud" class="w-8 h-8 text-text-muted group-hover:text-primary transition-colors mb-2" id="upload-icon"></i>
                                 <span class="text-sm font-bold text-text-muted group-hover:text-primary transition-colors" id="file-label">Clique ou arraste a imagem aqui</span>
-                                <span class="text-[10px] text-text-muted mt-1">JPG, PNG, SVG, WebP — máx. 2 MB</span>
+                                <span class="text-[10px] text-text-muted mt-1">JPG, PNG, SVG, WebP — máx. 10 MB</span>
                                 <input type="file" name="logo_upload" id="logo_upload" accept="image/*" class="hidden">
                             </label>
 
