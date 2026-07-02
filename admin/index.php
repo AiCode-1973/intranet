@@ -362,6 +362,24 @@ $total_pendente_termos = $conn->query("SELECT COUNT(*) FROM usuarios WHERE ativo
                 </div>
             </a>
             <?php endif; ?>
+
+            <?php if (isAdmin()): ?>
+            <!-- Assinatura de E-mail -->
+            <a href="assinatura_email_gerenciar.php" class="bg-white p-6 rounded-3xl border border-border shadow-sm hover:shadow-xl transition-all group overflow-hidden relative">
+                <div class="absolute top-0 right-0 w-32 h-32 bg-teal-50 rounded-full -mr-16 -mt-16 group-hover:bg-teal-100 transition-colors"></div>
+                <div class="relative z-10">
+                    <div class="w-12 h-12 rounded-2xl bg-teal-50 flex items-center justify-center text-teal-600 mb-5 group-hover:scale-110 transition-transform">
+                        <i data-lucide="mail-check" class="w-6 h-6"></i>
+                    </div>
+                    <h3 class="text-sm font-black text-text uppercase tracking-widest mb-2">Assinatura de E-mail</h3>
+                    <p class="text-[10px] text-text-secondary font-bold leading-relaxed mb-4">Configurar template institucional das assinaturas dos colaboradores.</p>
+                    <div class="flex items-center gap-2 text-[10px] font-black text-teal-600 uppercase tracking-tighter">
+                        Configurar template
+                        <i data-lucide="arrow-right" class="w-3 h-3 group-hover:translate-x-1 transition-transform"></i>
+                    </div>
+                </div>
+            </a>
+            <?php endif; ?>
         </div>
     </div>
     

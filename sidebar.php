@@ -58,6 +58,7 @@ $current_page = basename($_SERVER['PHP_SELF']);
             ['icon' => 'phone', 'label' => 'Ramais & Telefones', 'link' => $root_path . 'telefones.php', 'slug' => 'telefones'],
             ['icon' => 'info', 'label' => 'Informações & Saúde', 'link' => '#', 'slug' => 'informacoes'],
             ['icon' => 'refresh-cw', 'label' => 'Troca de Plantão', 'link' => $root_path . 'plantao_trocas.php', 'slug' => 'plantao'],
+            ['icon' => 'mail-check', 'label' => 'Assinatura de E-mail', 'link' => $root_path . 'assinatura_email.php', 'slug' => 'assinatura_email'],
 
         ];
 
