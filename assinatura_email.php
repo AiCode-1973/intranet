@@ -335,7 +335,7 @@ $cfg = array_merge([
 
         const fontFamily = "Arial, Helvetica, sans-serif";
         const logoHTML = CFG.empresa_logo_url
-            ? `<img src="${CFG.empresa_logo_url}" alt="${CFG.empresa_nome}" style="height:40px;display:block;margin-bottom:4px;">`
+            ? `<img src="${CFG.empresa_logo_url}" alt="${CFG.empresa_nome}" style="height:90px;display:block;margin-bottom:4px;">`
             : `<span style="font-size:15px;font-weight:900;color:${cor};font-family:${fontFamily};letter-spacing:-0.5px;">${CFG.empresa_nome}</span>`;
 
         const infoLines = [];
