@@ -17,7 +17,7 @@ $conn->query("CREATE TABLE IF NOT EXISTS assinatura_config (
 
 // ── Salvar configurações ─────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar'])) {
-    $campos = ['empresa_nome','empresa_site','empresa_logo_url','empresa_cor',
+    $campos = ['empresa_nome','empresa_site','empresa_cor',
                'empresa_endereco','empresa_telefone','disclaimer'];
 
     $stmt = $conn->prepare("INSERT INTO assinatura_config (chave, valor)
@@ -25,21 +25,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['salvar'])) {
 
     foreach ($campos as $campo) {
         $valor = trim($_POST[$campo] ?? '');
-        // Valida cor hex
         if ($campo === 'empresa_cor' && !preg_match('/^#[0-9a-fA-F]{6}$/', $valor)) {
             $valor = '#0d9488';
-        }
-        // Sanitiza URL de logo
-        if ($campo === 'empresa_logo_url' && $valor !== '') {
-            $parsed = parse_url($valor);
-            if (!in_array($parsed['scheme'] ?? '', ['http','https'])) {
-                $erro = 'URL da logo inválida. Use http:// ou https://.';
-                $valor = '';
-            }
         }
         $stmt->bind_param("ss", $campo, $valor);
         $stmt->execute();
     }
+
+    // ── Upload da logo ────────────────────────────────────────────────────────
+    if (!empty($_FILES['logo_upload']['name'])) {
+        $file     = $_FILES['logo_upload'];
+        $ext      = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $allowed  = ['jpg','jpeg','png','gif','svg','webp'];
+        $max_size = 2 * 1024 * 1024; // 2 MB
+
+        if (!in_array($ext, $allowed)) {
+            $erro = 'Formato inválido. Use JPG, PNG, GIF, SVG ou WebP.';
+        } elseif ($file['size'] > $max_size) {
+            $erro = 'Arquivo muito grande. Máximo permitido: 2 MB.';
+        } elseif ($file['error'] !== UPLOAD_ERR_OK) {
+            $erro = 'Erro no upload do arquivo.';
+        } else {
+            $dir = dirname(__DIR__) . '/uploads/logos/';
+            if (!is_dir($dir)) mkdir($dir, 0755, true);
+
+            // Remove logo anterior se for arquivo local
+            $old_row = $conn->query("SELECT valor FROM assinatura_config WHERE chave = 'empresa_logo_url' LIMIT 1");
+            if ($old_row && $old_row->num_rows > 0) {
+                $old_val = $old_row->fetch_assoc()['valor'];
+                if (strpos($old_val, 'uploads/logos/') === 0) {
+                    $old_path = dirname(__DIR__) . '/' . $old_val;
+                    if (file_exists($old_path)) unlink($old_path);
+                }
+            }
+
+            $filename = 'logo_assinatura_' . time() . '.' . $ext;
+            $dest     = $dir . $filename;
+            $logo_url = 'uploads/logos/' . $filename;
+
+            if (move_uploaded_file($file['tmp_name'], $dest)) {
+                $chave = 'empresa_logo_url';
+                $stmt->bind_param("ss", $chave, $logo_url);
+                $stmt->execute();
+            } else {
+                $erro = 'Falha ao salvar o arquivo no servidor.';
+            }
+        }
+    }
+
     $stmt->close();
 
     if (!$erro) {
@@ -109,7 +142,7 @@ $cfg = array_merge([
             </div>
             <?php endif; ?>
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <!-- Identidade da Empresa -->
                 <div class="bg-white rounded-2xl border border-border p-6 shadow-sm mb-6">
                     <h2 class="text-sm font-black text-text uppercase tracking-widest mb-5 flex items-center gap-2">
@@ -132,12 +165,28 @@ $cfg = array_merge([
                                 placeholder="www.empresa.com.br">
                         </div>
                         <div class="sm:col-span-2">
-                            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">URL da Logo (opcional)</label>
-                            <input type="url" name="empresa_logo_url"
-                                value="<?php echo htmlspecialchars($cfg['empresa_logo_url'], ENT_QUOTES); ?>"
-                                class="w-full border border-border rounded-xl px-4 py-2.5 text-sm font-semibold focus:outline-none focus:border-primary transition-colors"
-                                placeholder="https://exemplo.com/logo.png">
-                            <p class="text-[10px] text-text-muted mt-1">Se vazio, o nome da empresa será exibido no lugar do logotipo.</p>
+                            <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Logo da Empresa (opcional)</label>
+
+                            <?php if (!empty($cfg['empresa_logo_url'])): ?>
+                            <div class="mb-3 flex items-center gap-4 p-3 bg-gray-50 border border-border rounded-xl">
+                                <img src="<?php echo htmlspecialchars('../' . $cfg['empresa_logo_url'], ENT_QUOTES); ?>"
+                                     alt="Logo atual" class="h-12 object-contain rounded">
+                                <div>
+                                    <p class="text-[10px] font-black text-text-muted uppercase tracking-widest">Logo atual</p>
+                                    <p class="text-[11px] text-text-muted mt-0.5 break-all"><?php echo htmlspecialchars($cfg['empresa_logo_url'], ENT_QUOTES); ?></p>
+                                </div>
+                            </div>
+                            <?php endif; ?>
+
+                            <label class="flex flex-col items-center justify-center w-full border-2 border-dashed border-border rounded-xl p-6 cursor-pointer hover:border-primary hover:bg-primary/[0.02] transition-all group" id="drop-zone">
+                                <img id="logo-preview" src="#" alt="Pré-visualização" class="hidden h-16 object-contain mb-3 rounded">
+                                <i data-lucide="upload-cloud" class="w-8 h-8 text-text-muted group-hover:text-primary transition-colors mb-2" id="upload-icon"></i>
+                                <span class="text-sm font-bold text-text-muted group-hover:text-primary transition-colors" id="file-label">Clique ou arraste a imagem aqui</span>
+                                <span class="text-[10px] text-text-muted mt-1">JPG, PNG, SVG, WebP — máx. 2 MB</span>
+                                <input type="file" name="logo_upload" id="logo_upload" accept="image/*" class="hidden">
+                            </label>
+
+                            <p class="text-[10px] text-text-muted mt-1.5">Se nenhuma imagem for enviada, o nome da empresa será exibido no lugar do logotipo.</p>
                         </div>
                         <div>
                             <label class="block text-[10px] font-black text-text-muted uppercase tracking-widest mb-1.5">Telefone Institucional</label>
@@ -198,25 +247,57 @@ $cfg = array_merge([
     document.addEventListener('DOMContentLoaded', () => {
         lucide.createIcons();
 
+        // ── Cor ──────────────────────────────────────────────────────────────
         const colorInput = document.getElementById('cor-input');
         const hexInput   = document.getElementById('cor-hex');
-
-        // Sincroniza color picker → campo texto
-        colorInput.addEventListener('input', () => {
-            hexInput.value = colorInput.value;
-        });
-
-        // Sincroniza campo texto → color picker
+        colorInput.addEventListener('input', () => { hexInput.value = colorInput.value; });
         hexInput.addEventListener('input', () => {
             if (/^#[0-9a-fA-F]{6}$/.test(hexInput.value)) {
                 colorInput.value = hexInput.value;
-                // Propaga para o campo hidden do form
-                colorInput.name = 'empresa_cor';
-                hexInput.name   = '';
             }
         });
-        // Garante que o campo correto é submetido
         hexInput.name = '';
+
+        // ── Upload / Drag-and-drop da logo ───────────────────────────────────
+        const fileInput = document.getElementById('logo_upload');
+        const dropZone  = document.getElementById('drop-zone');
+        const fileLabel = document.getElementById('file-label');
+        const preview   = document.getElementById('logo-preview');
+
+        function handleFile(file) {
+            if (!file || !file.type.startsWith('image/')) return;
+            fileLabel.textContent = file.name;
+            const reader = new FileReader();
+            reader.onload = e => {
+                if (preview) {
+                    preview.src = e.target.result;
+                    preview.classList.remove('hidden');
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        fileInput.addEventListener('change', () => handleFile(fileInput.files[0]));
+
+        dropZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropZone.classList.add('border-primary','bg-primary/[0.03]');
+        });
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('border-primary','bg-primary/[0.03]');
+        });
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('border-primary','bg-primary/[0.03]');
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                // Transfere o arquivo para o input
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileInput.files = dt.files;
+                handleFile(file);
+            }
+        });
     });
     </script>
 </body>

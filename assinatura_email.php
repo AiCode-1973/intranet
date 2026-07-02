@@ -266,7 +266,16 @@ $cfg = array_merge([
     const CFG = {
         empresa_nome:     <?php echo json_encode($cfg['empresa_nome']); ?>,
         empresa_site:     <?php echo json_encode($cfg['empresa_site']); ?>,
-        empresa_logo_url: <?php echo json_encode($cfg['empresa_logo_url']); ?>,
+        empresa_logo_url: <?php
+            $logo = $cfg['empresa_logo_url'];
+            // Se for caminho relativo (upload local), gera URL absoluta acessível pelo browser
+            if ($logo !== '' && !preg_match('/^https?:\/\//', $logo)) {
+                $logo = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http')
+                      . '://' . $_SERVER['HTTP_HOST']
+                      . rtrim(dirname($_SERVER['SCRIPT_NAME']), '/') . '/' . ltrim($logo, '/');
+            }
+            echo json_encode($logo);
+        ?>,
         empresa_cor:      <?php echo json_encode($cfg['empresa_cor']); ?>,
         empresa_endereco: <?php echo json_encode($cfg['empresa_endereco']); ?>,
         empresa_telefone: <?php echo json_encode($cfg['empresa_telefone']); ?>,
