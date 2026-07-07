@@ -233,8 +233,9 @@ if ($cnt_res) {
     <title>Gerenciar CEH - APAS Intranet</title>
     <?php include '../tailwind_setup.php'; ?>
     <style>
-        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); }
-        .modal.active { display: flex; align-items: center; justify-content: center; }
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); overflow-y: auto; }
+        .modal.active { display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px; }
+        body.modal-open { overflow: hidden; }
     </style>
 </head>
 <body class="bg-background text-text font-sans selection:bg-primary/20">
@@ -399,7 +400,7 @@ if ($cnt_res) {
 
     <!-- Modal Atendimento -->
     <div id="modalAtender" class="modal">
-        <div class="bg-white w-full max-w-5xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col" style="height:58vh;max-height:58vh">
+        <div class="bg-white w-full max-w-5xl rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col" style="max-height:calc(100vh - 48px);min-height:520px;">
             <div class="bg-primary px-5 py-4 text-white flex justify-between items-center shrink-0">
                 <div>
                     <h2 class="text-base font-bold text-white uppercase flex items-center gap-2">
@@ -465,7 +466,7 @@ if ($cnt_res) {
 
                         <div>
                             <label class="block text-[10px] font-black text-text-secondary mb-1 uppercase tracking-widest">Laudo / Resolução Técnica</label>
-                            <textarea name="resolucao" id="form_resolucao" rows="8" placeholder="Documente o que foi feito no equipamento ou o motivo da espera..."
+                            <textarea name="resolucao" id="form_resolucao" rows="5" placeholder="Documente o que foi feito no equipamento ou o motivo da espera..."
                                       class="w-full p-2 bg-white border border-border rounded-lg text-xs font-bold focus:outline-none focus:border-primary transition-all shadow-sm"></textarea>
                         </div>
 
@@ -625,6 +626,7 @@ if ($cnt_res) {
             }
 
             document.getElementById('modalAtender').classList.add('active');
+            document.body.classList.add('modal-open');
             lucide.createIcons();
             
             // Scroll para o fim do chat
@@ -632,7 +634,10 @@ if ($cnt_res) {
                 container.scrollTop = container.scrollHeight;
             }, 50);
         }
-        function fecharModal() { document.getElementById('modalAtender').classList.remove('active'); }
+        function fecharModal() {
+            document.getElementById('modalAtender').classList.remove('active');
+            document.body.classList.remove('modal-open');
+        }
 
         function excluirChamado(id) {
             if (confirm('Tem certeza que deseja excluir permanentemente este chamado CEH? Esta ação não pode ser desfeita.')) {
