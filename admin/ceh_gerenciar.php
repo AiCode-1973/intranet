@@ -46,17 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     if ($stmt->execute()) {
         registrarLog($conn, "Atualizou chamado CEH #$id para status: $status");
 
-        // Notificação automática para o solicitante
-        $notif_parts = [];
+        // Notificação automática para o solicitante (apenas mudança de status)
         if ($anterior && $anterior['status'] !== $status) {
-            $notif_parts[] = "Status alterado para: {$status}";
-        }
-        $resolucao_trim = trim($resolucao);
-        if ($resolucao_trim !== '' && trim($anterior['resolucao'] ?? '') !== $resolucao_trim) {
-            $notif_parts[] = "Resolução registrada: {$resolucao_trim}";
-        }
-        if (!empty($notif_parts)) {
-            $notif = '🔧 ' . implode("\n", $notif_parts);
+            $notif = "🔧 Status alterado para: {$status}";
             $admin_id = intval($_SESSION['usuario_id']);
             $stmt2 = $conn->prepare("INSERT INTO ceh_comentarios (chamado_id, usuario_id, comentario, lido_pelo_tecnico, lido_pelo_usuario) VALUES (?, ?, ?, 1, 0)");
             $stmt2->bind_param("iis", $id, $admin_id, $notif);
