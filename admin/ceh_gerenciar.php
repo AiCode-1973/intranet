@@ -32,7 +32,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['acao']) && $_POST['aca
     $id = intval($_POST['id']);
     $status = sanitize($_POST['status']);
     $resolucao = $_POST['resolucao'];
-    $tecnico_id = intval($_POST['tecnico_id']);
+    $tecnico_id_raw = intval($_POST['tecnico_id'] ?? 0);
+    $tecnico_id = $tecnico_id_raw > 0 ? $tecnico_id_raw : null; // evita violação de FK com valor 0
     $data_fechamento = ($status == 'Resolvido' || $status == 'Cancelado') ? date('Y-m-d H:i:s') : null;
 
     // Estado anterior para comparação
