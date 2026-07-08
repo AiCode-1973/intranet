@@ -358,6 +358,8 @@ $status_styles = [
                         <p id="modal-descricao" class="text-xs text-text-secondary italic leading-relaxed"></p>
                         <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mt-2 mb-0.5">Solicitante</p>
                         <p id="modal-solicitante" class="text-xs font-semibold text-text"></p>
+                        <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mt-2 mb-0.5">Abertura</p>
+                        <p id="modal-data-abertura" class="text-xs font-semibold text-text"></p>
                     </div>
 
                     <form method="POST" action="" class="flex flex-col gap-2">
@@ -434,6 +436,13 @@ $status_styles = [
             document.getElementById('modal-titulo').innerText = dados.titulo;
             document.getElementById('modal-descricao').innerText = dados.descricao;
             document.getElementById('modal-solicitante').innerText = dados.solicitante || '(desconhecido)';
+            if (dados.data_abertura) {
+                const d = new Date(dados.data_abertura.replace(' ', 'T'));
+                document.getElementById('modal-data-abertura').innerText =
+                    d.toLocaleDateString('pt-BR') + ' às ' + d.toLocaleTimeString('pt-BR', {hour:'2-digit', minute:'2-digit'});
+            } else {
+                document.getElementById('modal-data-abertura').innerText = '—';
+            }
             document.getElementById('modal-status').value = dados.status;
             document.getElementById('modal-tecnico').value = dados.tecnico_id || "";
             document.getElementById('modal-resolucao').value = dados.resolucao || "";
