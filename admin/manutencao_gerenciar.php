@@ -137,6 +137,9 @@ $where_sql = $filtro_status ? "WHERE m.status = '$filtro_status'" : "";
 
 // Buscar chamados
 $sql = "SELECT m.*, COALESCE(u.nome, '(usuário removido)') as solicitante, t.nome as tecnico_nome, s.nome as setor_solicitante,
+        (SELECT GROUP_CONCAT(tf.ramal ORDER BY tf.ordem SEPARATOR ', ')
+         FROM telefones tf
+         WHERE tf.setor_id = u.setor_id AND tf.ramal IS NOT NULL AND tf.ramal != '') as ramais_setor,
         (SELECT COUNT(*) FROM manutencao_comentarios mc WHERE mc.manutencao_id = m.id AND mc.lido_pelo_tecnico = 0) as nao_lidos
         FROM manutencao m 
         LEFT JOIN usuarios u ON m.usuario_id = u.id 
@@ -360,6 +363,8 @@ $status_styles = [
                         <p id="modal-solicitante" class="text-xs font-semibold text-text"></p>
                         <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mt-2 mb-0.5">Abertura</p>
                         <p id="modal-data-abertura" class="text-xs font-semibold text-text"></p>
+                        <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mt-2 mb-0.5">Ramal do Setor</p>
+                        <p id="modal-ramal" class="text-xs font-semibold text-text"></p>
                     </div>
 
                     <form method="POST" action="" class="flex flex-col gap-2">
@@ -443,6 +448,7 @@ $status_styles = [
             } else {
                 document.getElementById('modal-data-abertura').innerText = '—';
             }
+            document.getElementById('modal-ramal').innerText = dados.ramais_setor || '—';
             document.getElementById('modal-status').value = dados.status;
             document.getElementById('modal-tecnico').value = dados.tecnico_id || "";
             document.getElementById('modal-resolucao').value = dados.resolucao || "";
