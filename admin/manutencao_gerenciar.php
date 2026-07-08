@@ -345,7 +345,7 @@ $status_styles = [
 
     <!-- Modal Editar -->
     <div id="modalEditar" class="modal">
-        <div class="bg-white w-full max-w-4xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col" style="height:68vh;max-height:68vh">
+        <div class="bg-white w-full max-w-4xl mx-4 rounded-xl shadow-2xl border border-border overflow-hidden flex flex-col" style="max-height:88vh">
             <!-- Cabeçalho -->
             <div class="bg-primary px-3 py-2 text-white flex justify-between items-center flex-shrink-0">
                 <div class="flex items-center gap-2">
@@ -357,7 +357,7 @@ $status_styles = [
                 </button>
             </div>
 
-            <div class="flex flex-1 overflow-hidden">
+            <div class="flex overflow-hidden">
                 <!-- Coluna esquerda: Formulário -->
                 <div class="w-[42%] p-2.5 overflow-y-auto border-r border-border flex flex-col gap-2">
                     <div class="p-2 bg-background rounded-lg border border-border">
