@@ -335,6 +335,11 @@ $status_styles = [
                     </tbody>
                 </table>
             </div>
+            <!-- Paginação -->
+            <div id="paginacao" class="flex items-center justify-between px-4 py-2.5 border-t border-border bg-background/30">
+                <span id="pag-info" class="text-[10px] font-bold text-text-secondary uppercase tracking-widest"></span>
+                <div class="flex items-center gap-1" id="pag-btns"></div>
+            </div>
         </div>
     </div>
 
@@ -432,6 +437,77 @@ $status_styles = [
     </div>
 
     <script>
+        // ── Paginação ──────────────────────────────────────────────
+        const POR_PAGINA = 15;
+        let paginaAtual = 1;
+
+        function linhasVisiveis() {
+            return Array.from(document.querySelectorAll('#man-tbody tr[data-id]'));
+        }
+
+        function renderPaginacao() {
+            const linhas = linhasVisiveis();
+            const total = linhas.length;
+            const totalPags = Math.max(1, Math.ceil(total / POR_PAGINA));
+            if (paginaAtual > totalPags) paginaAtual = totalPags;
+
+            const inicio = (paginaAtual - 1) * POR_PAGINA;
+            const fim = inicio + POR_PAGINA;
+
+            linhas.forEach((tr, i) => {
+                tr.style.display = (i >= inicio && i < fim) ? '' : 'none';
+            });
+
+            const exibindo = Math.min(fim, total) - inicio;
+            document.getElementById('pag-info').textContent =
+                total === 0 ? '' : `Exibindo ${inicio + 1}–${Math.min(fim, total)} de ${total}`;
+
+            // Botões
+            const container = document.getElementById('pag-btns');
+            container.innerHTML = '';
+            const btnClass = 'px-2.5 py-1 rounded text-[10px] font-black uppercase tracking-widest transition-all ';
+
+            // Anterior
+            const prev = document.createElement('button');
+            prev.innerHTML = '&lsaquo;';
+            prev.disabled = paginaAtual === 1;
+            prev.className = btnClass + (paginaAtual === 1 ? 'text-text-secondary/30 cursor-not-allowed' : 'hover:bg-primary/10 text-primary');
+            prev.onclick = () => { paginaAtual--; renderPaginacao(); };
+            container.appendChild(prev);
+
+            // Números
+            const range = 2;
+            for (let p = 1; p <= totalPags; p++) {
+                if (p !== 1 && p !== totalPags && Math.abs(p - paginaAtual) > range) {
+                    if (p === 2 || p === totalPags - 1) {
+                        const dots = document.createElement('span');
+                        dots.textContent = '…';
+                        dots.className = 'px-1 text-[10px] text-text-secondary/50';
+                        container.appendChild(dots);
+                    }
+                    continue;
+                }
+                const btn = document.createElement('button');
+                btn.textContent = p;
+                btn.className = btnClass + (p === paginaAtual
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'hover:bg-primary/10 text-text-secondary');
+                btn.onclick = ((pg) => () => { paginaAtual = pg; renderPaginacao(); })(p);
+                container.appendChild(btn);
+            }
+
+            // Próximo
+            const next = document.createElement('button');
+            next.innerHTML = '&rsaquo;';
+            next.disabled = paginaAtual === totalPags;
+            next.className = btnClass + (paginaAtual === totalPags ? 'text-text-secondary/30 cursor-not-allowed' : 'hover:bg-primary/10 text-primary');
+            next.onclick = () => { paginaAtual++; renderPaginacao(); };
+            container.appendChild(next);
+        }
+
+        document.addEventListener('DOMContentLoaded', renderPaginacao);
+        // ──────────────────────────────────────────────────────────────
+
         let modalChamadoId = null;
 
         function abrirModal(dados) {
