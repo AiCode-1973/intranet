@@ -356,6 +356,8 @@ $status_styles = [
                         <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mb-1">Solicitação</p>
                         <p id="modal-titulo" class="text-sm font-bold text-text mb-1 leading-snug"></p>
                         <p id="modal-descricao" class="text-xs text-text-secondary italic leading-relaxed"></p>
+                        <p class="text-[9px] font-black text-text-secondary uppercase tracking-widest mt-2 mb-0.5">Solicitante</p>
+                        <p id="modal-solicitante" class="text-xs font-semibold text-text"></p>
                     </div>
 
                     <form method="POST" action="" class="flex flex-col gap-2">
@@ -431,6 +433,7 @@ $status_styles = [
             document.getElementById('modal-id-display').innerText = dados.id.toString().padStart(3, '0');
             document.getElementById('modal-titulo').innerText = dados.titulo;
             document.getElementById('modal-descricao').innerText = dados.descricao;
+            document.getElementById('modal-solicitante').innerText = dados.solicitante || '(desconhecido)';
             document.getElementById('modal-status').value = dados.status;
             document.getElementById('modal-tecnico').value = dados.tecnico_id || "";
             document.getElementById('modal-resolucao').value = dados.resolucao || "";
